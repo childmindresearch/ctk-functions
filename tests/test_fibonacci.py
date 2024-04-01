@@ -2,7 +2,7 @@
 
 import pytest
 
-from APP_NAME import algorithms
+from ctk_intake_to_report import algorithms
 
 
 def test_fibonacci_success_0() -> None:
