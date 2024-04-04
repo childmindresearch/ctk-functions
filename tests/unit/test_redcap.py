@@ -4,7 +4,7 @@ import polars as pl
 import pytest
 import pytest_mock
 
-from ctk_functions.intake import redcap
+from ctk_functions.microservices import redcap
 
 
 def test_redcap_error(mocker: pytest_mock.MockFixture) -> None:

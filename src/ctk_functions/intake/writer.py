@@ -1,7 +1,11 @@
 """Contains report writing functionality for intake information."""
 
+import asyncio
 import enum
 import itertools
+import pathlib
+import tempfile
+from typing import AsyncGenerator
 
 import cmi_docx
 import cmi_docx.document
@@ -17,9 +21,11 @@ from ctk_functions.intake.utils import (
     language_utils,
     string_utils,
 )
+from ctk_functions.microservices import azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
+AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
 RGB_INTAKE = (178, 161, 199)
 RGB_TESTING = (155, 187, 89)
 RGB_TEMPLATE = (247, 150, 70)
@@ -60,7 +66,7 @@ class ReportWriter:
             msg = "Insertion point not found in the report template."
             raise ValueError(msg)
 
-    def transform(self) -> None:
+    async def transform(self) -> None:
         """Transforms the intake information to a report."""
         self.write_reason_for_visit()
         self.write_developmental_history()
@@ -73,7 +79,7 @@ class ReportWriter:
 
         self.replace_patient_information()
         self.apply_corrections()
-        self.add_signatures()
+        await self.add_signatures()
 
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
@@ -661,14 +667,14 @@ class ReportWriter:
         )
         document_corrector.correct()
 
-    def add_signatures(self) -> None:
+    async def add_signatures(self) -> None:
         """Adds the signatures to the report.
 
         Michael Milham's signature is placed in a different location than the
         other signatures. As such, it needs some custom handling.
         """
-        signature_dir = DATA_DIR / "signatures"
-        for signature in signature_dir.glob("*.png"):
+        signatures = self._download_signatures()
+        async for signature in signatures:
             name = signature.stem.replace("_", " ")
             paragraph_index = next(
                 index
@@ -750,3 +756,32 @@ class ReportWriter:
         if prepend_is:
             text = "is " + text
         return text
+
+    @staticmethod
+    async def _download_signatures() -> AsyncGenerator[pathlib.Path, None]:
+        """Downloads signatures from Azure blob storage.
+
+        Returns:
+            Filepaths of the downloaded signatures.
+        """
+        azure_blob_service = azure.AzureBlobService(
+            AZURE_BLOB_CONNECTION_STRING.get_secret_value()
+        )
+        container_contents = azure_blob_service.directory_contents("ctk-functions")
+        signatures = [
+            content.split("/")[-1]
+            for content in container_contents
+            if content.startswith("signatures")
+        ]
+        with tempfile.TemporaryDirectory() as signature_dir:
+            signature_files = await asyncio.gather(
+                *[
+                    azure_blob_service.save_blob_to_disk(
+                        "ctk-functions", signature, signature_dir / signature
+                    )
+                    for signature in signatures
+                ]
+            )
+
+            for file in signature_files:
+                yield file

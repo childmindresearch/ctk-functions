@@ -4,14 +4,15 @@ import tempfile
 
 from azure import functions
 
-from ctk_functions.intake import parser, redcap, writer
+from ctk_functions.intake import parser, writer
+from ctk_functions.microservices import redcap
 
 app = functions.FunctionApp()
 
 
 @app.function_name(name="get-intake-report")
 @app.route(route="intake-report/{survey_id}", auth_level=functions.AuthLevel.FUNCTION)
-def main(req: functions.HttpRequest) -> functions.HttpResponse:
+async def main(req: functions.HttpRequest) -> functions.HttpResponse:
     """Generates an intake report for a survey.
 
     Args:
@@ -27,7 +28,7 @@ def main(req: functions.HttpRequest) -> functions.HttpResponse:
     intake_data = redcap.get_intake_data(survey_id)
     parsed_data = parser.IntakeInformation(intake_data.to_dict())
     report = writer.ReportWriter(parsed_data)
-    report.transform()
+    await report.transform()
 
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
         report.report.save(temp_file.name)
