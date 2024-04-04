@@ -4,11 +4,7 @@
 
 Welcome to the CMI-DAIR Template Python Repository! This template is designed to streamline your project setup and ensure a consistent structure. To get started, follow these steps:
 
-
-- [x] Run `setup_template.py` to initialize the repository.
 - [ ] Replace the content of this `README.md` with details specific to your project.
-- [ ] Install the `pre-commit` hooks to ensure code quality on each commit.
-- [ ] Revise SECURITY.md to reflect supported versions or remove it if not applicable.
 - [ ] Remove the placeholder src and test files, these are there merely to show how the CI works.
 - [ ] If it hasn't already been done for your organization/acccount, grant third-party app permissions for CodeCov.
 - [ ] To set up an API documentation website, after the first successful build, go to the `Settings` tab of your repository, scroll down to the `GitHub Pages` section, and select `gh-pages` as the source. This will generate a link to your API docs.

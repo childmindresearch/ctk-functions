@@ -5,10 +5,19 @@ description = "A beautiful description."
 authors = ["Reinder Vos de Wael <reinder.vosdewael@childmind.org>"]
 license = "LGPL-2.1"
 readme = "README.md"
-packages = [{include = "ctk_intake_to_report", from = "src"}]
+packages = [{include = "ctk_functions", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "~3.11"
+azure-functions = "^1.18.0"
+pydantic = "^2.6.4"
+mlconjug3 = "^3.11.0"
+spacy = "^3.7.4"
+polars = "^0.20.18"
+python-dateutil = "^2.9.0.post0"
+pytz = "^2024.1"
+pydantic-settings = "^2.2.1"
+cmi-docx = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
@@ -16,6 +25,11 @@ mypy = "^1.8.0"
 pre-commit = "^3.6.2"
 pytest-cov = "^4.1.0"
 ruff = "^0.3.0"
+types-python-dateutil = "^2.9.0.20240316"
+types-pytz = "^2024.1.0.20240203"
+pytest-dotenv = "^0.5.2"
+pytest-mock = "^3.14.0"
+types-requests = "^2.31.0.20240402"
 
 [tool.poetry.group.docs.dependencies]
 pdoc = "^14.4.0"
