@@ -6,7 +6,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 COPY pyproject.toml poetry.lock  README.md LICENSE host.json ./
-COPY ctk_functions ./ctk_functions
+COPY src ./src
 RUN pip install --no-cache-dir . && \
     python -m spacy download en_core_web_sm
 
