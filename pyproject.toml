@@ -17,7 +17,7 @@ polars = "^0.20.18"
 python-dateutil = "^2.9.0.post0"
 pytz = "^2024.1"
 pydantic-settings = "^2.2.1"
-cmi-docx = "^0.1.0"
+cmi-docx = "^0.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
