@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/azure-functions/python:4-python3.11
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
-COPY pyproject.toml poetry.lock  README.md LICENSE host.json ./
+COPY pyproject.toml poetry.lock function_app.py README.md LICENSE host.json ./
 COPY src ./src
 RUN pip install --no-cache-dir . && \
     python -m spacy download en_core_web_sm
