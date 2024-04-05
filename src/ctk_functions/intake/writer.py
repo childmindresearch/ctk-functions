@@ -1,7 +1,11 @@
 """Contains report writing functionality for intake information."""
 
+import asyncio
+import dataclasses
 import enum
 import itertools
+import tempfile
+from typing import AsyncGenerator
 
 import cmi_docx
 import cmi_docx.document
@@ -17,9 +21,11 @@ from ctk_functions.intake.utils import (
     language_utils,
     string_utils,
 )
+from ctk_functions.microservices import azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
+AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
 RGB_INTAKE = (178, 161, 199)
 RGB_TESTING = (155, 187, 89)
 RGB_TEMPLATE = (247, 150, 70)
@@ -34,6 +40,14 @@ class Style(enum.Enum):
     HEADING_3 = "Heading 3"
     TITLE = "Title"
     NORMAL = "Normal"
+
+
+@dataclasses.dataclass
+class Image:
+    """Represents an image to be inserted into the report."""
+
+    name: str
+    binary_data: bytes
 
 
 class ReportWriter:
@@ -60,7 +74,7 @@ class ReportWriter:
             msg = "Insertion point not found in the report template."
             raise ValueError(msg)
 
-    def transform(self) -> None:
+    async def transform(self) -> None:
         """Transforms the intake information to a report."""
         self.write_reason_for_visit()
         self.write_developmental_history()
@@ -73,7 +87,7 @@ class ReportWriter:
 
         self.replace_patient_information()
         self.apply_corrections()
-        self.add_signatures()
+        await self.add_signatures()
 
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
@@ -90,11 +104,10 @@ class ReportWriter:
             "placeholder": PLACEHOLDER,
         }
 
+        extendedDocument = cmi_docx.ExtendDocument(self.report)
         for template, replacement in replacements.items():
             template_formatted = "{{" + template.upper() + "}}"
-            cmi_docx.ExtendDocument(self.report).replace(
-                template_formatted, replacement
-            )
+            extendedDocument.replace(template_formatted, replacement)
 
     def write_reason_for_visit(self) -> None:
         """Writes the reason for visit to the end of the report."""
@@ -170,7 +183,8 @@ class ReportWriter:
 
         heading = self._insert("Prenatal and Birth History", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_developmental_milestones(self) -> None:
         """Writes the developmental milestones to the report."""
@@ -192,7 +206,8 @@ class ReportWriter:
 
         heading = self._insert("Developmental Milestones", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TEMPLATE)
 
     def write_early_education(self) -> None:
         """Writes the early education information to the report."""
@@ -211,7 +226,8 @@ class ReportWriter:
 
         heading = self._insert("Early Educational Interventions", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_academic_history(self) -> None:
         """Writes the academic history to the end of the report."""
@@ -235,7 +251,8 @@ class ReportWriter:
 
         heading = self._insert("Previous Testing", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_academic_history_table(self) -> None:
         """Writes the academic history table to the report."""
@@ -261,7 +278,6 @@ class ReportWriter:
             header_row[i].text = header
             header_row[i].width = 10
             cmi_docx.ExtendCell(header_row[i]).format(
-                header_row[i],
                 bold=True,
                 font_rgb=RGB_INTAKE,
                 background_rgb=(217, 217, 217),
@@ -329,7 +345,8 @@ class ReportWriter:
 
         heading = self._insert("Educational History", Style.HEADING_2)
         prior_paragraph = self._insert(text_prior)
-        cmi_docx.ExtendParagraph((heading, prior_paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(prior_paragraph).format(font_rgb=RGB_INTAKE)
 
         current_paragraph = self._insert(texts_current[0])
         current_paragraph.add_run(texts_current[1]).font.superscript = True
@@ -398,7 +415,8 @@ class ReportWriter:
 
         heading = self._insert("Social Functioning", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_psychiatric_history(self) -> None:
         """Writes the psychiatric history to the end of the report."""
@@ -424,7 +442,8 @@ class ReportWriter:
 
         heading = self._insert("Past Psychiatric Hospitalizations", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TEMPLATE)
 
     def administration_for_childrens_services_involvement(self) -> None:
         """Writes the ACS involvement to the report."""
@@ -438,7 +457,8 @@ class ReportWriter:
             Style.HEADING_2,
         )
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_past_aggressive_behaviors_and_homicidality(self) -> None:
         """Writes the past aggressive behaviors and homicidality to the report."""
@@ -452,7 +472,8 @@ class ReportWriter:
             Style.HEADING_2,
         )
         report = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, report)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB_INTAKE)
 
     def write_past_psychriatic_diagnoses(self) -> None:
         """Writes the past psychiatric diagnoses to the report."""
@@ -468,7 +489,8 @@ class ReportWriter:
 
         heading = self._insert("Past Psychiatric Diagnoses", Style.HEADING_2)
         report = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, report)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB_INTAKE)
 
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
@@ -487,7 +509,8 @@ class ReportWriter:
 
         heading = self._insert("Family Psychiatric History", Style.HEADING_2)
         report = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, report)).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB_TEMPLATE)
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""
@@ -519,7 +542,8 @@ class ReportWriter:
 
         heading = self._insert("Past Therapeutic Interventions", Style.HEADING_2)
         paragraphs = [self._insert(text) for text in texts]
-        cmi_docx.ExtendParagraph((heading, *paragraphs)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(*paragraphs).format(font_rgb=RGB_INTAKE)
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
@@ -533,7 +557,8 @@ class ReportWriter:
             Style.HEADING_2,
         )
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def expose_to_violence_and_trauma(self) -> None:
         """Writes the exposure to violence and trauma to the report."""
@@ -544,7 +569,8 @@ class ReportWriter:
 
         heading = self._insert("Exposure to Violence and Trauma", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_medical_history(self) -> None:
         """Writes the medical history to the end of the report."""
@@ -563,7 +589,8 @@ class ReportWriter:
 
         heading = self._insert("MEDICAL HISTORY", Style.HEADING_1)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TEMPLATE)
 
     def write_clinical_summary_and_impressions(self) -> None:
         """Writes the clinical summary and impressions to the report."""
@@ -581,7 +608,8 @@ class ReportWriter:
 
         heading = self._insert("CLINICAL SUMMARY AND IMPRESSIONS", Style.HEADING_1)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_TESTING)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TESTING)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TESTING)
 
     def write_current_psychiatric_functioning(self) -> None:
         """Writes the current psychiatric functioning to the report.
@@ -609,7 +637,8 @@ class ReportWriter:
 
         heading = self._insert("Current Psychiatric Medications", Style.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph((heading, paragraph)).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_current_psychiatric_medications_testing(self) -> None:
         """Writes the current psychiatric medications to the report."""
@@ -636,7 +665,7 @@ class ReportWriter:
         paragraph.add_run(texts[1])
         paragraph.runs[-1].bold = True
         paragraph.add_run(texts[2])
-        cmi_docx.ExtendParagraph(paragraph, italics=True).format(font_rgb=RGB_TESTING)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TESTING, italics=True)
 
     def write_denied_symptoms(self) -> None:
         """Writes the denied symptoms to the report."""
@@ -661,28 +690,38 @@ class ReportWriter:
         )
         document_corrector.correct()
 
-    def add_signatures(self) -> None:
+    async def add_signatures(self) -> None:
         """Adds the signatures to the report.
 
         Michael Milham's signature is placed in a different location than the
         other signatures. As such, it needs some custom handling.
         """
-        signature_dir = DATA_DIR / "signatures"
-        for signature in signature_dir.glob("*.png"):
-            name = signature.stem.replace("_", " ")
-            paragraph_index = next(
-                index
-                for index in range(len(self.report.paragraphs))
-                if self.report.paragraphs[index].text.lower().startswith(name)
-            )
+        signatures = self._download_signatures()
+        async for signature in signatures:
+            try:
+                paragraph_index = next(
+                    index
+                    for index in range(len(self.report.paragraphs))
+                    if self.report.paragraphs[index]
+                    .text.lower()
+                    .startswith(signature.name)
+                )
+            except StopIteration:
+                import pdb
 
-            if name != "michael p. milham":
+                pdb.set_trace()
+
+            if signature.name != "michael p. milham":
                 paragraph_index -= 1
 
-            cmi_docx.ExtendDocument(self.report).insert_image(
-                paragraph_index, signature
-            )
-            if name != "michael p. milham":
+            suffix = signature.name.split(".")[-1]
+            with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
+                temp_file.write(signature.binary_data)
+                temp_file.seek(0)
+                cmi_docx.ExtendDocument(self.report).insert_image(
+                    paragraph_index, temp_file.name
+                )
+            if signature.name != "michael p. milham":
                 cmi_docx.ExtendDocument(self.report)._insert_empty_paragraph(
                     paragraph_index
                 )
@@ -714,10 +753,8 @@ class ReportWriter:
             for index in range(len(self.report.paragraphs))
             if self.report.paragraphs[index].text == self.insert_before.text
         )
-        document = docx.Document()
-        new_paragraph = document.add_paragraph(text, style=style.value)
-        return cmi_docx.ExtendDocument(self.report).insert_paragraph(
-            new_paragraph, insertion_index
+        return cmi_docx.ExtendDocument(self.report).insert_paragraph_by_text(
+            insertion_index, text, style.value
         )
 
     @staticmethod
@@ -750,3 +787,34 @@ class ReportWriter:
         if prepend_is:
             text = "is " + text
         return text
+
+    @staticmethod
+    async def _download_signatures() -> AsyncGenerator[Image, None]:
+        """Downloads signatures from Azure blob storage.
+
+        Returns:
+            Bytes of the downloaded signatures.
+        """
+        azure_blob_service = azure.AzureBlobService(
+            AZURE_BLOB_CONNECTION_STRING.get_secret_value()
+        )
+        container_contents = await azure_blob_service.directory_contents(
+            "ctk-functions"
+        )
+        signature_filepaths = [
+            content
+            for content in container_contents
+            if content.startswith("signatures")
+        ]
+        signature_promises = [
+            azure_blob_service.download_blob("ctk-functions", signature)
+            for signature in signature_filepaths
+        ]
+        signature_bytes = await asyncio.gather(*signature_promises)
+        for filepath, binary_data in zip(signature_filepaths, signature_bytes):
+            person_name = (
+                ".".join(filepath.split("/")[-1].split(".")[0:-1])
+                .lower()
+                .replace("_", " ")
+            )
+            yield Image(person_name, binary_data)

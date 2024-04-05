@@ -12,6 +12,7 @@ jobs:
   unit:
     env:
       REDCAP_API_TOKEN: test
+      AZURE_BLOB_CONNECTION_STRING: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -24,6 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install
+        poetry run python -m spacy download en_core_web_sm
     - name: Run tests
       id: run-tests
       run: >

@@ -15,6 +15,7 @@ class Settings(pydantic_settings.BaseSettings):
     REDCAP_ENDPOINT: pydantic.HttpUrl = pydantic.HttpUrl(
         "https://redcap.healthybrainnetwork.org/redcap/api/"
     )
+    AZURE_BLOB_CONNECTION_STRING: pydantic.SecretStr
 
 
 @functools.lru_cache()

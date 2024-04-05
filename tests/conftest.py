@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from ctk_functions.intake import redcap
+from ctk_functions.microservices import redcap
 
 
 @pytest.fixture(scope="session")
