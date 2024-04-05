@@ -1,8 +1,10 @@
 """Unit tests for the writer module."""
 
 import dataclasses
+import datetime
 from typing import Literal
 
+import docx
 import pytest
 
 from ctk_functions.intake import descriptors, parser, writer
@@ -14,6 +16,50 @@ class Language:
 
     name: str
     fluency: Literal["fluent", "proficient", "conversational", "basic"]
+
+
+@dataclasses.dataclass
+class MockGuardian:
+    """Basic replacement for parser.GuardianInformation."""
+
+    title_name: str = "Mr. Lukas Fink"
+
+
+@dataclasses.dataclass
+class MockPatient:
+    """Basic replacement for parser.PatientInformation."""
+
+    full_name: str = "Lea Avatar"
+    first_name: str = "Lea"
+    date_of_birth: datetime.datetime = datetime.datetime(2015, 1, 1)
+    guardian: MockGuardian = dataclasses.field(default_factory=MockGuardian)
+    age_gender_label: str = "girl"
+    pronouns: list[str] = dataclasses.field(
+        default_factory=lambda: ["she", "her", "her", "hers", "herself"]
+    )
+
+
+@dataclasses.dataclass
+class MockIntake:
+    """Basic replacement for parser.IntakeInformation."""
+
+    patient: MockPatient = dataclasses.field(default_factory=MockPatient)
+
+
+def test_replace_patient_information() -> None:
+    """Test that the method returns correctly formatted text."""
+    intake = MockIntake()
+    document = docx.Document()
+    paragraph = document.add_paragraph("{{FULL_NAME}} is a {{PRONOUN_0}}.")
+    paragraph.add_run(" {{PRONOUN_2}}")
+    report_writer = writer.ReportWriter(intake)
+    report_writer.report = document
+    expected = "Lea Avatar is a she. her"
+
+    report_writer.replace_patient_information()
+    actual = report_writer.report.paragraphs[0].text
+
+    assert actual == expected
 
 
 def test_valid_language_replacement() -> None:

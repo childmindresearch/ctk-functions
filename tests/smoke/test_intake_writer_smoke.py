@@ -6,27 +6,56 @@ for easy-to-make mistakes.
 """
 
 import re
-from collections.abc import Generator
-from typing import Any
+from typing import Any, Coroutine, Iterable, Self, TypeVar
 
-import docx
 import pytest
+import pytest_mock
+from docx import document
 
 from ctk_functions.intake import parser, writer
 
+T = TypeVar("T")
 
-@pytest.fixture(scope="module")
-def intake_document(
+
+class AsyncIterator:
+    """An async iterator for testing purposes."""
+
+    def __init__(self, seq: Iterable[T]) -> None:
+        """Initialize the async iterator with a sequence."""
+        self.iter = iter(seq)
+
+    def __aiter__(self) -> Self:
+        """Return the iterator itself."""
+        return self
+
+    async def __anext__(self) -> T:
+        """Return the next item from the iterator."""
+        try:
+            return next(self.iter)
+        except StopIteration:
+            raise StopAsyncIteration
+
+
+@pytest.fixture(scope="function")
+async def intake_document(
+    mocker: pytest_mock.MockFixture,
     test_redcap_data: dict[str, Any],
-) -> Generator[docx.Document, None, None]:
+) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
+    mocker.patch(
+        "ctk_functions.intake.writer.ReportWriter._download_signatures",
+        return_value=AsyncIterator([]),
+    )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info)
-    intake_writer.transform()
+    await intake_writer.transform()
     return intake_writer.report
 
 
-def test_no_printed_objects(intake_document: docx.Document) -> None:
+@pytest.mark.asyncio
+async def test_no_printed_objects(
+    intake_document: Coroutine[document.Document, None, None],
+) -> None:
     """Tests that the document contains no printed objects.
 
     Some of these tests (e.g. None) may need to be removed if they are
@@ -34,7 +63,8 @@ def test_no_printed_objects(intake_document: docx.Document) -> None:
     comprehensive, but it should catch some easy mistakes.
     """
     regex_scientific_notation = r"\de[-\d]"
-    text = "\n".join([p.text for p in intake_document.paragraphs])
+
+    text = "\n".join([p.text for p in (await intake_document).paragraphs])  # type: ignore
 
     assert "[]" not in text
     assert "{" not in text
@@ -47,12 +77,13 @@ def test_no_printed_objects(intake_document: docx.Document) -> None:
     assert re.match(regex_scientific_notation, text) is None
 
 
-def test_expected_strings_in_document(
-    intake_document: docx.Document,
+@pytest.mark.asyncio
+async def test_expected_strings_in_document(
+    intake_document: document.Document,
     test_redcap_data: dict[str, Any],
 ) -> None:
     """Tests that the document contains some expected strings."""
-    text = "\n".join([p.text for p in intake_document.paragraphs])
+    text = "\n".join([p.text for p in (await intake_document).paragraphs])
     headers = [
         "REASON FOR VISIT",
         "IDENTIFYING INFORMATION",
