@@ -59,3 +59,20 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
         status_code=http.HTTPStatus.OK,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
+
+
+@app.function_name(name="health")
+@app.route(route="health", auth_level=functions.AuthLevel.FUNCTION)
+async def health(req: functions.HttpRequest) -> functions.HttpResponse:
+    """Health check endpoint.
+
+    Args:
+        req: The HTTP request object.
+
+    Returns:
+        The HTTP response indicating the health of the app.
+    """
+    return functions.HttpResponse(
+        body="Healthy",
+        status_code=http.HTTPStatus.OK,
+    )
