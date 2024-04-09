@@ -12,7 +12,7 @@ import pytest
 import pytest_mock
 from docx import document
 
-from ctk_functions.intake import parser, writer
+from ctk_functions.functions.intake import parser, writer
 
 T = TypeVar("T")
 
@@ -43,7 +43,7 @@ async def intake_document(
 ) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
     mocker.patch(
-        "ctk_functions.intake.writer.ReportWriter._download_signatures",
+        "ctk_functions.functions.intake.writer.ReportWriter._download_signatures",
         return_value=AsyncIterator([]),
     )
     intake_info = parser.IntakeInformation(test_redcap_data)

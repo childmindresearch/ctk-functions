@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from ctk_functions.intake import descriptors, parser
+from ctk_functions.functions.intake import descriptors, parser
 
 
 def test_guardian_parser(

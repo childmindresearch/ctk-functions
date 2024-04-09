@@ -12,8 +12,8 @@ import dataclasses
 import enum
 from typing import Generic, Protocol, TypeVar
 
-from ctk_functions.intake import descriptors
-from ctk_functions.intake.utils import string_utils
+from ctk_functions.functions.intake import descriptors
+from ctk_functions.functions.intake.utils import string_utils
 
 T = TypeVar("T")
 

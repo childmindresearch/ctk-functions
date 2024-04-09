@@ -7,7 +7,7 @@ import pytz
 from dateutil import parser as dateutil_parser
 
 from ctk_functions import config
-from ctk_functions.intake import descriptors, transformers
+from ctk_functions.functions.intake import descriptors, transformers
 
 logger = config.get_logger()
 
