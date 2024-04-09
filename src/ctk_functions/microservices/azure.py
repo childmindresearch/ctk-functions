@@ -2,6 +2,10 @@
 
 from azure.storage.blob import aio
 
+from ctk_functions import config
+
+logger = config.get_logger()
+
 
 class AzureBlobService:
     """A class to interact with Azure Blob Storage."""
@@ -12,6 +16,7 @@ class AzureBlobService:
         Args:
             connection_string: The connection string to the Azure Blob Service.
         """
+        logger.debug("Initializing Azure Blob Service.")
         self.blob_service_client = aio.BlobServiceClient.from_connection_string(
             connection_string
         )
@@ -26,6 +31,7 @@ class AzureBlobService:
         Returns:
             The content of the blob.
         """
+        logger.debug(f"Downloading blob {blob_name} from container {container_name}.")
         blob_client = self.blob_service_client.get_blob_client(
             container=container_name, blob=blob_name
         )
@@ -40,10 +46,12 @@ class AzureBlobService:
         Returns:
             A list of blob names.
         """
+        logger.debug(f"Listing contents of container {container_name}.")
         container_client = self.blob_service_client.get_container_client(container_name)
         blobs = container_client.list_blobs()
         return [blob.name async for blob in blobs]
 
     async def close(self) -> None:
         """Close the Azure Blob Service."""
+        logger.debug("Closing Azure Blob Service.")
         await self.blob_service_client.close()

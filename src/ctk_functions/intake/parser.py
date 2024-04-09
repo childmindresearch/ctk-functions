@@ -6,7 +6,10 @@ from typing import Any
 import pytz
 from dateutil import parser as dateutil_parser
 
+from ctk_functions import config
 from ctk_functions.intake import descriptors, transformers
+
+logger = config.get_logger()
 
 
 class IntakeInformation:
@@ -24,6 +27,7 @@ class IntakeInformation:
             patient_data: The patient dataframe.
             timezone: The timezone of the intake.
         """
+        logger.info("Parsing intake information.")
         self.patient = Patient(patient_data, timezone=timezone)
         self.phone = patient_data["phone"]
 
@@ -42,6 +46,7 @@ class Patient:
             patient_data: The patient dataframe.
             timezone: The timezone of the intake.
         """
+        logger.debug("Parsing patient information.")
         self.first_name = patient_data["firstname"]
         self.last_name = patient_data["lastname"]
         self.nickname = patient_data["othername"]
@@ -141,6 +146,7 @@ class Guardian:
         Args:
             patient_data: The patient dataframe.
         """
+        logger.debug("Parsing guardian information.")
         self.first_name = patient_data["guardian_first_name"]
         self.last_name = patient_data["guardian_last_name"]
         relationship_id = next(
@@ -208,6 +214,7 @@ class Household:
         Args:
             patient_data: The patient dataframe.
         """
+        logger.debug("Parsing household information.")
         n_members = patient_data["residing_number"]
         self.members = transformers.HouseholdMembers(
             [HouseholdMember(patient_data, i) for i in range(1, n_members + 1)],
@@ -240,6 +247,7 @@ class Language:
             patient_data: The patient dataframe.
             identifier: The id of the language.
         """
+        logger.debug(f"Parsing language {identifier}.")
         self.name = patient_data[f"child_language{identifier}"]
         self.spoken_whole_life = patient_data[f"child_language{identifier}_spoken"]
         self.spoken_since_age = patient_data[f"child_language{identifier}_age"]
@@ -259,6 +267,7 @@ class HouseholdMember:
             patient_data: The patient dataframe.
             identifier: The id of the household member.
         """
+        logger.debug(f"Parsing household member {identifier}.")
         self.name = patient_data[f"peopleinhome{identifier}"]
         self.age = patient_data[f"peopleinhome{identifier}_age"]
         self.relationship = transformers.HouseholdRelationship(
@@ -289,6 +298,7 @@ class Education:
         Args:
             patient_data: The patient dataframe.
         """
+        logger.debug("Parsing education information.")
         self.years_of_education = patient_data["yrs_school"]
         self.school_name = patient_data["school"]
         self.grade = patient_data["grade"]
@@ -323,6 +333,7 @@ class Development:
         Args:
             patient_data: The patient dataframe.
         """
+        logger.debug("Parsing development information.")
         self.duration_of_pregnancy = transformers.DurationOfPregnancy(
             patient_data["txt_duration_preg_num"],
         )
@@ -383,6 +394,7 @@ class PsychiatricHistory:
         Args:
             patient_data: The patient dataframe.
         """
+        logger.debug("Parsing psychiatric history.")
         past_diagnoses = [
             descriptors.PastDiagnosis(
                 diagnosis=patient_data[f"pastdx_{index}"],
@@ -422,6 +434,7 @@ class TherapeuticInterventions:
             patient_data: The patient dataframe.
             identifier: The id of the therapeutic history instance.
         """
+        logger.debug(f"Parsing therapeutic intervention {identifier}.")
         faulty_identifier = 2
         if identifier != faulty_identifier:
             self.therapist = patient_data[f"txhx_{identifier}"]

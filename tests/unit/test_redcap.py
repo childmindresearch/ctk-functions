@@ -1,6 +1,5 @@
 """Tests for REDCap intake data retrieval."""
 
-import polars as pl
 import pytest
 import pytest_mock
 
@@ -12,16 +11,25 @@ def test_redcap_error(mocker: pytest_mock.MockFixture) -> None:
     mocker.patch("requests.post", side_effect=Exception("Test exception"))
 
     with pytest.raises(Exception):
-        redcap.get_intake_data("test_survey_id")
+        redcap.get_intake_data("00000")
 
 
 def test_redcap_success(mocker: pytest_mock.MockFixture) -> None:
     """Tests the REDcap success handling."""
-    response = mocker.MagicMock()
-    response.text = "data\ntest_data\n"
-    mocker.patch("requests.post", return_value=response)
-    expected = pl.DataFrame({"data": "test_data"})
+    mocker.patch(
+        "redcap.Project",
+        return_value=mocker.MagicMock(
+            export_records=mocker.MagicMock(
+                return_value="record_id,redcap_survey_identifier,data\n0,00000,test_data\n"
+            )
+        ),
+    )
+    expected = {
+        "record_id": "0",
+        "redcap_survey_identifier": "00000",
+        "data": "test_data",
+    }
 
-    actual = redcap.get_intake_data("test_survey_id")
+    actual = redcap.get_intake_data("00000")
 
-    assert actual.equals(expected)
+    assert actual == expected
