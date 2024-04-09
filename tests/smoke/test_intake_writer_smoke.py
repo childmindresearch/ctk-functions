@@ -12,7 +12,7 @@ import pytest
 import pytest_mock
 from docx import document
 
-from ctk_functions.intake import parser, writer
+from ctk_functions.functions.intake import parser, writer
 
 T = TypeVar("T")
 

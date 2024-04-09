@@ -7,7 +7,7 @@ from typing import Literal
 import docx
 import pytest
 
-from ctk_functions.intake import descriptors, parser, writer
+from ctk_functions.functions.intake import descriptors, parser, writer
 
 
 @dataclasses.dataclass

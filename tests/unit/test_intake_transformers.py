@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctk_functions.intake import descriptors, transformers
+from ctk_functions.functions.intake import descriptors, transformers
 
 
 @pytest.mark.parametrize(

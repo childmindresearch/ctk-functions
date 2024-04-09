@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctk_functions.intake.utils import (
+from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
