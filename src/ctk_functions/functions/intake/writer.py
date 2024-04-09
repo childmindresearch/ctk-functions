@@ -16,8 +16,8 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.intake import descriptors, parser
-from ctk_functions.intake.utils import (
+from ctk_functions.functions.intake import descriptors, parser
+from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )

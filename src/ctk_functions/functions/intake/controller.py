@@ -1,0 +1,26 @@
+"""Business logic for the intake endpoints."""
+
+import tempfile
+
+from ctk_functions.functions.intake import parser, writer
+from ctk_functions.microservices import redcap
+
+
+def get_intake_report(survey_id: str) -> bytes:
+    """Generates an intake report for a survey.
+
+    Args:
+        survey_id: The survey ID.
+
+    Returns:
+        The .docx file bytes.
+    """
+    intake_data = redcap.get_intake_data(survey_id)
+    parsed_data = parser.IntakeInformation(intake_data.to_dict())
+    report = writer.ReportWriter(parsed_data)
+    report.transform()
+
+    with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
+        report.report.save(temp_file.name)
+        temp_file.seek(0)
+        return temp_file.read()
