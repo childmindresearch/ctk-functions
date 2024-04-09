@@ -4,11 +4,11 @@ import asyncio
 import dataclasses
 import enum
 import itertools
+import pathlib
 import tempfile
 from typing import AsyncGenerator
 
 import cmi_docx
-import cmi_docx.document
 import docx
 from docx import document as docx_document
 from docx.enum import table as enum_table
@@ -30,6 +30,8 @@ RGB_INTAKE = (178, 161, 199)
 RGB_TESTING = (155, 187, 89)
 RGB_TEMPLATE = (247, 150, 70)
 PLACEHOLDER = "______"
+
+logger = config.get_logger()
 
 
 class Style(enum.Enum):
@@ -59,6 +61,7 @@ class ReportWriter:
         Args:
             intake: The intake information.
         """
+        logger.debug("Initializing the report writer.")
         self.intake = intake
         self.report: docx_document.Document = docx.Document(
             DATA_DIR / "report_template.docx"
@@ -76,6 +79,8 @@ class ReportWriter:
 
     async def transform(self) -> None:
         """Transforms the intake information to a report."""
+        logger.debug("Transforming the intake information to a report.")
+
         self.write_reason_for_visit()
         self.write_developmental_history()
         self.write_academic_history()
@@ -91,6 +96,7 @@ class ReportWriter:
 
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
+        logger.debug("Replacing patient information in the report.")
         replacements = {
             "full_name": self.intake.patient.full_name,
             "preferred_name": self.intake.patient.first_name,
@@ -111,6 +117,7 @@ class ReportWriter:
 
     def write_reason_for_visit(self) -> None:
         """Writes the reason for visit to the end of the report."""
+        logger.debug("Writing the reason for visit to the report.")
         patient = self.intake.patient
         handedness = patient.handedness
         iep = patient.education.individualized_educational_program
@@ -155,6 +162,7 @@ class ReportWriter:
 
     def write_developmental_history(self) -> None:
         """Writes the developmental history to the end of the report."""
+        logger.debug("Writing the developmental history to the report.")
         heading = self._insert("DEVELOPMENTAL HISTORY", Style.HEADING_1)
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
         self.write_prenatal_history()
@@ -163,6 +171,7 @@ class ReportWriter:
 
     def write_prenatal_history(self) -> None:
         """Writes the prenatal and birth history of the patient to the report."""
+        logger.debug("Writing the prenatal history to the report.")
         patient = self.intake.patient
         development = patient.development
         pregnancy_symptoms = development.birth_complications
@@ -188,6 +197,7 @@ class ReportWriter:
 
     def write_developmental_milestones(self) -> None:
         """Writes the developmental milestones to the report."""
+        logger.debug("Writing the developmental milestones to the report.")
         patient = self.intake.patient
         started_walking = patient.development.started_walking
         started_talking = patient.development.started_talking
@@ -211,6 +221,7 @@ class ReportWriter:
 
     def write_early_education(self) -> None:
         """Writes the early education information to the report."""
+        logger.debug("Writing the early education information to the report.")
         patient = self.intake.patient
         development = patient.development
 
@@ -231,6 +242,7 @@ class ReportWriter:
 
     def write_academic_history(self) -> None:
         """Writes the academic history to the end of the report."""
+        logger.debug("Writing the academic history to the report.")
         heading = self._insert("ACADEMIC AND EDUCATIONAL HISTORY", Style.HEADING_1)
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
         self.write_previous_testing()
@@ -239,6 +251,7 @@ class ReportWriter:
 
     def write_previous_testing(self) -> None:
         """Writes the previous testing information to the report."""
+        logger.debug("Writing the previous testing information to the report.")
         patient = self.intake.patient
 
         text = f"""
@@ -256,6 +269,7 @@ class ReportWriter:
 
     def write_academic_history_table(self) -> None:
         """Writes the academic history table to the report."""
+        logger.debug("Writing the academic history table to the report.")
         paragraph = self._insert("Name, Date of Assessment")
         cmi_docx.ExtendParagraph(paragraph).format(
             font_rgb=RGB_INTAKE,
@@ -295,6 +309,7 @@ class ReportWriter:
 
     def write_educational_history(self) -> None:
         """Writes the educational history to the report."""
+        logger.debug("Writing the educational history to the report.")
         patient = self.intake.patient
         education = patient.education
         has_iep = (
@@ -355,6 +370,7 @@ class ReportWriter:
 
     def write_social_history(self) -> None:
         """Writes the social history to the end of the report."""
+        logger.debug("Writing the social history to the report.")
         heading = self._insert("SOCIAL HISTORY", Style.HEADING_1)
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
         self.write_home_and_adaptive_functioning()
@@ -362,6 +378,7 @@ class ReportWriter:
 
     def write_home_and_adaptive_functioning(self) -> None:
         """Writes the home and adaptive functioning to the report."""
+        logger.debug("Writing the home and adaptive functioning to the report.")
         patient = self.intake.patient
         household = patient.household
         language_fluencies = self._join_patient_languages(self.intake.patient.languages)
@@ -398,6 +415,7 @@ class ReportWriter:
 
     def write_social_functioning(self) -> None:
         """Writes the social functioning to the report."""
+        logger.debug("Writing the social functioning to the report.")
         patient = self.intake.patient
 
         text = f"""
@@ -420,6 +438,7 @@ class ReportWriter:
 
     def write_psychiatric_history(self) -> None:
         """Writes the psychiatric history to the end of the report."""
+        logger.debug("Writing the psychiatric history to the report.")
         heading = self._insert("PSYCHRIATIC HISTORY", Style.HEADING_1)
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
         self.write_past_psychriatic_diagnoses()
@@ -427,12 +446,13 @@ class ReportWriter:
         self.write_past_therapeutic_interventions()
         self.write_past_self_injurious_behaviors_and_suicidality()
         self.write_past_aggressive_behaviors_and_homicidality()
-        self.expose_to_violence_and_trauma()
+        self.exposure_to_violence_and_trauma()
         self.administration_for_childrens_services_involvement()
         self.write_family_psychiatric_history()
 
     def write_past_psychiatric_hospitalizations(self) -> None:
         """Writes the past psychiatric hospitalizations to the report."""
+        logger.debug("Writing the past psychiatric hospitalizations to the report.")
         patient = self.intake.patient
         text = f"""
             {patient.guardian.title_name} denied any history of past psychiatric
@@ -447,6 +467,7 @@ class ReportWriter:
 
     def administration_for_childrens_services_involvement(self) -> None:
         """Writes the ACS involvement to the report."""
+        logger.debug("Writing the ACS involvement to the report.")
         patient = self.intake.patient
 
         text = str(patient.psychiatric_history.children_services)
@@ -462,6 +483,9 @@ class ReportWriter:
 
     def write_past_aggressive_behaviors_and_homicidality(self) -> None:
         """Writes the past aggressive behaviors and homicidality to the report."""
+        logger.debug(
+            "Writing the past aggressive behaviors and homicidality to the report."
+        )
         patient = self.intake.patient
 
         text = str(patient.psychiatric_history.aggresive_behaviors)
@@ -477,6 +501,7 @@ class ReportWriter:
 
     def write_past_psychriatic_diagnoses(self) -> None:
         """Writes the past psychiatric diagnoses to the report."""
+        logger.debug("Writing the past psychiatric diagnoses to the report.")
         patient = self.intake.patient
         past_diagnoses = patient.psychiatric_history.past_diagnoses.transform(
             short=False,
@@ -494,6 +519,7 @@ class ReportWriter:
 
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
+        logger.debug("Writing the family psychiatric history to the report.")
         patient = self.intake.patient
         text = f"""
         {patient.first_name}'s family history is largely unremarkable for
@@ -514,6 +540,7 @@ class ReportWriter:
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""
+        logger.debug("Writing the past therapeutic history to the report.")
         patient = self.intake.patient
         guardian = patient.guardian
         interventions = patient.psychiatric_history.therapeutic_interventions
@@ -547,6 +574,9 @@ class ReportWriter:
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
+        logger.debug(
+            "Writing the past self-injurious behaviors and suicidality to the report."
+        )
         patient = self.intake.patient
 
         text = str(patient.psychiatric_history.self_harm)
@@ -560,8 +590,9 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
         cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
-    def expose_to_violence_and_trauma(self) -> None:
+    def exposure_to_violence_and_trauma(self) -> None:
         """Writes the exposure to violence and trauma to the report."""
+        logger.debug("Writing the exposure to violence and trauma to the report.")
         patient = self.intake.patient
 
         text = str(patient.psychiatric_history.violence_and_trauma)
@@ -574,6 +605,7 @@ class ReportWriter:
 
     def write_medical_history(self) -> None:
         """Writes the medical history to the end of the report."""
+        logger.debug("Writing the medical history to the report.")
         patient = self.intake.patient
 
         text = f"""
@@ -594,6 +626,7 @@ class ReportWriter:
 
     def write_clinical_summary_and_impressions(self) -> None:
         """Writes the clinical summary and impressions to the report."""
+        logger.debug("Writing the clinical summary and impressions to the report.")
         patient = self.intake.patient
         gender = patient.age_gender_label
 
@@ -617,6 +650,7 @@ class ReportWriter:
         Note: this section mixes color codings. Color decorators are applied
         to the called functions instead.
         """
+        logger.debug("Writing the current psychiatric functioning to the report.")
         heading = self._insert("CURRENT PSYCHIATRIC FUNCTIONING", Style.HEADING_1)
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
         self.write_current_psychiatric_medications_intake()
@@ -625,13 +659,14 @@ class ReportWriter:
 
     def write_current_psychiatric_medications_intake(self) -> None:
         """Writes the current psychiatric medications to the report."""
+        logger.debug("Writing the current psychiatric medications to the report.")
         patient = self.intake.patient
         text = f"""
-        {patient.first_name} is currently prescribed a daily/twice daily
-        oral course of {PLACEHOLDER} for {PLACEHOLDER}.
-        {patient.pronouns[0].capitalize()} is being treated by Doctortype,
-        DoctorName, monthly/weekly/biweekly. The medication has been
-        ineffective/effective.
+            {patient.first_name} is currently prescribed a daily/twice daily
+            oral course of {PLACEHOLDER} for {PLACEHOLDER}.
+            {patient.pronouns[0].capitalize()} is being treated by Doctortype,
+            DoctorName, monthly/weekly/biweekly. The medication has been
+            ineffective/effective.
         """
         text = string_utils.remove_excess_whitespace(text)
 
@@ -642,6 +677,7 @@ class ReportWriter:
 
     def write_current_psychiatric_medications_testing(self) -> None:
         """Writes the current psychiatric medications to the report."""
+        logger.debug("Writing the current psychiatric medications to the report.")
         patient = self.intake.patient
         texts = [
             f"""
@@ -669,6 +705,7 @@ class ReportWriter:
 
     def write_denied_symptoms(self) -> None:
         """Writes the denied symptoms to the report."""
+        logger.debug("Writing the denied symptoms to the report.")
         patient = self.intake.patient
         text = f"""
         {patient.guardian.title_name} and {patient.first_name} denied any
@@ -684,6 +721,7 @@ class ReportWriter:
 
     def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
+        logger.debug("Applying corrections to the report.")
         document_corrector = language_utils.DocumentCorrections(
             self.report,
             correct_they=self.intake.patient.pronouns[0] == "they",
@@ -696,35 +734,33 @@ class ReportWriter:
         Michael Milham's signature is placed in a different location than the
         other signatures. As such, it needs some custom handling.
         """
+        logger.debug("Adding signatures to the report.")
         signatures = self._download_signatures()
         async for signature in signatures:
-            try:
-                paragraph_index = next(
-                    index
-                    for index in range(len(self.report.paragraphs))
-                    if self.report.paragraphs[index]
-                    .text.lower()
-                    .startswith(signature.name)
-                )
-            except StopIteration:
-                import pdb
-
-                pdb.set_trace()
+            paragraph_index = next(
+                index
+                for index in range(len(self.report.paragraphs))
+                if self.report.paragraphs[index].text.lower().startswith(signature.name)
+            )
 
             if signature.name != "michael p. milham":
                 paragraph_index -= 1
+            self._insert_image(paragraph_index, signature)
 
-            suffix = signature.name.split(".")[-1]
-            with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
-                temp_file.write(signature.binary_data)
-                temp_file.seek(0)
-                cmi_docx.ExtendDocument(self.report).insert_image(
-                    paragraph_index, temp_file.name
-                )
             if signature.name != "michael p. milham":
                 cmi_docx.ExtendDocument(self.report)._insert_empty_paragraph(
                     paragraph_index
                 )
+
+    def _insert_image(self, paragraph_index: int, image: Image) -> None:
+        """Inserts an image into the report."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            image_path = pathlib.Path(temp_dir) / f"{image.name}.png"
+            with image_path.open("wb") as file:
+                file.write(image.binary_data)
+            cmi_docx.ExtendDocument(self.report).insert_image(
+                paragraph_index, image_path
+            )
 
     def add_page_break(self) -> None:
         """Adds a page break to the report."""
@@ -811,6 +847,7 @@ class ReportWriter:
             for signature in signature_filepaths
         ]
         signature_bytes = await asyncio.gather(*signature_promises)
+        await azure_blob_service.close()
         for filepath, binary_data in zip(signature_filepaths, signature_bytes):
             person_name = (
                 ".".join(filepath.split("/")[-1].split(".")[0:-1])

@@ -1,39 +1,66 @@
 """This module contains functions for interacting with REDcap."""
 
 import io
+import re
+from typing import Any
 
 import polars as pl
-import requests
+import redcap
 
-from ctk_functions import config
+from ctk_functions import config, exceptions
 
 settings = config.get_settings()
 REDCAP_ENDPOINT = settings.REDCAP_ENDPOINT
+REDCAP_API_TOKEN = settings.REDCAP_API_TOKEN
+
+logger = config.get_logger()
 
 
-def get_intake_data(survey_id: str) -> pl.DataFrame:
+def get_intake_data(mrn: str) -> dict[str, Any]:
     """Gets the intake data from REDcap.
 
+    REDCap does not allow filtering by redcap_survey_identifier, so we have to
+    download all records, find the associated record_id, and then filter by that.
+
+    REDCap survey identifiers occasionally get strings appended. We search only for
+    five consecutive numbers.
+
+
     Args:
-        survey_id: The survey ID.
+        mrn: The patient's MRN (unique identifier).
 
     Returns:
         The intake data for the survey.
     """
-    data = {
-        "token": settings.REDCAP_API_TOKEN.get_secret_value(),
-        "content": "record",
-        "format": "csv",
-        "type": "flat",
-        "records": survey_id,
-    }
+    if not re.match(r"\d{5}", mrn):
+        raise ValueError("MRN must be 5 consecutive numbers.")
 
-    response = requests.post(str(REDCAP_ENDPOINT), data=data)
-    response.raise_for_status()
-    return parse_redcap_dtypes(response.text)
+    logger.debug(f"Getting intake data for MRN {mrn}.")
+    project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore
+    redcap_fields = project.export_records(
+        format_type="csv",
+        fields=["firstname"],
+        export_survey_fields=True,
+        raw_or_label="label",
+    )
+
+    redcap_fields = pl.read_csv(io.StringIO(redcap_fields), infer_schema_length=0)
+    record_id = redcap_fields.filter(
+        pl.col("redcap_survey_identifier").str.contains(mrn)
+    )["record_id"][0]
+    if record_id is None:
+        raise exceptions.RedcapException("No record found for the given MRN.")
+
+    patient_data = project.export_records(
+        format_type="csv",
+        export_survey_fields=True,
+        records=[record_id],
+    )
+
+    return parse_redcap_dtypes(patient_data)
 
 
-def parse_redcap_dtypes(csv_data: str) -> pl.DataFrame:
+def parse_redcap_dtypes(csv_data: str) -> dict[str, Any]:
     """Parses the REDcap data with the appropriate data types.
 
     REDCap data types are finnicky due to the large number of freeform string inputs and
@@ -46,6 +73,7 @@ def parse_redcap_dtypes(csv_data: str) -> pl.DataFrame:
     Returns:
         The parsed REDcap data.
     """
+    logger.debug("Parsing REDcap data with appropriate data types.")
     dtypes = {
         "age": pl.Float32,
         "biohx_dad_other": pl.Int8,
@@ -80,4 +108,13 @@ def parse_redcap_dtypes(csv_data: str) -> pl.DataFrame:
     for index in range(1, 13):
         dtypes[f"guardian_relationship___{index}"] = pl.Int8
 
-    return pl.read_csv(io.StringIO(csv_data), dtypes=dtypes, infer_schema_length=0)
+    dataframe = pl.read_csv(io.StringIO(csv_data), dtypes=dtypes, infer_schema_length=0)
+    if dataframe.shape[0] == 0:
+        raise exceptions.RedcapException("No data found for the given survey ID.")
+
+    if dataframe.shape[0] > 1:
+        raise exceptions.RedcapException(
+            "Multiple records found for the given survey ID."
+        )
+
+    return dataframe.row(0, named=True)
