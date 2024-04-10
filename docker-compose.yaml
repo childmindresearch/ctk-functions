@@ -1,0 +1,24 @@
+services:
+  functions:
+    build: .
+    ports:
+    - 8080:80
+    env_file:
+    - .env
+    develop:
+      watch:
+      - action: sync+restart
+        path: ./ctk_functions
+        target: /home/site/wwwroot/ctk_functions
+      - action: sync+restart
+        path: ./function_app.py
+        target: /home/site/wwwroot/function_app.py
+      - action: sync+restart
+        path: ./host.json
+        target: /home/site/wwwroot/host.json
+      - action: rebuild
+        path: pyproject.toml
+      - action: rebuild
+        path: Dockerfile
+      - action: rebuild
+        path: docker-compose.yaml

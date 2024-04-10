@@ -12,8 +12,12 @@ from ctk_functions.functions.intake import controller as intake_controller
 app = functions.FunctionApp()
 
 
-@app.function_name(name="get-intake-report")
-@app.route(route="intake-report/{survey_id}", auth_level=functions.AuthLevel.FUNCTION)
+@app.function_name(name="IntakeReport")
+@app.route(
+    route="intake-report/{survey_id}",
+    auth_level=functions.AuthLevel.FUNCTION,
+    methods=["GET"],
+)
 async def get_intake_report(req: functions.HttpRequest) -> functions.HttpResponse:
     """Generates an intake report for a survey.
 
@@ -29,15 +33,17 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
             "Please provide a survey ID.", status_code=http.HTTPStatus.BAD_REQUEST
         )
 
-    docx_bytes = intake_controller.get_intake_report(survey_id)
+    docx_bytes = await intake_controller.get_intake_report(survey_id)
     return functions.HttpResponse(
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,
     )
 
 
-@app.function_name(name="markdown2docx")
-@app.route(route="markdown2docx", auth_level=functions.AuthLevel.FUNCTION)
+@app.function_name(name="MarkdownToDocx")
+@app.route(
+    route="markdown2docx", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"]
+)
 async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     """Converts a Markdown document to a .docx file.
 
@@ -61,8 +67,8 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     )
 
 
-@app.function_name(name="health")
-@app.route(route="health", auth_level=functions.AuthLevel.FUNCTION)
+@app.function_name(name="Health")
+@app.route(route="health", auth_level=functions.AuthLevel.FUNCTION, methods=["GET"])
 async def health(req: functions.HttpRequest) -> functions.HttpResponse:
     """Health check endpoint.
 
