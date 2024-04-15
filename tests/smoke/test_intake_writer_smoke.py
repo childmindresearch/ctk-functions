@@ -64,16 +64,17 @@ async def test_no_printed_objects(
     """
     regex_scientific_notation = r"\de[-\d]"
 
-    text = "\n".join([p.text for p in (await intake_document).paragraphs])  # type: ignore
+    text = "\n".join([p.text.lower() for p in (await intake_document).paragraphs])  # type: ignore
 
     assert "[]" not in text
     assert "{" not in text
     assert "}" not in text
     assert "<" not in text
     assert ">" not in text
-    assert "None" not in text
+    assert "none" not in text
     assert "ctk_api" not in text
     assert "object at 0x" not in text
+    assert "replacementtags" not in text
     assert re.match(regex_scientific_notation, text) is None
 
 
