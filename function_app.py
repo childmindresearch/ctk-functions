@@ -1,13 +1,17 @@
 """Entrypoint for the Azure Functions app."""
 
 import http
+import json
 
 from azure import functions
 
+from ctk_functions import config, exceptions
 from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
 from ctk_functions.functions.intake import controller as intake_controller
+
+logger = config.get_logger()
 
 app = functions.FunctionApp()
 
@@ -33,7 +37,14 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
             "Please provide a survey ID.", status_code=http.HTTPStatus.BAD_REQUEST
         )
 
-    docx_bytes = await intake_controller.get_intake_report(survey_id)
+    try:
+        docx_bytes = await intake_controller.get_intake_report(survey_id)
+    except exceptions.RedcapException as exc_info:
+        logger.error(exc_info)
+        return functions.HttpResponse(
+            str(exc_info), status_code=http.HTTPStatus.BAD_REQUEST
+        )
+
     return functions.HttpResponse(
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,
@@ -53,13 +64,20 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     Returns:
         The HTTP response containing the .docx file.
     """
-    markdown = req.get_body().decode("utf-8")
+    body_dict = json.loads(req.get_body().decode("utf-8"))
+    correct_they = body_dict.get("X-Correct-They", False)
+    correct_capitalization = body_dict.get("X-Correct-Capitalization", False)
+    markdown = body_dict.get("markdown", None)
     if not markdown:
         return functions.HttpResponse(
             "Please provide a Markdown document.",
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
-    docx_bytes = file_conversion_controller.markdown2docx(markdown)
+    docx_bytes = file_conversion_controller.markdown2docx(
+        markdown,
+        correct_they=correct_they,
+        correct_capitalization=correct_capitalization,
+    )
     return functions.HttpResponse(
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,

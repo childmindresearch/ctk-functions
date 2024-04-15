@@ -461,3 +461,30 @@ family_psychiatric_diagnoses = [
         text_abbreviation="tt",
     ),
 ]
+
+
+class HearingDevice(enum.Enum):
+    """Whether the child has a hearing device."""
+
+    no = 1
+    at_school_and_home = 2
+    at_home = 3
+    at_school = 4
+
+
+class Glasses(enum.Enum):
+    """Whether the child has glasses."""
+
+    no = 1
+    at_school_and_home = 2
+    at_home = 3
+    at_school = 4
+
+
+class PriorDisease(pydantic.BaseModel):
+    """Class used for prior diseases in the Primary Care Information."""
+
+    name: str
+    was_positive: bool
+    age: str | None
+    treatment: str | None

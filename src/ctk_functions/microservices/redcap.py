@@ -32,8 +32,8 @@ def get_intake_data(mrn: str) -> dict[str, Any]:
     Returns:
         The intake data for the survey.
     """
-    if not re.match(r"\d{5}", mrn):
-        raise ValueError("MRN must be 5 consecutive numbers.")
+    if not re.match(r"^\d{5}$", mrn):
+        raise exceptions.RedcapException("MRN must be five consecutive numbers.")
 
     logger.debug(f"Getting intake data for MRN {mrn}.")
     project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore
@@ -45,16 +45,17 @@ def get_intake_data(mrn: str) -> dict[str, Any]:
     )
 
     redcap_fields = pl.read_csv(io.StringIO(redcap_fields), infer_schema_length=0)
-    record_id = redcap_fields.filter(
+    record_ids = redcap_fields.filter(
         pl.col("redcap_survey_identifier").str.contains(mrn)
-    )["record_id"][0]
-    if record_id is None:
+    )["record_id"]
+
+    if len(record_ids) == 0:
         raise exceptions.RedcapException("No record found for the given MRN.")
 
     patient_data = project.export_records(
         format_type="csv",
         export_survey_fields=True,
-        records=[record_id],
+        records=[record_ids[0]],
     )
 
     return parse_redcap_dtypes(patient_data)
@@ -79,6 +80,8 @@ def parse_redcap_dtypes(csv_data: str) -> dict[str, Any]:
         "biohx_dad_other": pl.Int8,
         "biohx_mom_other": pl.Int8,
         "birth_location": pl.Int8,
+        "child_glasses": pl.Int8,
+        "child_hearing_aid": pl.Int8,
         "child_language1_fluency": pl.Int8,
         "child_language2_fluency": pl.Int8,
         "child_language3_fluency": pl.Int8,
@@ -109,12 +112,10 @@ def parse_redcap_dtypes(csv_data: str) -> dict[str, Any]:
         dtypes[f"guardian_relationship___{index}"] = pl.Int8
 
     dataframe = pl.read_csv(io.StringIO(csv_data), dtypes=dtypes, infer_schema_length=0)
-    if dataframe.shape[0] == 0:
-        raise exceptions.RedcapException("No data found for the given survey ID.")
+    if dataframe.is_empty() or dataframe.shape[0] == 0:
+        raise exceptions.RedcapException("No data found for the given MRN.")
 
     if dataframe.shape[0] > 1:
-        raise exceptions.RedcapException(
-            "Multiple records found for the given survey ID."
-        )
+        raise exceptions.RedcapException("Multiple records found for the given MRN.")
 
     return dataframe.row(0, named=True)

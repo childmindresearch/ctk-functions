@@ -8,8 +8,8 @@ services:
     develop:
       watch:
       - action: sync+restart
-        path: ./ctk_functions
-        target: /home/site/wwwroot/ctk_functions
+        path: ./src/ctk_functions
+        target: /home/site/wwwroot/src/ctk_functions
       - action: sync+restart
         path: ./function_app.py
         target: /home/site/wwwroot/function_app.py
