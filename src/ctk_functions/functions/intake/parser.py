@@ -61,6 +61,7 @@ class Patient:
         self.handedness = transformers.Handedness(
             descriptors.Handedness(patient_data["dominant_hand"]),
         )
+        self.primary_care = PrimaryCareInformation(patient_data)
 
         self.psychiatric_history = PsychiatricHistory(patient_data)
 
@@ -431,7 +432,7 @@ class TherapeuticInterventions:
         """Initializes the therapeutic history.
 
         Args:
-            patient_data: The patient dataframe.
+            patient_data: The patient data.
             identifier: The id of the therapeutic history instance.
         """
         logger.debug(f"Parsing therapeutic intervention {identifier}.")
@@ -446,3 +447,34 @@ class TherapeuticInterventions:
         self.frequency = patient_data[f"txhx{identifier}_freq"]
         self.effectiveness = patient_data[f"txhx{identifier}_effectiveness"]
         self.reason_ended = patient_data[f"txhx{identifier}_terminate"]
+
+
+class PrimaryCareInformation:
+    """The parser for the patient's primary care information."""
+
+    def __init__(self, patient_data: dict[str, Any]) -> None:
+        """Initializes the primary care information.
+
+        Args:
+            patient_data: The patient data.
+        """
+        hearing_device = transformers.HearingDevice(
+            descriptors.HearingDevice(patient_data["child_hearing_aid"]),
+        )
+        glasses = transformers.Glasses(
+            descriptors.Glasses(patient_data["child_glasses"]),
+        )
+        self.glasses_hearing_device = transformers.GlassesHearingDevice(
+            glasses, hearing_device
+        )
+
+        diseases = [
+            descriptors.PriorDisease(
+                name=disease,
+                was_positive=patient_data[disease] == "1",
+                age=patient_data[f"{disease}_age"],
+                treatment=patient_data[f"{disease}_treatment"],
+            )
+            for disease in ("seizures", "migraines", "meningitis", "encephalitis")
+        ]
+        self.prior_diseases = transformers.PriorDiseases(diseases)

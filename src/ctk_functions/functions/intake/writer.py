@@ -607,15 +607,14 @@ class ReportWriter:
         """Writes the medical history to the end of the report."""
         logger.debug("Writing the medical history to the report.")
         patient = self.intake.patient
+        primary_care = patient.primary_care
 
         text = f"""
             {patient.first_name}'s medical history is unremarkable for
             significant medical conditions. {patient.pronouns[0].capitalize()} is not
             currently taking any medications for chronic medical conditions.
-            {patient.first_name} wears prescription glasses in home and
-            school settings. {patient.pronouns[0].capitalize()} does/does not require a
-            hearing device. {patient.guardian.title_name} denied any history of
-            seizures, head trauma, migraines, meningitis or encephalitis.
+            {primary_care.glasses_hearing_device.transform()}.
+            {primary_care.prior_diseases.transform()}.
         """
         text = string_utils.remove_excess_whitespace(text)
 

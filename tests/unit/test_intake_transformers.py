@@ -569,3 +569,25 @@ def test_classroom_type_transformer(
     transformer = transformers.ClassroomType(base, other)
 
     assert str(transformer) == expected
+
+
+@pytest.mark.parametrize(
+    ("base", "expected"),
+    (
+        (descriptors.HearingDevice.no, "does not use a hearing device"),
+        (
+            descriptors.HearingDevice.at_school_and_home,
+            "uses a hearing device at school and at home",
+        ),
+        (descriptors.HearingDevice.at_school, "uses a hearing device at school"),
+        (descriptors.HearingDevice.at_home, "uses a hearing device at home"),
+    ),
+)
+def test_hearing_device_transformer(
+    base: descriptors.HearingDevice,
+    expected: str,
+) -> None:
+    """Test that the HearingDevice transformer returns the expected strings."""
+    transformer = transformers.HearingDevice(base)
+
+    assert str(transformer) == expected

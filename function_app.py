@@ -4,10 +4,13 @@ import http
 
 from azure import functions
 
+from ctk_functions import config, exceptions
 from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
 from ctk_functions.functions.intake import controller as intake_controller
+
+logger = config.get_logger()
 
 app = functions.FunctionApp()
 
@@ -15,7 +18,7 @@ app = functions.FunctionApp()
 @app.function_name(name="IntakeReport")
 @app.route(
     route="intake-report/{survey_id}",
-    auth_level=functions.AuthLevel.FUNCTION,
+    auth_level=functions.AuthLevel.ANONYMOUS,
     methods=["GET"],
 )
 async def get_intake_report(req: functions.HttpRequest) -> functions.HttpResponse:
@@ -33,7 +36,14 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
             "Please provide a survey ID.", status_code=http.HTTPStatus.BAD_REQUEST
         )
 
-    docx_bytes = await intake_controller.get_intake_report(survey_id)
+    try:
+        docx_bytes = await intake_controller.get_intake_report(survey_id)
+    except exceptions.RedcapException as exc_info:
+        logger.error(exc_info)
+        return functions.HttpResponse(
+            str(exc_info), status_code=http.HTTPStatus.BAD_REQUEST
+        )
+
     return functions.HttpResponse(
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,
@@ -42,7 +52,7 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
 
 @app.function_name(name="MarkdownToDocx")
 @app.route(
-    route="markdown2docx", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"]
+    route="markdown2docx", auth_level=functions.AuthLevel.ANONYMOUS, methods=["POST"]
 )
 async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     """Converts a Markdown document to a .docx file.

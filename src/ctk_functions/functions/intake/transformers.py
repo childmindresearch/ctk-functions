@@ -10,7 +10,7 @@ used internally.
 import abc
 import dataclasses
 import enum
-from typing import Generic, Protocol, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 from ctk_functions.functions.intake import descriptors
 from ctk_functions.functions.intake.utils import string_utils
@@ -23,6 +23,7 @@ class ReplacementTags(str, enum.Enum):
 
     PREFERRED_NAME = "{{PREFERRED_NAME}}"
     REPORTING_GUARDIAN = "{{REPORTING_GUARDIAN}}"
+    PRONOUN_0 = "{{PRONOUN_0}}"
     PRONOUN_2 = "{{PRONOUN_2}}"
 
 
@@ -34,7 +35,11 @@ class Transformer(Generic[T], abc.ABC):
     parent intake form conversions.
     """
 
-    def __init__(self, value: T, other: None | str = None) -> None:
+    def __init__(
+        self,
+        value: T,
+        other: Any = None,  # noqa: ANN401
+    ) -> None:
         """Initializes the transformer.
 
         Args:
@@ -557,3 +562,117 @@ class SelfHarm(Transformer[str]):
         return (
             f'{ReplacementTags.REPORTING_GUARDIAN.value} reported that "{self.base}".'
         )
+
+
+class HearingDevice(Transformer[descriptors.HearingDevice]):
+    """Transformer for the hearing device information."""
+
+    def transform(self) -> str:
+        """Transforms the hearing device information to a string.
+
+        Returns:
+            str: The transformed object.
+        """
+        if self.base == descriptors.HearingDevice.no:
+            return "does not use a hearing device"
+        if self.base == descriptors.HearingDevice.at_school_and_home:
+            return "uses a hearing device at school and at home"
+        if self.base == descriptors.HearingDevice.at_school:
+            return "uses a hearing device at school"
+        if self.base == descriptors.HearingDevice.at_home:
+            return "uses a hearing device at home"
+        raise ValueError("Invalid hearing device value.")
+
+
+class Glasses(Transformer[descriptors.Glasses]):
+    """Transformer for the glasses information."""
+
+    def transform(self) -> str:
+        """Transforms the glasses information to a string.
+
+        Returns:
+            str: The transformed object.
+        """
+        if self.base == descriptors.Glasses.no:
+            return "does not wear prescription glasses"
+        if self.base == descriptors.Glasses.at_school_and_home:
+            return "wears prescription glasses at school and at home"
+        if self.base == descriptors.Glasses.at_school:
+            return "wears prescription glasses at school"
+        if self.base == descriptors.Glasses.at_home:
+            return "wears prescription glasses at home"
+        raise ValueError("Invalid glasses value.")
+
+
+class GlassesHearingDevice(Transformer[Transformer[descriptors.Glasses]]):
+    """Transformer for the glasses and hearing device information.
+
+    The phrasing of this changes when both are no, hence the need for a combined
+    transformer. The other paramaeter is set to the hearing device transformer.
+    """
+
+    def transform(self) -> str:
+        """Transforms the glasses and hearing device information to a string.
+
+        Returns:
+            str: The transformed object.
+        """
+        if not isinstance(self.other, HearingDevice):
+            raise ValueError("Invalid hearing device value.")
+        if (
+            self.base.base == descriptors.Glasses.no
+            and self.other.base == descriptors.HearingDevice.no
+        ):
+            string = f"""
+                {ReplacementTags.PREFERRED_NAME.value} does not wear prescription
+                glasses or use a hearing device
+              """
+        else:
+            string = f"""
+                {ReplacementTags.PREFERRED_NAME.value} {self.base.transform()}.
+                {ReplacementTags.PRONOUN_0.value} {self.other.transform()}
+            """
+
+        return string_utils.remove_excess_whitespace(string)
+
+
+class PriorDiseases(MultiTransformer[descriptors.PriorDisease]):
+    """Transformer for the prior diseases information."""
+
+    def transform(self) -> str:
+        """Transforms the prior diseases information to a string.
+
+        Returns:
+            str: The transformed object.
+        """
+        if len(self.base) == 0:
+            return "no prior history of diseases"
+
+        positive_diseases = [
+            disease.name for disease in self.base if disease.was_positive
+        ]
+        negative_diseases = [
+            disease.name for disease in self.base if not disease.was_positive
+        ]
+
+        if not negative_diseases:
+            string = f"""
+                {ReplacementTags.REPORTING_GUARDIAN.value} reported a prior history of
+                {string_utils.join_with_oxford_comma(
+                    [disease.name for disease in self.base],
+                )}"""
+        elif not positive_diseases:
+            string = f"""
+                {ReplacementTags.REPORTING_GUARDIAN.value} denied any prior history of
+                {string_utils.join_with_oxford_comma(
+                    [disease.name for disease in self.base],
+                )}"""
+        else:
+            string = f"""
+                {ReplacementTags.REPORTING_GUARDIAN.value} reported a prior history of:
+                {string_utils.join_with_oxford_comma(positive_diseases)} and denied
+                any history of:
+                {string_utils.join_with_oxford_comma(negative_diseases)}
+            """
+
+        return string_utils.remove_excess_whitespace(string)
