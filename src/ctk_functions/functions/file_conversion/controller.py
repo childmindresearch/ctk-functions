@@ -15,6 +15,12 @@ def markdown2docx(markdown: str) -> bytes:
         The .docx file.
     """
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
-        pypandoc.convert_text(markdown, "docx", format="md", outputfile=temp_file.name)
+        pypandoc.convert_text(
+            markdown,
+            "docx",
+            format="md",
+            outputfile=temp_file.name,
+            extra_args=["-f", "markdown+grid_tables"],
+        )
         temp_file.seek(0)
         return temp_file.read()
