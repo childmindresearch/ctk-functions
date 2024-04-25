@@ -46,6 +46,10 @@ async def intake_document(
         "ctk_functions.functions.intake.writer.ReportWriter._download_signatures",
         return_value=AsyncIterator([]),
     )
+    mocker.patch(
+        "ctk_functions.functions.intake.writer.ReportWriter._create_llm_placeholder",
+        return_value="llm placeholder",
+    )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info)
     await intake_writer.transform()

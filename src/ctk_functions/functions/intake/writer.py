@@ -5,8 +5,10 @@ import dataclasses
 import enum
 import itertools
 import pathlib
+import queue
 import tempfile
-from typing import AsyncGenerator
+import uuid
+from typing import AsyncGenerator, Awaitable
 
 import cmi_docx
 import docx
@@ -16,7 +18,7 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import descriptors, parser
+from ctk_functions.functions.intake import descriptors, llm, parser
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
@@ -29,6 +31,7 @@ AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
 RGB_INTAKE = (178, 161, 199)
 RGB_TESTING = (155, 187, 89)
 RGB_TEMPLATE = (247, 150, 70)
+RGB_LLM = (0, 0, 255)
 PLACEHOLDER = "______"
 
 logger = config.get_logger()
@@ -46,10 +49,29 @@ class Style(enum.Enum):
 
 @dataclasses.dataclass
 class Image:
-    """Represents an image to be inserted into the report."""
+    """Represents an image to be inserted into the report.
+
+    Attributes:
+        name: The name of the image.
+        binary_data: The binary data representing the image.
+    """
 
     name: str
     binary_data: bytes
+
+
+@dataclasses.dataclass
+class LlmPlaceholder:
+    """Represents a placeholder for large language model input in the report.
+
+    Attributes:
+        id: The unique identifier for the placeholder. Will be inserted into
+            the report as {{id}}.
+        replacement: The replacement text for the placeholder.
+    """
+
+    id: str
+    replacement: Awaitable[str]
 
 
 class ReportWriter:
@@ -72,6 +94,7 @@ class ReportWriter:
             if "MENTAL STATUS EXAMINATION AND TESTING BEHAVIORAL OBSERVATIONS"
             in paragraph.text
         )
+        self.llm_placeholders: queue.SimpleQueue[LlmPlaceholder] = queue.SimpleQueue()
 
         if not self.insert_before:
             msg = "Insertion point not found in the report template."
@@ -93,6 +116,7 @@ class ReportWriter:
         self.replace_patient_information()
         self.apply_corrections()
         await self.add_signatures()
+        await self.make_llm_edits()
 
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
@@ -127,6 +151,22 @@ class ReportWriter:
         classroom = patient.education.classroom_type
         age_determinant = "an" if patient.age in (8, 18) else "a"
 
+        concerns_id = self._create_llm_placeholder(
+            excerpt=(
+                f"{patient.guardian.title_full_name}, attended the present"
+                + f"evaluation due to concerns regarding {PLACEHOLDER}."
+            ),
+            parent_input=patient.reason_for_visit,
+        )
+        hopes_id = self._create_llm_placeholder(
+            excerpt=f"The family is hoping for {PLACEHOLDER}.",
+            parent_input=patient.hopes,
+        )
+        learned_of_study_id = self._create_llm_placeholder(
+            excerpt=f"The family learned of the study through {PLACEHOLDER}.",
+            parent_input=patient.learned_of_study,
+        )
+
         if patient.education.grade.isnumeric():
             grade_superscript = string_utils.ordinal_suffix(
                 int(patient.education.grade),
@@ -145,10 +185,7 @@ class ReportWriter:
             grade classroom at {patient.education.school_name}.
             {patient.first_name} {iep}. {patient.first_name} and
             {patient.pronouns[2]} {patient.guardian.relationship},
-            {patient.guardian.title_full_name}, attended the present evaluation due to
-            concerns regarding {PLACEHOLDER}. The family is hoping for
-            {PLACEHOLDER}. The family learned of the study through
-            {PLACEHOLDER}.
+            {concerns_id} {hopes_id} {learned_of_study_id}
         """,
         ]
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
@@ -417,6 +454,10 @@ class ReportWriter:
         """Writes the social functioning to the report."""
         logger.debug("Writing the social functioning to the report.")
         patient = self.intake.patient
+        hobbies_id = self._create_llm_placeholder(
+            excerpt=f"{patient.first_name}'s hobbies include {PLACEHOLDER}.",
+            parent_input=patient.hobbies,
+        )
 
         text = f"""
             {patient.guardian.title_name} was pleased to describe
@@ -427,7 +468,7 @@ class ReportWriter:
             {patient.pronouns[2]} team/club/etc. {patient.first_name}
             socializes with friends outside of school and has a
             (positive/fair/poor) relationship with them.
-            {patient.first_name}'s hobbies include {PLACEHOLDER}.
+            {hobbies_id}
         """
         text = string_utils.remove_excess_whitespace(text)
 
@@ -751,6 +792,17 @@ class ReportWriter:
                     paragraph_index
                 )
 
+    async def make_llm_edits(self) -> None:
+        """Makes edits to the report using a large language model."""
+        logger.debug("Making edits to the report using a large language model.")
+        extendedDocument = cmi_docx.ExtendDocument(self.report)
+        while not self.llm_placeholders.qsize() == 0:
+            placeholder = self.llm_placeholders.get()
+            new_text = await placeholder.replacement
+            extendedDocument.replace(
+                "{{" + placeholder.id + "}}", new_text, {"font_rgb": RGB_LLM}
+            )
+
     def _insert_image(self, paragraph_index: int, image: Image) -> None:
         """Inserts an image into the report."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -854,3 +906,15 @@ class ReportWriter:
                 .replace("_", " ")
             )
             yield Image(person_name, binary_data)
+
+    def _create_llm_placeholder(self, excerpt: str, parent_input: str) -> str:
+        """Stores a placeholder that will later be editted by a large language model.
+
+        Args:
+            excerpt: The excerpt to provide to the large language model.
+            parent_input: The parent input that need be incorporated in the excerpt.
+        """
+        id = str(uuid.uuid4())
+        replacement = llm.LlmEditor().run(excerpt, parent_input, PLACEHOLDER)
+        self.llm_placeholders.put(LlmPlaceholder(id, replacement))
+        return f"{{{{{id}}}}}"
