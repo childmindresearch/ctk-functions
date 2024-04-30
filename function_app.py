@@ -65,8 +65,8 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
         The HTTP response containing the .docx file.
     """
     body_dict = json.loads(req.get_body().decode("utf-8"))
-    correct_they = body_dict.get("X-Correct-They", False)
-    correct_capitalization = body_dict.get("X-Correct-Capitalization", False)
+    correct_they = req.headers.get("X-Correct-They", False)
+    correct_capitalization = req.headers.get("X-Correct-Capitalization", False)
     markdown = body_dict.get("markdown", None)
     if not markdown:
         return functions.HttpResponse(
