@@ -7,16 +7,17 @@ import pypandoc
 from ctk_functions.text import corrections
 
 
-def markdown2docx(markdown: str) -> bytes:
+def markdown2docx(markdown: str, *, correct_they: bool = False) -> bytes:
     """Converts a Markdown document to a .docx file.
 
     Args:
         markdown: The Markdown document.
+        correct_they: Whether to correct verb conjugations associated with 'they'.
 
     Returns:
         The .docx file.
     """
-    if "they" in markdown.lower():
+    if correct_they and "they" in markdown.lower():
         markdown = corrections.TextCorrections(correct_they=True).correct(markdown)
 
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
