@@ -4,6 +4,8 @@ import tempfile
 
 import pypandoc
 
+from ctk_functions.text import corrections
+
 
 def markdown2docx(markdown: str) -> bytes:
     """Converts a Markdown document to a .docx file.
@@ -14,6 +16,9 @@ def markdown2docx(markdown: str) -> bytes:
     Returns:
         The .docx file.
     """
+    if "they" in markdown.lower():
+        markdown = corrections.TextCorrections(correct_they=True).correct(markdown)
+
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
         pypandoc.convert_text(
             markdown,
