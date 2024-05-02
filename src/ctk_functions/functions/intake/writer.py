@@ -570,7 +570,8 @@ class ReportWriter:
         heading = self._insert("Past Therapeutic Interventions", Style.HEADING_2)
         paragraphs = [self._insert(text) for text in texts]
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(*paragraphs).format(font_rgb=RGB_INTAKE)
+        for paragraph in paragraphs:
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
