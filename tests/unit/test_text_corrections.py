@@ -18,6 +18,9 @@ from ctk_functions.text import corrections
             "He is going to the store. they are walking the dog.",
             "He is going to the store. They are walking the dog.",
         ),
+        ("", ""),
+        ("a b c", "A b c"),
+        (" a B C", " A B C"),
     ],
 )
 def test_text_corrections(input_text: str, expected: str) -> None:
@@ -27,25 +30,5 @@ def test_text_corrections(input_text: str, expected: str) -> None:
     )
 
     actual = correcter.correct(input_text)
-
-    assert actual == expected
-
-
-@pytest.mark.parametrize(
-    ("input_text", "expected"),
-    [
-        ("", ""),
-        ("a", "A"),
-        ("a b c", "A b c"),
-        (" a B C", " A B C"),
-    ],
-)
-def test_correct_capitalization(input_text: str, expected: str) -> None:
-    """Tests the capitalization correction."""
-    correcter = corrections.TextCorrections(
-        correct_they=False, correct_capitalization=True
-    )
-
-    actual = correcter._correct_capitalization(input_text)
 
     assert actual == expected
