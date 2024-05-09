@@ -156,15 +156,15 @@ class ReportWriter:
                 f"{patient.guardian.title_full_name}, attended the present"
                 + f"evaluation due to concerns regarding {PLACEHOLDER}."
             ),
-            parent_input=patient.reason_for_visit,
+            parent_input=patient.reason_for_visit,  # type: ignore[attr-defined]
         )
         hopes_id = self._create_llm_placeholder(
             excerpt=f"The family is hoping for {PLACEHOLDER}.",
-            parent_input=patient.hopes,
+            parent_input=patient.hopes,  # type: ignore[attr-defined]
         )
         learned_of_study_id = self._create_llm_placeholder(
             excerpt=f"The family learned of the study through {PLACEHOLDER}.",
-            parent_input=patient.learned_of_study,
+            parent_input=patient.learned_of_study,  # type: ignore[attr-defined]
         )
 
         if patient.education.grade.isnumeric():
@@ -456,7 +456,7 @@ class ReportWriter:
         patient = self.intake.patient
         hobbies_id = self._create_llm_placeholder(
             excerpt=f"{patient.first_name}'s hobbies include {PLACEHOLDER}.",
-            parent_input=patient.hobbies,
+            parent_input=patient.hobbies,  # type: ignore[attr-defined]
         )
 
         text = f"""
@@ -611,7 +611,8 @@ class ReportWriter:
         heading = self._insert("Past Therapeutic Interventions", Style.HEADING_2)
         paragraphs = [self._insert(text) for text in texts]
         cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(*paragraphs).format(font_rgb=RGB_INTAKE)
+        for paragraph in paragraphs:
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
@@ -762,10 +763,7 @@ class ReportWriter:
     def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
         logger.debug("Applying corrections to the report.")
-        document_corrector = language_utils.DocumentCorrections(
-            self.report,
-            correct_they=self.intake.patient.pronouns[0] == "they",
-        )
+        document_corrector = language_utils.DocumentCorrections(self.report)
         document_corrector.correct()
 
     async def add_signatures(self) -> None:

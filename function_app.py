@@ -1,6 +1,7 @@
 """Entrypoint for the Azure Functions app."""
 
 import http
+import json
 
 from azure import functions
 
@@ -63,13 +64,20 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     Returns:
         The HTTP response containing the .docx file.
     """
-    markdown = req.get_body().decode("utf-8")
+    body_dict = json.loads(req.get_body().decode("utf-8"))
+    correct_they = req.headers.get("X-Correct-They", False)
+    correct_capitalization = req.headers.get("X-Correct-Capitalization", False)
+    markdown = body_dict.get("markdown", None)
     if not markdown:
         return functions.HttpResponse(
             "Please provide a Markdown document.",
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
-    docx_bytes = file_conversion_controller.markdown2docx(markdown)
+    docx_bytes = file_conversion_controller.markdown2docx(
+        markdown,
+        correct_they=correct_they,
+        correct_capitalization=correct_capitalization,
+    )
     return functions.HttpResponse(
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,
