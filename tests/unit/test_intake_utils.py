@@ -3,7 +3,6 @@
 import pytest
 
 from ctk_functions.functions.intake.utils import (
-    language_utils,
     string_utils,
 )
 
@@ -47,35 +46,6 @@ def test_join_with_oxford_comma(elements: list[str], expected: str) -> None:
 def test_ordinal_suffix(rank: int, suffix: str) -> None:
     """Tests getting the ordinal suffix of a number."""
     assert string_utils.ordinal_suffix(rank) == suffix
-
-
-@pytest.mark.parametrize(
-    ("sentence", "expected"),
-    [
-        ("They hears it in your voice.", "They hear it in your voice."),
-        ('She hears it in your voice."', "She hears it in your voice."),
-        (
-            "They has been waiting from sprinkler splashes until fireplace ashes.",
-            "They have been waiting from sprinkler splashes until fireplace ashes.",
-        ),
-        (
-            "She has been waiting from sprinkler splashes until fireplace ashes.",
-            "She has been waiting from sprinkler splashes until fireplace ashes.",
-        ),
-    ],
-)
-def correct_verb_conjugation(sentence: str, expected: str) -> None:
-    """Tests whether the verb conjugations of they are corrected."""
-    obj = language_utils.DocumentCorrections(document="")
-    pairs = obj._find_subject_verb(sentence)
-
-    for pair in pairs:
-        sentence = obj._correct_they_verb_conjugation(
-            sentence,
-            pair,
-        )
-
-    assert sentence == expected
 
 
 def test_remove_excess_whitespace() -> None:
