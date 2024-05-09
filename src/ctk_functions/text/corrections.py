@@ -1,6 +1,6 @@
 """Module for syntax and grammatical correctionss of text."""
 
-from collections.abc import Sequence
+from typing import Collection
 
 import language_tool_python
 import spacy
@@ -18,8 +18,8 @@ class LanguageCorrecter:
     def run(
         self,
         text: str,
-        enabled_rules: Sequence[str] | None = None,
-        disabled_rules: Sequence[str] | None = None,
+        enabled_rules: Collection[str] | None = None,
+        disabled_rules: Collection[str] | None = None,
     ) -> str:
         """Corrects the text following the object's settings.
 
