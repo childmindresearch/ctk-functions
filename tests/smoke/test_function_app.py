@@ -2,15 +2,15 @@
 
 import inspect
 import json
+import pathlib
 import sys
 
 from azure.functions.decorators import function_app as azure_function_app
 
 import ctk_functions
-import ctk_functions.config
 
-repository_root = ctk_functions.__file__.parent.parent.parent
-sys.path.insert(0, repository_root)
+repository_root = pathlib.Path(ctk_functions.__file__).parent.parent.parent
+sys.path.insert(0, str(repository_root))
 
 import function_app  # noqa: E402
 
