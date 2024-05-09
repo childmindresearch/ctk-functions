@@ -24,6 +24,18 @@ def correcter() -> corrections.LanguageCorrecter:
             "He is going to the store. They are walking the dog.",
         ),
         ("The store to which they has gone.", "The store to which they have gone."),
+        (
+            (
+                "A very long sentence because the context is clipped when the sentence"
+                " is too long but the results should still be correct. They is going"
+                " to the store."
+            ),
+            (
+                "A very long sentence because the context is clipped when the sentence"
+                " is too long, but the results should still be correct. They are going"
+                " to the store."
+            ),
+        ),
         ("", ""),
     ],
 )
@@ -32,4 +44,5 @@ def test_text_corrections(
 ) -> None:
     """Tests the entrypoint of the TextCorrections class."""
     actual = correcter.run(input_text)
+
     assert actual == expected

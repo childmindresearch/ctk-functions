@@ -15,7 +15,12 @@ class LanguageCorrecter:
         """Initializes the language tool."""
         self.language_tool = language_tool_python.LanguageTool("en-US")
 
-    def run(self, text: str, rules: Sequence[str] | None = None) -> str:
+    def run(
+        self,
+        text: str,
+        enabled_rules: Sequence[str] | None = None,
+        disabled_rules: Sequence[str] | None = None,
+    ) -> str:
         """Corrects the text following the object's settings.
 
         Initializing the language tool takes a while, so it is performed at
@@ -26,7 +31,10 @@ class LanguageCorrecter:
 
         Args:
             text: The text to correct.
-            rules: The rules to enable for the correction.
+            enabled_rules: The rules to enable for the correction. If None, all rules
+                are enabled.
+            disabled_rules: The rules to disable for the correction. If None, no rules
+                are disabled. Note: disabled rules take precedence over enabled rules.
 
         Returns:
             The corrected text.
@@ -34,32 +42,45 @@ class LanguageCorrecter:
 
         def get_corrections(text: str) -> list[language_tool_python.Match]:
             corrections = self.language_tool.check(text)
-            if rules:
-                return [
+            if enabled_rules:
+                corrections = [
                     correction
                     for correction in corrections
-                    if correction.ruleId in rules
+                    if correction.ruleId in enabled_rules
+                ]
+            if disabled_rules:
+                corrections = [
+                    correction
+                    for correction in corrections
+                    if correction.ruleId not in disabled_rules
                 ]
             return corrections
 
         corrections = get_corrections(text)
         while corrections:
-            text = self._apply_correction(corrections[-1])
+            text = self._apply_correction(corrections[-1], text)
             corrections = get_corrections(text)
         return text
 
     @classmethod
-    def _apply_correction(cls, correction: language_tool_python.Match) -> str:
-        """Applies a correction to a text."""
+    def _apply_correction(
+        cls, correction: language_tool_python.Match, full_text: str
+    ) -> str:
+        """Applies a correction to a text.
+
+        Args:
+            correction: The language tool Match.
+            full_text: The full text to correct.
+        """
         if len(correction.replacements) == 1:
             return (
-                correction.context[: correction.offset]
+                full_text[: correction.offset]
                 + correction.replacements[0]
-                + correction.context[correction.offset + correction.errorLength :]
+                + full_text[correction.offset + correction.errorLength :]
             )
 
         if correction.ruleId == "PERS_PRONOUN_AGREEMENT":
-            return cls._resolve_pers_pronoun_agreement(correction)
+            return cls._resolve_pers_pronoun_agreement(correction, full_text)
         else:
             raise ValueError(f"Cannot resolve replacement {correction}.")
 
@@ -67,6 +88,7 @@ class LanguageCorrecter:
     def _resolve_pers_pronoun_agreement(
         cls,
         correction: language_tool_python.Match,
+        full_text: str,
     ) -> str:
         """Resolves personal pronoun corrections with multiple replacements.
 
@@ -74,12 +96,15 @@ class LanguageCorrecter:
 
         Args:
             correction: The language tool Match.
+            full_text: The full text to correct.
 
         Returns:
             The corrected text.
         """
-        verb_tense = cls._get_verb_tense(correction.context, correction.offset)
+        verb_tense = cls._get_verb_tense(full_text, correction.offset)
+
         # Example correction message: "Use a third-person plural verb with ‘they’.""
+
         subject = correction.message.split("‘")[1].split("’")[0].lower()
 
         if subject == "they":
@@ -91,9 +116,9 @@ class LanguageCorrecter:
 
         for replacement in correction.replacements:
             new_sentence = (
-                correction.context[: correction.offset]
+                full_text[: correction.offset]
                 + replacement
-                + correction.context[correction.offset + correction.errorLength :]
+                + full_text[correction.offset + correction.errorLength :]
             )
             new_verb_tense = cls._get_verb_tense(new_sentence, correction.offset)
             if new_verb_tense == target_tense:

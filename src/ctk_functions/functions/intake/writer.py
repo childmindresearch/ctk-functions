@@ -722,9 +722,7 @@ class ReportWriter:
     def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
         logger.debug("Applying corrections to the report.")
-        document_corrector = language_utils.DocumentCorrections(
-            self.report, rules={"PERS_PRONOUN_AGREEMENT", "UPPERCASE_SENTENCE_START"}
-        )
+        document_corrector = language_utils.DocumentCorrections(self.report)
         document_corrector.correct()
 
     async def add_signatures(self) -> None:
