@@ -24,10 +24,14 @@ def markdown2docx(
     Returns:
         The .docx file.
     """
-    if correct_they or correct_capitalization:
-        markdown = corrections.TextCorrections(
-            correct_they=correct_they, correct_capitalization=correct_capitalization
-        ).correct(markdown)
+    enabled_rules = []
+    if correct_they:
+        enabled_rules += ["BASE_FORM", "PERS_PRONOUN_AGREEMENT", "NON3PRS_VERB"]
+    if correct_capitalization:
+        enabled_rules += ["UPPERCASE_SENTENCE_START"]
+    if enabled_rules:
+        correcter = corrections.LanguageCorrecter()
+        markdown = correcter.run(markdown, enabled_rules=enabled_rules)
 
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
         pypandoc.convert_text(

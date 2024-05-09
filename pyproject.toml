@@ -11,8 +11,6 @@ packages = [{include = "ctk_functions", from = "src"}]
 python = "~3.11"
 azure-functions = "^1.19.0"
 pydantic = "^2.7.1"
-mlconjug3 = "^3.11.0"
-spacy = "^3.7.4"
 python-dateutil = "^2.9.0.post0"
 pytz = "^2024.1"
 pydantic-settings = "^2.2.1"
@@ -24,6 +22,8 @@ pycap = "^2.6.0"
 pypandoc-binary = "^1.13"
 en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz"}
 polars-lts-cpu = "^0.20.23"
+language-tool-python = "^2.8"
+spacy = "^3.7.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
