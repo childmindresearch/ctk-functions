@@ -86,7 +86,7 @@ class ReportWriter:
         logger.debug("Initializing the report writer.")
         self.intake = intake
         self.report: docx_document.Document = docx.Document(
-            DATA_DIR / "report_template.docx"
+            str(DATA_DIR / "report_template.docx")
         )
         self.insert_before = next(
             paragraph

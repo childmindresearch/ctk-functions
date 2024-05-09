@@ -5,6 +5,7 @@ from typing import Sequence
 import docx
 import spacy
 from cmi_docx import ExtendParagraph
+from docx import document
 
 from ctk_functions.text import corrections
 
@@ -31,7 +32,7 @@ class DocumentCorrections:
 
     def __init__(
         self,
-        document: docx.Document,
+        document: document.Document,
         enabled_rules: Sequence[str] | None = DEFAULT_LANGUAGE_RULES,
         disabled_rules: Sequence[str] | None = None,
     ) -> None:
@@ -51,7 +52,7 @@ class DocumentCorrections:
         self.disabled_rules = set(disabled_rules) if disabled_rules else set()
 
     def correct(self) -> None:
-        """Corrects verb conjugations associated with 'they' in the document."""
+        """Makes corrections based on the enabled and disabled rules."""
         for paragraph in self.document.paragraphs:
             self._correct_paragraph(paragraph)
 
