@@ -1,5 +1,6 @@
 """Functions for converting files between different formats."""
 
+import pathlib
 import re
 import tempfile
 
@@ -40,7 +41,7 @@ def markdown2docx(
         return temp_file.read()
 
 
-def mark_warnings_as_red(docx_file: str) -> None:
+def mark_warnings_as_red(docx_file: str | pathlib.Path) -> None:
     """Marks warning templates as red.
 
     We use {{!WARNING-TEXT}} as a template for warnings that should be marked red.
@@ -48,7 +49,7 @@ def mark_warnings_as_red(docx_file: str) -> None:
     Args:
         docx_file: The .docx file.
     """
-    document = docx.Document(docx_file)
+    document = docx.Document(str(docx_file))
     extend_document = cmi_docx.ExtendDocument(document)
     text = "\n".join([paragraph.text for paragraph in document.paragraphs])
     warningRegex = re.compile(r"{{!.*?}}")
