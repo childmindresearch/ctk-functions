@@ -2,9 +2,17 @@
 
 import inspect
 import json
+import sys
 
-import function_app
 from azure.functions.decorators import function_app as azure_function_app
+
+import ctk_functions
+import ctk_functions.config
+
+repository_root = ctk_functions.__file__.parent.parent.parent
+sys.path.insert(0, repository_root)
+
+import function_app  # noqa: E402
 
 
 def get_function_auth_level(
