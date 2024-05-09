@@ -1,5 +1,7 @@
 """Utilities for correcting grammar and syntax."""
 
+from typing import Sequence
+
 import docx
 import spacy
 from cmi_docx import ExtendParagraph
@@ -15,23 +17,19 @@ class DocumentCorrections:
     def __init__(
         self,
         document: docx.Document,
-        *,
-        correct_they: bool = True,
-        correct_capitalization: bool = True,
+        rules: Sequence[str] | None = None,
     ) -> None:
         """Initializes the corrector with a document.
 
         Args:
             document: The docx document to correct.
-            correct_they: Whether to correct verb conjugations associated with 'they'.
-            correct_capitalization: Whether to correct the capitalization of the text.
+            rules: The rules to enable for the correction. If None, all rules are
+                enabled.
 
         """
         self.document = document
-        self.corrector = corrections.TextCorrections(
-            correct_they=correct_they,
-            correct_capitalization=correct_capitalization,
-        )
+        self.correcter = corrections.LanguageCorrecter()
+        self.rules = rules
 
     def correct(self) -> None:
         """Corrects verb conjugations associated with 'they' in the document."""
@@ -46,7 +44,8 @@ class DocumentCorrections:
         """
         sentences = NLP(paragraph.text).sents
         new_sentences = [
-            self.corrector.correct(sentence.text) for sentence in sentences
+            self.correcter.run(sentence.text, rules=self.rules)
+            for sentence in sentences
         ]
         extended_pargraph = ExtendParagraph(paragraph)
         for old, new in zip(sentences, new_sentences):

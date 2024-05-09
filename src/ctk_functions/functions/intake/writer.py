@@ -723,8 +723,7 @@ class ReportWriter:
         """Applies various grammatical and styling corrections."""
         logger.debug("Applying corrections to the report.")
         document_corrector = language_utils.DocumentCorrections(
-            self.report,
-            correct_they=self.intake.patient.pronouns[0] == "they",
+            self.report, rules={"PERS_PRONOUN_AGREEMENT", "UPPERCASE_SENTENCE_START"}
         )
         document_corrector.correct()
 
