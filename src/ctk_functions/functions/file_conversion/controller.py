@@ -60,4 +60,4 @@ def mark_warnings_as_red(docx_file: str | pathlib.Path) -> None:
     matches = set(warningRegex.finditer(text))
     for match in matches:
         extend_document.replace(match.group(), match.group(), {"font_rgb": (255, 0, 0)})
-    document.save(docx_file)
+    document.save(str(docx_file))
