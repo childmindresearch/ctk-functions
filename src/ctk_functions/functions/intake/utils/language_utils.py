@@ -62,7 +62,7 @@ class DocumentCorrections:
         Args:
             paragraph: The paragraph to correct.
         """
-        sentences = NLP(paragraph.text).sents
+        sentences = list(NLP(paragraph.text).sents)
         new_sentences = [
             self.correcter.run(
                 sentence.text,
