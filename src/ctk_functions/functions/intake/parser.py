@@ -62,7 +62,6 @@ class Patient:
             descriptors.Handedness(patient_data["dominant_hand"]),
         )
 
-        self.hobbies = patient_data["child_interests"]
         self.reason_for_visit = patient_data["concern_current"]
         self.hopes = patient_data["outcome2"]
         self.learned_of_study = patient_data["referral2"]
@@ -84,6 +83,7 @@ class Patient:
         self.development = Development(patient_data)
         self.guardian = Guardian(patient_data)
         self.household = Household(patient_data)
+        self.social_functioning = SocialFunctioning(patient_data)
 
     @property
     def full_name(self) -> str:
@@ -463,6 +463,7 @@ class PrimaryCareInformation:
         Args:
             patient_data: The patient data.
         """
+        logger.debug("Parsing primary care information.")
         hearing_device = transformers.HearingDevice(
             descriptors.HearingDevice(patient_data["child_hearing_aid"]),
         )
@@ -483,3 +484,20 @@ class PrimaryCareInformation:
             for disease in ("seizures", "migraines", "meningitis", "encephalitis")
         ]
         self.prior_diseases = transformers.PriorDiseases(diseases)
+
+
+class SocialFunctioning:
+    """The parser for the patient's social functioning."""
+
+    def __init__(self, patient_data: dict[str, Any]) -> None:
+        """Initializes the social functioning.
+
+        Args:
+            patient_data: The patient data.
+        """
+        logger.debug("Parsing social functioning.")
+        self.hobbies = patient_data["child_interests"]
+        self.n_friends = patient_data["close_friends"]
+        self.friendship_quality = descriptors.FriendshipQuality(
+            patient_data["peer_relations"],
+        ).name

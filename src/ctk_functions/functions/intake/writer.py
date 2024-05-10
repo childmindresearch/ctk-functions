@@ -33,11 +33,16 @@ RGB_TEMPLATE = (247, 150, 70)
 RGB_LLM = (0, 0, 255)
 PLACEHOLDER = "______"
 SYSTEM_PROMPT = """
-    You will receive an excerpt of a clinical report with part of the text
-    replaced by a placeholder as well as a response by a parent. Your task is to
-    insert the parent's response into the excerpt. You should return the excerpt
-    in full with the placeholder replaced by the parent's response. The full
-    response should be no more than two sentences long.
+You will receive an excerpt of a clinical report with part of the text
+replaced by a placeholder as well as a response by a parent. Your task is to
+insert the parent's response into the excerpt. You should return the excerpt
+in full with the placeholder replaced by the parent's response. The full
+response should be no more than one sentence long. Ensure that the tone is
+appropriate for a clinical report written by a doctor, i.e. professional and
+objective. Do not use quotations; make sure the response is integrated into
+the text. If the response is not provided, please write that the response was
+not provided. If the response is not applicable, please write that the
+information is not applicable.
 """
 
 logger = config.get_logger()
@@ -161,20 +166,19 @@ class ReportWriter:
         classroom = patient.education.classroom_type
         age_determinant = "an" if patient.age in (8, 18) else "a"
 
-        concerns_id = self._create_llm_placeholder(
+        goals_id = self._create_llm_placeholder(
             excerpt=(
-                f"{patient.guardian.title_name} attended the present"
-                + f"evaluation due to concerns regarding {PLACEHOLDER}."
+                f"""{patient.guardian.title_name} attended the present
+                evaluation due to concerns regarding {PLACEHOLDER}.
+                The family is hoping for {PLACEHOLDER}.
+                The family learned of the study through {PLACEHOLDER}."
+            """
             ),
-            parent_input=patient.reason_for_visit,
-        )
-        hopes_id = self._create_llm_placeholder(
-            excerpt=f"The family is hoping for {PLACEHOLDER}.",
-            parent_input=patient.hopes,
-        )
-        learned_of_study_id = self._create_llm_placeholder(
-            excerpt=f"The family learned of the study through {PLACEHOLDER}.",
-            parent_input=patient.learned_of_study,
+            parent_input=f"""
+            Reason for visit: {patient.reason_for_visit}.
+            Hopes: {patient.hopes}.
+            Learned of study: {patient.learned_of_study}.
+            """,
         )
 
         if patient.education.grade.isnumeric():
@@ -194,8 +198,8 @@ class ReportWriter:
             f"""
             grade classroom at {patient.education.school_name}.
             {patient.first_name} {iep}. {patient.first_name} and
-            {patient.pronouns[2]} {patient.guardian.relationship}/
-            {concerns_id} {hopes_id} {learned_of_study_id}
+            {patient.pronouns[2]} {patient.guardian.relationship}
+            {goals_id}
         """,
         ]
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
@@ -464,21 +468,30 @@ class ReportWriter:
         """Writes the social functioning to the report."""
         logger.debug("Writing the social functioning to the report.")
         patient = self.intake.patient
+        social_functioning = patient.social_functioning
+
+        socials_id = self._create_llm_placeholder(
+            excerpt=f"""
+                {patient.guardian.title_name} reported
+                that {patient.pronouns[0]} has {PLACEHOLDER} friends in
+                {patient.pronouns[2]} peer group in school and on
+                {patient.pronouns[2]} team/club/etc. {patient.first_name}
+                socializes with friends outside of school and has a
+                {social_functioning.friendship_quality} relationship with them.""",
+            parent_input=f"""
+                Number of friends: {social_functioning.n_friends}
+
+            """,
+        )
         hobbies_id = self._create_llm_placeholder(
             excerpt=f"{patient.first_name}'s hobbies include {PLACEHOLDER}.",
-            parent_input=patient.hobbies,  # type: ignore[attr-defined]
+            parent_input=social_functioning.hobbies,  # type: ignore[attr-defined]
         )
 
         text = f"""
             {patient.guardian.title_name} was pleased to describe
             {patient.first_name} as a (insert adjective e.g., affectionate)
-            {patient.age_gender_label}. {patient.guardian.title_name} reported
-            that {patient.pronouns[0]} has many/several/one friends in
-            {patient.pronouns[2]} peer group in school and on
-            {patient.pronouns[2]} team/club/etc. {patient.first_name}
-            socializes with friends outside of school and has a
-            (positive/fair/poor) relationship with them.
-            {hobbies_id}
+            {patient.age_gender_label}. {socials_id} {hobbies_id}
         """
         text = string_utils.remove_excess_whitespace(text)
 
@@ -923,6 +936,9 @@ class ReportWriter:
             excerpt: The excerpt to provide to the large language model.
             parent_input: The parent input that need be incorporated in the excerpt.
         """
+        excerpt = string_utils.remove_excess_whitespace(excerpt)
+        parent_input = string_utils.remove_excess_whitespace(parent_input)
+
         id = str(uuid.uuid4())
         replacement = self.aws_client.run_async(
             SYSTEM_PROMPT, f"{excerpt}\n{parent_input}"

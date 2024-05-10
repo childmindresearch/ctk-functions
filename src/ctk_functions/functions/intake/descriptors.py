@@ -488,3 +488,12 @@ class PriorDisease(pydantic.BaseModel):
     was_positive: bool
     age: str | None
     treatment: str | None
+
+
+class FriendshipQuality(enum.Enum):
+    """Class used for the relationship quality with friends."""
+
+    excellent = 1
+    good = 2
+    fair = 3
+    poor = 4
