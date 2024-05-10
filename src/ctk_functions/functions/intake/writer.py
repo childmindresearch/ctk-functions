@@ -5,7 +5,6 @@ import dataclasses
 import enum
 import itertools
 import pathlib
-import queue
 import tempfile
 import uuid
 from typing import AsyncGenerator, Awaitable
@@ -18,12 +17,12 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import descriptors, llm, parser
+from ctk_functions.functions.intake import descriptors, parser
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import azure
+from ctk_functions.microservices import aws, azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -33,6 +32,13 @@ RGB_TESTING = (155, 187, 89)
 RGB_TEMPLATE = (247, 150, 70)
 RGB_LLM = (0, 0, 255)
 PLACEHOLDER = "______"
+SYSTEM_PROMPT = """
+    You will receive an excerpt of a clinical report with part of the text
+    replaced by a placeholder as well as a response by a parent. Your task is to
+    insert the parent's response into the excerpt. You should return the excerpt
+    in full with the placeholder replaced by the parent's response. The full
+    response should be no more than two sentences long.
+"""
 
 logger = config.get_logger()
 
@@ -94,7 +100,11 @@ class ReportWriter:
             if "MENTAL STATUS EXAMINATION AND TESTING BEHAVIORAL OBSERVATIONS"
             in paragraph.text
         )
-        self.llm_placeholders: queue.SimpleQueue[LlmPlaceholder] = queue.SimpleQueue()
+
+        self.aws_client = aws.BedRockLlm(
+            model="mistral.mistral-large-2402-v1:0", region_name="us-east-1"
+        )
+        self.llm_placeholders: list[LlmPlaceholder] = list()
 
         if not self.insert_before:
             msg = "Insertion point not found in the report template."
@@ -153,18 +163,18 @@ class ReportWriter:
 
         concerns_id = self._create_llm_placeholder(
             excerpt=(
-                f"{patient.guardian.title_full_name}, attended the present"
+                f"{patient.guardian.title_name} attended the present"
                 + f"evaluation due to concerns regarding {PLACEHOLDER}."
             ),
-            parent_input=patient.reason_for_visit,  # type: ignore[attr-defined]
+            parent_input=patient.reason_for_visit,
         )
         hopes_id = self._create_llm_placeholder(
             excerpt=f"The family is hoping for {PLACEHOLDER}.",
-            parent_input=patient.hopes,  # type: ignore[attr-defined]
+            parent_input=patient.hopes,
         )
         learned_of_study_id = self._create_llm_placeholder(
             excerpt=f"The family learned of the study through {PLACEHOLDER}.",
-            parent_input=patient.learned_of_study,  # type: ignore[attr-defined]
+            parent_input=patient.learned_of_study,
         )
 
         if patient.education.grade.isnumeric():
@@ -184,7 +194,7 @@ class ReportWriter:
             f"""
             grade classroom at {patient.education.school_name}.
             {patient.first_name} {iep}. {patient.first_name} and
-            {patient.pronouns[2]} {patient.guardian.relationship},
+            {patient.pronouns[2]} {patient.guardian.relationship}/
             {concerns_id} {hopes_id} {learned_of_study_id}
         """,
         ]
@@ -794,11 +804,12 @@ class ReportWriter:
         """Makes edits to the report using a large language model."""
         logger.debug("Making edits to the report using a large language model.")
         extendedDocument = cmi_docx.ExtendDocument(self.report)
-        while not self.llm_placeholders.qsize() == 0:
-            placeholder = self.llm_placeholders.get()
-            new_text = await placeholder.replacement
+        for placeholder in self.llm_placeholders:
+            replacement = await placeholder.replacement
             extendedDocument.replace(
-                "{{" + placeholder.id + "}}", new_text, {"font_rgb": RGB_LLM}
+                "{{" + placeholder.id + "}}",
+                replacement,
+                {"font_rgb": RGB_LLM},
             )
 
     def _insert_image(self, paragraph_index: int, image: Image) -> None:
@@ -913,6 +924,8 @@ class ReportWriter:
             parent_input: The parent input that need be incorporated in the excerpt.
         """
         id = str(uuid.uuid4())
-        replacement = llm.LlmEditor().run(excerpt, parent_input, PLACEHOLDER)
-        self.llm_placeholders.put(LlmPlaceholder(id, replacement))
+        replacement = self.aws_client.run_async(
+            SYSTEM_PROMPT, f"{excerpt}\n{parent_input}"
+        )
+        self.llm_placeholders.append(LlmPlaceholder(id, replacement))
         return f"{{{{{id}}}}}"

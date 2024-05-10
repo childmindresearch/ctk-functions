@@ -2,19 +2,21 @@
 
 import asyncio
 import json
-from typing import Literal
 
 import boto3
+import botocore
+
+config = botocore.config.Config(retries={"max_attempts": 100, "mode": "standard"})
 
 
 class BedRockLlm:
     """A class to interact with the BedRock service."""
 
-    def __init__(
-        self, model: Literal["meta.llama3-70b-instruct-v1:0"], region_name: str
-    ) -> None:
+    def __init__(self, model: str, region_name: str) -> None:
         """Initializes the BedRock client."""
-        self.client = boto3.client("bedrock-runtime", region_name=region_name)
+        self.client = boto3.client(
+            "bedrock-runtime", region_name=region_name, config=config
+        )
         self.model = model
 
     def run(self, system_prompt: str, user_prompt: str) -> str:
@@ -27,16 +29,14 @@ class BedRockLlm:
         Returns:
             The output text.
         """
-        prompt = f"[INST]<<[SYS]>>{system_prompt}<<[/SYS]>>\n{user_prompt}[/INST]"
+        prompt = f"[INST]{system_prompt}\n{user_prompt}[/INST]"
         body = json.dumps(
             {
                 "prompt": prompt,
-                "max_gen_len": 2048,
-                "temperature": 0,
+                "temperature": 0.5,
                 "top_p": 0.9,
             }
         )
-
         response = self.client.invoke_model(
             body=body,
             modelId=self.model,
@@ -45,7 +45,7 @@ class BedRockLlm:
         )
 
         response_body = json.loads(response.get("body").read())
-        return response_body["generation"]
+        return response_body["outputs"][0]["text"]
 
     async def run_async(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts asynchronously.

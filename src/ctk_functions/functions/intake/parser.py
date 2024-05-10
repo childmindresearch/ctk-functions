@@ -61,6 +61,11 @@ class Patient:
         self.handedness = transformers.Handedness(
             descriptors.Handedness(patient_data["dominant_hand"]),
         )
+
+        self.hobbies = patient_data["child_interests"]
+        self.reason_for_visit = patient_data["concern_current"]
+        self.hopes = patient_data["outcome2"]
+        self.learned_of_study = patient_data["referral2"]
         self.primary_care = PrimaryCareInformation(patient_data)
 
         self.psychiatric_history = PsychiatricHistory(patient_data)
