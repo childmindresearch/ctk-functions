@@ -5,6 +5,7 @@ from typing import Sequence
 import docx
 import spacy
 from cmi_docx import ExtendParagraph
+from docx import document
 
 from ctk_functions.text import corrections
 
@@ -31,7 +32,7 @@ class DocumentCorrections:
 
     def __init__(
         self,
-        document: docx.Document,
+        document: document.Document,
         enabled_rules: Sequence[str] | None = DEFAULT_LANGUAGE_RULES,
         disabled_rules: Sequence[str] | None = None,
     ) -> None:
@@ -61,7 +62,7 @@ class DocumentCorrections:
         Args:
             paragraph: The paragraph to correct.
         """
-        sentences = NLP(paragraph.text).sents
+        sentences = list(NLP(paragraph.text).sents)
         new_sentences = [
             self.correcter.run(
                 sentence.text,
