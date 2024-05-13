@@ -16,7 +16,7 @@ jobs:
     env:
       REDCAP_API_TOKEN: test
       AZURE_BLOB_CONNECTION_STRING: test
-      LANGUAGE_TOOL_ENDPOINT: http://language-tool:8010
+      LANGUAGE_TOOL_ENDPOINT: http://language-tool:8010/check/v2
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
