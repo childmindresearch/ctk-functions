@@ -17,6 +17,9 @@ class Settings(pydantic_settings.BaseSettings):
         "https://redcap.healthybrainnetwork.org/redcap/api/"
     )
     AZURE_BLOB_CONNECTION_STRING: pydantic.SecretStr
+    LANGUAGE_TOOL_ENDPOINT: pydantic.HttpUrl = pydantic.Field(
+        ..., json_schema_extra={"env": "LANGUAGE_TOOL_ENDPOINT"}
+    )
 
     LOGGER_VERBOSITY: int = 20
 
