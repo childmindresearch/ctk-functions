@@ -659,10 +659,10 @@ class EducationGrades(Transformer[descriptors.EducationGrades]):
             str: The transformed object.
         """
         word_to_number = {
-            "ONE": "1",
-            "TWO": "2",
-            "THREE": "3",
-            "FOUR": "4",
+            "ONE": "1s",
+            "TWO": "2s",
+            "THREE": "3s",
+            "FOUR": "4s",
         }
         if self.base.name in word_to_number:
             return word_to_number[self.base.name]
