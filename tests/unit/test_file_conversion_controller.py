@@ -22,7 +22,7 @@ def test_mark_warnings_as_red(tmp_path: pathlib.Path) -> None:
     doc.save(str(filename))
 
     controller.mark_warnings_as_red(filename)
-    modified_doc = docx.Document(filename)
+    modified_doc = docx.Document(str(filename))
 
     assert modified_doc.paragraphs[0].runs[1].text == "{{!WARNING-TEXT}}"
     assert modified_doc.paragraphs[1].runs[1].text == "{{!WARNING-TEXT-2}}"
@@ -39,7 +39,7 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
     filename = tmp_path / "test.docx"
     with open(filename, "wb") as file:
         file.write(docx_bytes)
-    doc = docx.Document(filename)
+    doc = docx.Document(str(filename))
 
     assert doc.paragraphs[0].text == "Header"
     assert doc.paragraphs[1].text == "This is a paragraph."

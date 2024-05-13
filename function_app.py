@@ -19,7 +19,7 @@ app = functions.FunctionApp()
 @app.function_name(name="IntakeReport")
 @app.route(
     route="intake-report/{survey_id}",
-    auth_level=functions.AuthLevel.ANONYMOUS,
+    auth_level=functions.AuthLevel.FUNCTION,
     methods=["GET"],
 )
 async def get_intake_report(req: functions.HttpRequest) -> functions.HttpResponse:
@@ -53,7 +53,7 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
 
 @app.function_name(name="MarkdownToDocx")
 @app.route(
-    route="markdown2docx", auth_level=functions.AuthLevel.ANONYMOUS, methods=["POST"]
+    route="markdown2docx", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"]
 )
 async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     """Converts a Markdown document to a .docx file.
