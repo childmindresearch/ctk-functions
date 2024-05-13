@@ -16,7 +16,7 @@ jobs:
     env:
       REDCAP_API_TOKEN: test
       AZURE_BLOB_CONNECTION_STRING: test
-      LANGUAGE_TOOL_ENDPOINT: http://language-tool:8010/v2/check
+      LANGUAGE_TOOL_ENDPOINT: http://localhost:8010/v2/check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -25,6 +25,7 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version-file: pyproject.toml
+        cache: poetry
     - name: Install dependencies
       run: |
         poetry install
