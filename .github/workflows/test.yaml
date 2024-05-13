@@ -14,7 +14,7 @@ jobs:
         ports:
         - 8010:8010
         options: >-
-          --health-cmd 'curl -v --data "language=en-US&text=they is good." http://localhost:8010/v2/check'
+          --health-cmd='curl -v --data "language=en-US&text=they is good." http://localhost:8010/v2/check'
 
     env:
       REDCAP_API_TOKEN: test
