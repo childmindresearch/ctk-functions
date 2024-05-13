@@ -46,6 +46,10 @@ async def intake_document(
         "ctk_functions.functions.intake.writer.ReportWriter._download_signatures",
         return_value=AsyncIterator([]),
     )
+    mocker.patch(
+        "ctk_functions.functions.intake.writer.ReportWriter._create_llm_placeholder",
+        return_value="llm placeholder",
+    )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info)
     await intake_writer.transform()
@@ -80,11 +84,11 @@ async def test_no_printed_objects(
 
 @pytest.mark.asyncio
 async def test_expected_strings_in_document(
-    intake_document: document.Document,
+    intake_document: Coroutine[document.Document, None, None],
     test_redcap_data: dict[str, Any],
 ) -> None:
     """Tests that the document contains some expected strings."""
-    text = "\n".join([p.text for p in (await intake_document).paragraphs])
+    text = "\n".join([p.text for p in (await intake_document).paragraphs])  # type: ignore
     headers = [
         "REASON FOR VISIT",
         "IDENTIFYING INFORMATION",

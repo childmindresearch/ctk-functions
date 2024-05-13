@@ -18,6 +18,7 @@ NLP = spacy.load("en_core_web_sm")
 
 DEFAULT_LANGUAGE_RULES = (
     "BASE_FORM",
+    "CONSECUTIVE_SPACES",
     "PERS_PRONOUN_AGREEMENT",
     "NON3PRS_VERB",
     "UPPERCASE_SENTENCE_START",
@@ -52,7 +53,7 @@ class DocumentCorrections:
         self.disabled_rules = set(disabled_rules) if disabled_rules else set()
 
     def correct(self) -> None:
-        """Corrects verb conjugations associated with 'they' in the document."""
+        """Makes corrections based on the enabled and disabled rules."""
         for paragraph in self.document.paragraphs:
             self._correct_paragraph(paragraph)
 

@@ -6,7 +6,8 @@ import enum
 import itertools
 import pathlib
 import tempfile
-from typing import AsyncGenerator
+import uuid
+from typing import AsyncGenerator, Awaitable
 
 import cmi_docx
 import docx
@@ -21,20 +22,38 @@ from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import azure
+from ctk_functions.microservices import aws, azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
-RGB_INTAKE = (178, 161, 199)
-RGB_TESTING = (155, 187, 89)
-RGB_TEMPLATE = (247, 150, 70)
 PLACEHOLDER = "______"
+SYSTEM_PROMPT = """
+You will receive an excerpt of a clinical report with part of the text
+replaced by a placeholder as well as a response by a parent. Your task is to
+insert the parent's response into the excerpt. You should return the excerpt
+in full with the placeholder replaced by the parent's response. The full
+response should be no more than one sentence long. Ensure that the tone is
+appropriate for a clinical report written by a doctor, i.e. professional and
+objective. Do not use quotations; make sure the response is integrated into
+the text. If the response is not provided, please write that the response was
+not provided. If the response is not applicable, please write that the
+information is not applicable.
+"""
 
 logger = config.get_logger()
 
 
-class Style(enum.Enum):
+class RGB(enum.Enum):
+    """Represents an RGB color code for specific sections."""
+
+    INTAKE = (178, 161, 199)
+    TESTING = (155, 187, 89)
+    TEMPLATE = (247, 150, 70)
+    LLM = (0, 0, 255)
+
+
+class StyleName(enum.Enum):
     """The styles for the report."""
 
     HEADING_1 = "Heading 1"
@@ -46,10 +65,29 @@ class Style(enum.Enum):
 
 @dataclasses.dataclass
 class Image:
-    """Represents an image to be inserted into the report."""
+    """Represents an image to be inserted into the report.
+
+    Attributes:
+        name: The name of the image.
+        binary_data: The binary data representing the image.
+    """
 
     name: str
     binary_data: bytes
+
+
+@dataclasses.dataclass
+class LlmPlaceholder:
+    """Represents a placeholder for large language model input in the report.
+
+    Attributes:
+        id: The unique identifier for the placeholder. Will be inserted into
+            the report as {{id}}.
+        replacement: The replacement text for the placeholder.
+    """
+
+    id: str
+    replacement: Awaitable[str]
 
 
 class ReportWriter:
@@ -73,6 +111,11 @@ class ReportWriter:
             in paragraph.text
         )
 
+        self.aws_client = aws.BedRockLlm(
+            model="mistral.mistral-large-2402-v1:0", region_name="us-east-1"
+        )
+        self.llm_placeholders: list[LlmPlaceholder] = list()
+
         if not self.insert_before:
             msg = "Insertion point not found in the report template."
             raise ValueError(msg)
@@ -93,6 +136,7 @@ class ReportWriter:
         self.replace_patient_information()
         self.apply_corrections()
         await self.add_signatures()
+        await self.make_llm_edits()
 
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
@@ -127,6 +171,21 @@ class ReportWriter:
         classroom = patient.education.classroom_type
         age_determinant = "an" if patient.age in (8, 18) else "a"
 
+        goals_id = self._create_llm_placeholder(
+            excerpt=(
+                f"""{patient.guardian.title_name} attended the present
+                evaluation due to concerns regarding {PLACEHOLDER}.
+                The family is hoping for {PLACEHOLDER}.
+                The family learned of the study through {PLACEHOLDER}."
+            """
+            ),
+            parent_input=f"""
+            Reason for visit: {patient.reason_for_visit}.
+            Hopes: {patient.hopes}.
+            Learned of study: {patient.learned_of_study}.
+            """,
+        )
+
         if patient.education.grade.isnumeric():
             grade_superscript = string_utils.ordinal_suffix(
                 int(patient.education.grade),
@@ -144,27 +203,24 @@ class ReportWriter:
             f"""
             grade classroom at {patient.education.school_name}.
             {patient.first_name} {iep}. {patient.first_name} and
-            {patient.pronouns[2]} {patient.guardian.relationship},
-            {patient.guardian.title_full_name}, attended the present evaluation due to
-            concerns regarding {PLACEHOLDER}. The family is hoping for
-            {PLACEHOLDER}. The family learned of the study through
-            {PLACEHOLDER}.
+            {patient.pronouns[2]} {patient.guardian.relationship}
+            {goals_id}
         """,
         ]
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
-        heading = self._insert("REASON FOR VISIT", Style.HEADING_1)
+        heading = self._insert("REASON FOR VISIT", StyleName.HEADING_1)
         paragraph = self._insert(texts[0])
         paragraph.add_run(texts[1]).font.superscript = True
         paragraph.add_run(" " + texts[2])
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_developmental_history(self) -> None:
         """Writes the developmental history to the end of the report."""
         logger.debug("Writing the developmental history to the report.")
-        heading = self._insert("DEVELOPMENTAL HISTORY", Style.HEADING_1)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        heading = self._insert("DEVELOPMENTAL HISTORY", StyleName.HEADING_1)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
         self.write_prenatal_history()
         self.write_developmental_milestones()
         self.write_early_education()
@@ -190,10 +246,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Prenatal and Birth History", Style.HEADING_2)
+        heading = self._insert("Prenatal and Birth History", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_developmental_milestones(self) -> None:
         """Writes the developmental milestones to the report."""
@@ -214,10 +270,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Developmental Milestones", Style.HEADING_2)
+        heading = self._insert("Developmental Milestones", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.TEMPLATE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.TEMPLATE.value)
 
     def write_early_education(self) -> None:
         """Writes the early education information to the report."""
@@ -235,16 +291,16 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Early Educational Interventions", Style.HEADING_2)
+        heading = self._insert("Early Educational Interventions", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_academic_history(self) -> None:
         """Writes the academic history to the end of the report."""
         logger.debug("Writing the academic history to the report.")
-        heading = self._insert("ACADEMIC AND EDUCATIONAL HISTORY", Style.HEADING_1)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        heading = self._insert("ACADEMIC AND EDUCATIONAL HISTORY", StyleName.HEADING_1)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
         self.write_previous_testing()
         self.write_academic_history_table()
         self.write_educational_history()
@@ -262,17 +318,17 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Previous Testing", Style.HEADING_2)
+        heading = self._insert("Previous Testing", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_academic_history_table(self) -> None:
         """Writes the academic history table to the report."""
         logger.debug("Writing the academic history table to the report.")
         paragraph = self._insert("Name, Date of Assessment")
         cmi_docx.ExtendParagraph(paragraph).format(
-            font_rgb=RGB_INTAKE,
+            font_rgb=RGB.INTAKE.value,
             bold=True,
             alignment=enum_text.WD_PARAGRAPH_ALIGNMENT.CENTER,
         )
@@ -293,7 +349,7 @@ class ReportWriter:
             header_row[i].width = 10
             cmi_docx.ExtendCell(header_row[i]).format(
                 bold=True,
-                font_rgb=RGB_INTAKE,
+                font_rgb=RGB.INTAKE.value,
                 background_rgb=(217, 217, 217),
                 alignment=enum_text.WD_ALIGN_PARAGRAPH.CENTER,
             )
@@ -358,21 +414,21 @@ class ReportWriter:
             string_utils.remove_excess_whitespace(text) for text in texts_current
         ]
 
-        heading = self._insert("Educational History", Style.HEADING_2)
+        heading = self._insert("Educational History", StyleName.HEADING_2)
         prior_paragraph = self._insert(text_prior)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(prior_paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(prior_paragraph).format(font_rgb=RGB.INTAKE.value)
 
         current_paragraph = self._insert(texts_current[0])
         current_paragraph.add_run(texts_current[1]).font.superscript = True
         current_paragraph.add_run(" " + texts_current[2])
-        cmi_docx.ExtendParagraph(current_paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(current_paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_social_history(self) -> None:
         """Writes the social history to the end of the report."""
         logger.debug("Writing the social history to the report.")
-        heading = self._insert("SOCIAL HISTORY", Style.HEADING_1)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        heading = self._insert("SOCIAL HISTORY", StyleName.HEADING_1)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
         self.write_home_and_adaptive_functioning()
         self.write_social_functioning()
 
@@ -406,41 +462,48 @@ class ReportWriter:
         text_home = string_utils.remove_excess_whitespace(text_home)
         text_adaptive = string_utils.remove_excess_whitespace(text_adaptive)
 
-        heading = self._insert("Home and Adaptive Functioning", Style.HEADING_2)
+        heading = self._insert("Home and Adaptive Functioning", StyleName.HEADING_2)
         home_paragraph = self._insert(text_home)
         adaptive_paragraph = self._insert(text_adaptive)
 
         for paragraph in (heading, home_paragraph, adaptive_paragraph):
-            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_social_functioning(self) -> None:
         """Writes the social functioning to the report."""
         logger.debug("Writing the social functioning to the report.")
         patient = self.intake.patient
+        social_functioning = patient.social_functioning
+
+        hobbies_id = self._create_llm_placeholder(
+            excerpt=f"""
+                {patient.guardian.title_name} reported that {patient.pronouns[0]} has
+                {PLACEHOLDER} friends in {patient.pronouns[2]} peer group.
+                {patient.first_name}'s hobbies include {PLACEHOLDER}.
+                """,
+            parent_input=f"""
+             Hobbies: {social_functioning.hobbies}
+             Number of friends: {social_functioning.n_friends}.
+             """,
+        )
 
         text = f"""
             {patient.guardian.title_name} was pleased to describe
             {patient.first_name} as a (insert adjective e.g., affectionate)
-            {patient.age_gender_label}. {patient.guardian.title_name} reported
-            that {patient.pronouns[0]} has many/several/one friends in
-            {patient.pronouns[2]} peer group in school and on
-            {patient.pronouns[2]} team/club/etc. {patient.first_name}
-            socializes with friends outside of school and has a
-            (positive/fair/poor) relationship with them.
-            {patient.first_name}'s hobbies include {PLACEHOLDER}.
+            {patient.age_gender_label}. {hobbies_id}
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Social Functioning", Style.HEADING_2)
+        heading = self._insert("Social Functioning", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_psychiatric_history(self) -> None:
         """Writes the psychiatric history to the end of the report."""
         logger.debug("Writing the psychiatric history to the report.")
-        heading = self._insert("PSYCHRIATIC HISTORY", Style.HEADING_1)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        heading = self._insert("PSYCHRIATIC HISTORY", StyleName.HEADING_1)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
         self.write_past_psychriatic_diagnoses()
         self.write_past_psychiatric_hospitalizations()
         self.write_past_therapeutic_interventions()
@@ -460,10 +523,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Past Psychiatric Hospitalizations", Style.HEADING_2)
+        heading = self._insert("Past Psychiatric Hospitalizations", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.TEMPLATE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.TEMPLATE.value)
 
     def administration_for_childrens_services_involvement(self) -> None:
         """Writes the ACS involvement to the report."""
@@ -475,11 +538,11 @@ class ReportWriter:
 
         heading = self._insert(
             "Administration for Children's Services (ACS) Involvement",
-            Style.HEADING_2,
+            StyleName.HEADING_2,
         )
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_past_aggressive_behaviors_and_homicidality(self) -> None:
         """Writes the past aggressive behaviors and homicidality to the report."""
@@ -493,11 +556,11 @@ class ReportWriter:
 
         heading = self._insert(
             "Past Severe Aggressive Behaviors and Homicidality",
-            Style.HEADING_2,
+            StyleName.HEADING_2,
         )
         report = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB.INTAKE.value)
 
     def write_past_psychriatic_diagnoses(self) -> None:
         """Writes the past psychiatric diagnoses to the report."""
@@ -512,10 +575,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Past Psychiatric Diagnoses", Style.HEADING_2)
+        heading = self._insert("Past Psychiatric Diagnoses", StyleName.HEADING_2)
         report = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB.INTAKE.value)
 
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
@@ -533,10 +596,10 @@ class ReportWriter:
         deferred."""
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Family Psychiatric History", Style.HEADING_2)
+        heading = self._insert("Family Psychiatric History", StyleName.HEADING_2)
         report = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
-        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.TEMPLATE.value)
+        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB.TEMPLATE.value)
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""
@@ -567,11 +630,11 @@ class ReportWriter:
 
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
-        heading = self._insert("Past Therapeutic Interventions", Style.HEADING_2)
+        heading = self._insert("Past Therapeutic Interventions", StyleName.HEADING_2)
         paragraphs = [self._insert(text) for text in texts]
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
         for paragraph in paragraphs:
-            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
@@ -585,11 +648,11 @@ class ReportWriter:
 
         heading = self._insert(
             "Past Self-Injurious Behaviors and Suicidality",
-            Style.HEADING_2,
+            StyleName.HEADING_2,
         )
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def exposure_to_violence_and_trauma(self) -> None:
         """Writes the exposure to violence and trauma to the report."""
@@ -599,10 +662,10 @@ class ReportWriter:
         text = str(patient.psychiatric_history.violence_and_trauma)
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Exposure to Violence and Trauma", Style.HEADING_2)
+        heading = self._insert("Exposure to Violence and Trauma", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_medical_history(self) -> None:
         """Writes the medical history to the end of the report."""
@@ -619,10 +682,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("MEDICAL HISTORY", Style.HEADING_1)
+        heading = self._insert("MEDICAL HISTORY", StyleName.HEADING_1)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TEMPLATE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TEMPLATE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.TEMPLATE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.TEMPLATE.value)
 
     def write_clinical_summary_and_impressions(self) -> None:
         """Writes the clinical summary and impressions to the report."""
@@ -639,10 +702,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("CLINICAL SUMMARY AND IMPRESSIONS", Style.HEADING_1)
+        heading = self._insert("CLINICAL SUMMARY AND IMPRESSIONS", StyleName.HEADING_1)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_TESTING)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TESTING)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.TESTING.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.TESTING.value)
 
     def write_current_psychiatric_functioning(self) -> None:
         """Writes the current psychiatric functioning to the report.
@@ -651,8 +714,8 @@ class ReportWriter:
         to the called functions instead.
         """
         logger.debug("Writing the current psychiatric functioning to the report.")
-        heading = self._insert("CURRENT PSYCHIATRIC FUNCTIONING", Style.HEADING_1)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
+        heading = self._insert("CURRENT PSYCHIATRIC FUNCTIONING", StyleName.HEADING_1)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
         self.write_current_psychiatric_medications_intake()
         self.write_current_psychiatric_medications_testing()
         self.write_denied_symptoms()
@@ -670,10 +733,10 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        heading = self._insert("Current Psychiatric Medications", Style.HEADING_2)
+        heading = self._insert("Current Psychiatric Medications", StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB_INTAKE)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_INTAKE)
+        cmi_docx.ExtendParagraph(heading).format(font_rgb=RGB.INTAKE.value)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.INTAKE.value)
 
     def write_current_psychiatric_medications_testing(self) -> None:
         """Writes the current psychiatric medications to the report."""
@@ -701,7 +764,9 @@ class ReportWriter:
         paragraph.add_run(texts[1])
         paragraph.runs[-1].bold = True
         paragraph.add_run(texts[2])
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TESTING, italics=True)
+        cmi_docx.ExtendParagraph(paragraph).format(
+            font_rgb=RGB.TESTING.value, italics=True
+        )
 
     def write_denied_symptoms(self) -> None:
         """Writes the denied symptoms to the report."""
@@ -717,7 +782,7 @@ class ReportWriter:
         text = string_utils.remove_excess_whitespace(text)
 
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB_TESTING)
+        cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.TESTING.value)
 
     def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
@@ -749,6 +814,18 @@ class ReportWriter:
                     paragraph_index
                 )
 
+    async def make_llm_edits(self) -> None:
+        """Makes edits to the report using a large language model."""
+        logger.debug("Making edits to the report using a large language model.")
+        extendedDocument = cmi_docx.ExtendDocument(self.report)
+        for placeholder in self.llm_placeholders:
+            replacement = await placeholder.replacement
+            extendedDocument.replace(
+                "{{" + placeholder.id + "}}",
+                replacement,
+                {"font_rgb": RGB.LLM.value},
+            )
+
     def _insert_image(self, paragraph_index: int, image: Image) -> None:
         """Inserts an image into the report."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -767,7 +844,7 @@ class ReportWriter:
     def _insert(
         self,
         text: str,
-        style: Style = Style.NORMAL,
+        style: StyleName = StyleName.NORMAL,
     ) -> docx_paragraph.Paragraph:
         """Inserts text at the insertion point.
 
@@ -852,3 +929,20 @@ class ReportWriter:
                 .replace("_", " ")
             )
             yield Image(person_name, binary_data)
+
+    def _create_llm_placeholder(self, excerpt: str, parent_input: str) -> str:
+        """Stores a placeholder that will later be editted by a large language model.
+
+        Args:
+            excerpt: The excerpt to provide to the large language model.
+            parent_input: The parent input that need be incorporated in the excerpt.
+        """
+        excerpt = string_utils.remove_excess_whitespace(excerpt)
+        parent_input = string_utils.remove_excess_whitespace(parent_input)
+
+        id = str(uuid.uuid4())
+        replacement = self.aws_client.run_async(
+            SYSTEM_PROMPT, f"{excerpt}\n{parent_input}"
+        )
+        self.llm_placeholders.append(LlmPlaceholder(id, replacement))
+        return f"{{{{{id}}}}}"
