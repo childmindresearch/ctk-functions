@@ -497,3 +497,28 @@ class FriendshipQuality(enum.Enum):
     good = 2
     fair = 3
     poor = 4
+
+
+class EducationPerformance(enum.Enum):
+    """Subjective performance in education."""
+
+    excellent = 1
+    good = 2
+    satisfactory = 3
+    poor = 4
+    failing = 5
+
+
+class EducationGrades(enum.Enum):
+    """Grades in education."""
+
+    As = 1
+    Bs = 2
+    Cs = 3
+    Ds = 4
+    Fs = 5
+    ONE = 6
+    TWO = 7
+    THREE = 8
+    FOUR = 9
+    not_graded = 10
