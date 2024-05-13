@@ -219,32 +219,6 @@ def test_cpse_transformer(
 @pytest.mark.parametrize(
     ("base", "expected"),
     [
-        ([], "no prior history of schools"),
-        (
-            [
-                transformers.PastSchoolInterface(name="School A", grades="1-5"),
-                transformers.PastSchoolInterface(name="School B", grades="6-8"),
-            ],
-            (
-                "attended the following schools: School A (grades: 1-5) and School B "
-                "(grades: 6-8)"
-            ),
-        ),
-    ],
-)
-def test_past_schools_transformer(
-    base: list[transformers.PastSchoolInterface],
-    expected: str,
-) -> None:
-    """Test that the PastSchools transformer returns the expected strings."""
-    transformer = transformers.PastSchools(base)
-
-    assert str(transformer) == expected
-
-
-@pytest.mark.parametrize(
-    ("base", "expected"),
-    [
         (
             12,
             "talked at 12 months/years",
@@ -589,5 +563,60 @@ def test_hearing_device_transformer(
 ) -> None:
     """Test that the HearingDevice transformer returns the expected strings."""
     transformer = transformers.HearingDevice(base)
+
+    assert str(transformer) == expected
+
+
+@pytest.mark.parametrize(
+    ("base", "expected"),
+    [
+        (
+            descriptors.EducationGrades.As,
+            "As",
+        ),
+        (
+            descriptors.EducationGrades.Bs,
+            "Bs",
+        ),
+        (
+            descriptors.EducationGrades.Cs,
+            "Cs",
+        ),
+        (
+            descriptors.EducationGrades.Ds,
+            "Ds",
+        ),
+        (
+            descriptors.EducationGrades.Fs,
+            "Fs",
+        ),
+        (
+            descriptors.EducationGrades.ONE,
+            "1s",
+        ),
+        (
+            descriptors.EducationGrades.TWO,
+            "2s",
+        ),
+        (
+            descriptors.EducationGrades.THREE,
+            "3s",
+        ),
+        (
+            descriptors.EducationGrades.FOUR,
+            "4s",
+        ),
+        (
+            descriptors.EducationGrades.not_graded,
+            "not graded",
+        ),
+    ],
+)
+def test_education_grades_transformer(
+    base: descriptors.EducationGrades,
+    expected: str,
+) -> None:
+    """Test that the EducationGrades transformer returns the expected strings."""
+    transformer = transformers.EducationGrades(base)
 
     assert str(transformer) == expected

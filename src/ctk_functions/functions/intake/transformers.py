@@ -8,7 +8,6 @@ used internally.
 """
 
 import abc
-import dataclasses
 import enum
 from typing import Any, Generic, Protocol, TypeVar
 
@@ -325,34 +324,6 @@ class ClassroomType(Transformer[descriptors.ClassroomType]):
             return self.other
 
         return self.base.name.replace("_", " ").replace("COLON", ":").strip()
-
-
-@dataclasses.dataclass
-class PastSchoolInterface:
-    """Interface for past school class.
-
-    Needed to prevent circular import from parsers.
-    """
-
-    name: str
-    grades: str
-
-
-class PastSchools(MultiTransformer[PastSchoolInterface]):
-    """The transformer for past schools."""
-
-    def transform(self) -> str:
-        """Transforms the past schools information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if len(self.base) == 0:
-            return "no prior history of schools"
-        substrings = [f"{val.name} (grades: {val.grades})" for val in self.base]
-        return "attended the following schools: " + string_utils.join_with_oxford_comma(
-            substrings,
-        )
 
 
 class DevelopmentSkill(Transformer[str | int]):
@@ -676,3 +647,23 @@ class PriorDiseases(MultiTransformer[descriptors.PriorDisease]):
             """
 
         return string_utils.remove_excess_whitespace(string)
+
+
+class EducationGrades(Transformer[descriptors.EducationGrades]):
+    """Transformer for the education grades information."""
+
+    def transform(self) -> str:
+        """Transforms the education grades information to a string.
+
+        Returns:
+            str: The transformed object.
+        """
+        word_to_number = {
+            "ONE": "1s",
+            "TWO": "2s",
+            "THREE": "3s",
+            "FOUR": "4s",
+        }
+        if self.base.name in word_to_number:
+            return word_to_number[self.base.name]
+        return self.base.name.replace("_", " ")

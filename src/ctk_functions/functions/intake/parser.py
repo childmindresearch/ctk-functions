@@ -1,5 +1,6 @@
 """Utilities for the file conversion router."""
 
+import dataclasses
 import math
 from typing import Any
 
@@ -234,6 +235,7 @@ class Household:
             "_",
             " ",
         )
+        self.home_functioning = patient_data["home_func"]
         self.languages = [
             descriptors.Language(identifier).name.replace("_", " ")
             for identifier in range(1, 25)
@@ -295,6 +297,15 @@ class HouseholdMember:
         self.grade_occupation = patient_data[f"peopleinhome{identifier}_gradeocc"]
 
 
+@dataclasses.dataclass
+class PastSchool:
+    """Dataclass for  for past school class."""
+
+    name: str
+    grades: str
+    experience: str
+
+
 class Education:
     """The parser for the patient's education."""
 
@@ -318,16 +329,23 @@ class Education:
             descriptors.ClassroomType(patient_data["classroomtype"]),
             other=patient_data["classroomtype_other"],
         )
-        self.past_schools = transformers.PastSchools(
-            [
-                transformers.PastSchoolInterface(
-                    name=patient_data[f"pastschool{identifier}"],
-                    grades=patient_data[f"pastschool{identifier}_grades"],
-                )
-                for identifier in range(1, 11)
-                if patient_data[f"pastschool{identifier}"]
-            ],
-        )
+        self.past_schools = [
+            PastSchool(
+                name=patient_data[f"pastschool{identifier}"],
+                grades=patient_data[f"pastschool{identifier}_grades"],
+                experience=patient_data[f"pastschool{identifier}comments"],
+            )
+            for identifier in range(1, 11)
+            if patient_data[f"pastschool{identifier}"]
+        ]
+
+        self.performance = descriptors.EducationPerformance(
+            patient_data["recent_academicperformance"],
+        ).name.lower()
+        self.grades = transformers.EducationGrades(
+            descriptors.EducationGrades(patient_data["current_grades"])
+        ).transform()
+        self.school_functioning = patient_data["school_func"]
 
 
 class Development:
@@ -472,7 +490,7 @@ class PrimaryCareInformation:
         )
         self.glasses_hearing_device = transformers.GlassesHearingDevice(
             glasses, hearing_device
-        )
+        ).transform()
 
         diseases = [
             descriptors.PriorDisease(
@@ -483,7 +501,7 @@ class PrimaryCareInformation:
             )
             for disease in ("seizures", "migraines", "meningitis", "encephalitis")
         ]
-        self.prior_diseases = transformers.PriorDiseases(diseases)
+        self.prior_diseases = transformers.PriorDiseases(diseases).transform()
 
 
 class SocialFunctioning:

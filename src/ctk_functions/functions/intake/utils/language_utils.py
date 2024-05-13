@@ -2,9 +2,9 @@
 
 from typing import Sequence
 
+import cmi_docx
 import docx
 import spacy
-from cmi_docx import ExtendParagraph
 from docx import document
 
 from ctk_functions.text import corrections
@@ -72,7 +72,7 @@ class DocumentCorrections:
             )
             for sentence in sentences
         ]
-        extended_pargraph = ExtendParagraph(paragraph)
+        extended_pargraph = cmi_docx.ExtendParagraph(paragraph)
         for old, new in zip(sentences, new_sentences):
             if old.text != new:
                 extended_pargraph.replace(old.text, new)
