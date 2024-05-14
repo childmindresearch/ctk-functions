@@ -610,16 +610,30 @@ class ReportWriter:
                 """,
             ]
         else:
-            texts = [
+            text_drafts = [
                 f"""
-                    From {intervention.start}-{intervention.end},
+                    From {PLACEHOLDER} to {PLACEHOLDER},
                     {patient.first_name} engaged in therapy with
-                    {intervention.therapist} due to "{intervention.reason}" at a
-                    frequency of {intervention.frequency}. {guardian.title_name}
-                    described the treatment as "{intervention.effectiveness}".
-                    Treatment was ended due to "{intervention.reason_ended}".
+                    {intervention.therapist} due to {PLACEHOLDER} at a
+                    frequency of {PLACEHOLDER}. {guardian.title_name}
+                    described the treatment as {PLACEHOLDER}.
+                    Treatment was ended due to {PLACEHOLDER}.
                     """
                 for intervention in interventions
+            ]
+            texts = [
+                self._create_llm_placeholder(
+                    text,
+                    parent_input=f"""
+                        Start date: {intervention.start}.
+                        End date: {intervention.end}.
+                        Frequency: {intervention.frequency}.
+                        Effectiveness description: {intervention.effectiveness}.
+                        Reason for starting: {intervention.reason}.
+                        Reason for ending: {intervention.reason_ended}.
+                    """,
+                )
+                for text, intervention in zip(text_drafts, interventions)
             ]
 
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
