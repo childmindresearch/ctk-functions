@@ -6,8 +6,7 @@ import enum
 import itertools
 import pathlib
 import tempfile
-import uuid
-from typing import AsyncGenerator, Awaitable
+from typing import AsyncGenerator
 
 import cmi_docx
 import docx
@@ -17,31 +16,18 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import parser
+from ctk_functions.functions.intake import llm, parser
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import aws, azure
+from ctk_functions.microservices import azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
 PLACEHOLDER = "______"
-SYSTEM_PROMPT = """
-You will receive an excerpt of a clinical report with part of the text replaced
-by a placeholder, a response by a parent, and the name and pronouns of the
-child. Your task is to insert the parent's response into the excerpt. You should
-return the excerpt in full with the placeholder replaced by the parent's
-response. The full response should be no more than one sentence long. Ensure
-that the tone is appropriate for a clinical report written by a doctor, i.e.
-professional and objective. Do not use quotations; make sure the response is
-integrated into the text. If the response is not provided, please write that the
-response was not provided. If the response is not applicable, please write that
-the information is not applicable. Parents' responses may be terse,
-grammatically incorrect, or incomplete. Do not include the "Excerpt:" tag in your
-response.
-"""
+
 
 logger = config.get_logger()
 
@@ -77,21 +63,6 @@ class Image:
     binary_data: bytes
 
 
-@dataclasses.dataclass
-class LlmPlaceholder:
-    """Represents a placeholder for large language model input in the report.
-
-    Attributes:
-        id: The unique identifier for the placeholder. Will be inserted into
-            the report as {{id}}.
-        replacement: The replacement text for the placeholder. Provided as
-            an awaitable to allow for asynchronous processing.
-    """
-
-    id: str
-    replacement: Awaitable[str]
-
-
 class ReportWriter:
     """Writes a report for intake information."""
 
@@ -113,10 +84,11 @@ class ReportWriter:
             in paragraph.text
         )
 
-        self.aws_client = aws.BedRockLlm(
-            model="mistral.mistral-large-2402-v1:0", region_name="us-east-1"
+        self.llm = llm.Llm(
+            "mistral.mistral-large-2402-v1:0",
+            intake.patient.first_name,
+            intake.patient.pronouns,
         )
-        self.llm_placeholders: list[LlmPlaceholder] = list()
 
         if not self.insert_before:
             msg = "Insertion point not found in the report template."
@@ -174,8 +146,8 @@ class ReportWriter:
         classroom = patient.education.classroom_type
         age_determinant = "an" if patient.age in (8, 18) else "a"
 
-        goals_id = self._create_llm_placeholder(
-            excerpt=(
+        placeholder_id = self.llm.run_text_with_parent_input(
+            text=(
                 f"""{patient.guardian.title_name} attended the present
                 evaluation due to concerns regarding {PLACEHOLDER}.
                 The family is hoping for {PLACEHOLDER}.
@@ -204,7 +176,7 @@ class ReportWriter:
                 grade classroom at {patient.education.school_name}.
                 {patient.first_name} {iep}. {patient.first_name} and
                 {patient.pronouns[2]} {patient.guardian.relationship}
-                {goals_id}
+                {placeholder_id}
         """
         text = string_utils.remove_excess_whitespace(text)
 
@@ -369,8 +341,8 @@ class ReportWriter:
             """
             texts.append(string_utils.remove_excess_whitespace(text))
         full_text = "\n\n".join(texts)
-        text_placeholder = self._create_llm_placeholder(
-            excerpt=full_text,
+        placeholder_id = self.llm.run_text_with_parent_input(
+            text=full_text,
             parent_input="\n".join(
                 f"Experience for {school.name}: {school.experience}"
                 for school in education.past_schools
@@ -378,7 +350,7 @@ class ReportWriter:
         )
 
         self._insert("Educational History", StyleName.HEADING_2)
-        self._insert(text_placeholder)
+        self._insert(placeholder_id)
 
     def write_current_education(self) -> None:
         """Writes the current educational history to the report."""
@@ -391,16 +363,14 @@ class ReportWriter:
             grade_superscript = ""
 
         if education.school_functioning:
-            llm_functioning = self._create_llm_placeholder(
-                excerpt=f"""
-                    {patient.guardian.title_name} reported that {PLACEHOLDER}.
-                """,
+            placeholder_id = self.llm.run_text_with_parent_input(
+                text=f"{patient.guardian.title_name} reported that {PLACEHOLDER}.",
                 parent_input=f"""
                     Details on school functioning: {education.school_functioning}
                 """,
             )
         else:
-            llm_functioning = ""
+            placeholder_id = ""
 
         texts = [
             f"""
@@ -416,7 +386,7 @@ class ReportWriter:
                 {patient.first_name}'s current academic performance was
                 described as "{education.performance}" by
                 {patient.guardian.title_name}, as they receive mostly
-                {education.grades}. {llm_functioning}
+                {education.grades}. {placeholder_id}
             """,
         ]
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
@@ -457,8 +427,8 @@ class ReportWriter:
                 {patient.pronouns[2]} functioning in the home setting.
             """
         else:
-            text_adaptive = self._create_llm_placeholder(
-                excerpt=f"""
+            text_adaptive = self.llm.run_text_with_parent_input(
+                text=f"""
                     Per {patient.guardian.title_name},
                     {patient.first_name} has a history of {PLACEHOLDER}.
                 """,
@@ -480,8 +450,8 @@ class ReportWriter:
         patient = self.intake.patient
         social_functioning = patient.social_functioning
 
-        hobbies_id = self._create_llm_placeholder(
-            excerpt=f"""
+        hobbies_id = self.llm.run_text_with_parent_input(
+            text=f"""
                 {patient.guardian.title_name} reported that {patient.pronouns[0]} has
                 {PLACEHOLDER} friends in {patient.pronouns[2]} peer group.
                 {patient.first_name}'s hobbies include {PLACEHOLDER}.
@@ -506,7 +476,7 @@ class ReportWriter:
         """Writes the psychiatric history to the end of the report."""
         logger.debug("Writing the psychiatric history to the report.")
         self._insert("PSYCHRIATIC HISTORY", StyleName.HEADING_1)
-        self.write_past_psychriatic_diagnoses()
+        self.write_past_psychiatric_diagnoses()
         self.write_past_psychiatric_hospitalizations()
         self.write_past_therapeutic_interventions()
         self.write_past_self_injurious_behaviors_and_suicidality()
@@ -514,6 +484,42 @@ class ReportWriter:
         self.exposure_to_violence_and_trauma()
         self.administration_for_childrens_services_involvement()
         self.write_family_psychiatric_history()
+
+    def write_past_psychiatric_diagnoses(self) -> None:
+        """Writes the past psychiatric diagnoses to the report."""
+        logger.debug("Writing the past psychiatric diagnoses to the report.")
+        patient = self.intake.patient
+
+        past_diagnoses = patient.psychiatric_history.past_diagnoses.base
+        if not past_diagnoses:
+            text = f"""
+                {patient.guardian.title_name} denied any history of past psychiatric
+                diagnoses for {patient.first_name}.
+            """
+            text = string_utils.remove_excess_whitespace(text)
+        else:
+            text_draft = f"""{patient.guardian.title_name} reported that
+            {patient.first_name} was diagnosed with the following psychiatric diagnoses:
+            """ + string_utils.join_with_oxford_comma(
+                [
+                    f"DIAGNOSIS_{idx} at AGE_{idx} by DOCTOR_{idx}"
+                    for idx in range(len(past_diagnoses))
+                ]
+            )
+            text = self.llm.run_text_with_parent_input(
+                text=text_draft,
+                parent_input="\n".join(
+                    [
+                        f"Diagnosis {idx}: {diagnosis.diagnosis}"
+                        + f"Age of diagnosis {idx}: {diagnosis.age}"
+                        + f"Doctor {idx}: {diagnosis.clinician}"
+                        for idx, diagnosis in enumerate(past_diagnoses)
+                    ]
+                ),
+            )
+
+        self._insert("Past Psychiatric Diagnoses", StyleName.HEADING_2)
+        self._insert(text)
 
     def write_past_psychiatric_hospitalizations(self) -> None:
         """Writes the past psychiatric hospitalizations to the report."""
@@ -532,11 +538,10 @@ class ReportWriter:
     def administration_for_childrens_services_involvement(self) -> None:
         """Writes the ACS involvement to the report."""
         logger.debug("Writing the ACS involvement to the report.")
-        patient = self.intake.patient
 
-        text = str(patient.psychiatric_history.children_services)
-        text = string_utils.remove_excess_whitespace(text)
-
+        text = self._write_basic_psychiatric_history(
+            "ACS involvement", self.intake.patient.psychiatric_history.children_services
+        )
         self._insert(
             "Administration for Children's Services (ACS) Involvement",
             StyleName.HEADING_2,
@@ -548,31 +553,16 @@ class ReportWriter:
         logger.debug(
             "Writing the past aggressive behaviors and homicidality to the report."
         )
-        patient = self.intake.patient
 
-        text = str(patient.psychiatric_history.aggresive_behaviors)
-        text = string_utils.remove_excess_whitespace(text)
+        text = self._write_basic_psychiatric_history(
+            "homicidality or severe physically aggressive behaviors towards others",
+            self.intake.patient.psychiatric_history.aggresive_behaviors,
+        )
 
         self._insert(
             "Past Severe Aggressive Behaviors and Homicidality",
             StyleName.HEADING_2,
         )
-        self._insert(text)
-
-    def write_past_psychriatic_diagnoses(self) -> None:
-        """Writes the past psychiatric diagnoses to the report."""
-        logger.debug("Writing the past psychiatric diagnoses to the report.")
-        patient = self.intake.patient
-        past_diagnoses = patient.psychiatric_history.past_diagnoses.transform(
-            short=False,
-        )
-
-        text = f"""
-            {patient.first_name} {past_diagnoses}.
-        """
-        text = string_utils.remove_excess_whitespace(text)
-
-        self._insert("Past Psychiatric Diagnoses", StyleName.HEADING_2)
         self._insert(text)
 
     def write_family_psychiatric_history(self) -> None:
@@ -622,7 +612,7 @@ class ReportWriter:
                 for intervention in interventions
             ]
             texts = [
-                self._create_llm_placeholder(
+                self.llm.run_text_with_parent_input(
                     text,
                     parent_input=f"""
                         Start date: {intervention.start}.
@@ -646,10 +636,11 @@ class ReportWriter:
         logger.debug(
             "Writing the past self-injurious behaviors and suicidality to the report."
         )
-        patient = self.intake.patient
 
-        text = str(patient.psychiatric_history.self_harm)
-        text = string_utils.remove_excess_whitespace(text)
+        text = self._write_basic_psychiatric_history(
+            "serious self-injurious harm or suicidal ideation",
+            self.intake.patient.psychiatric_history.self_harm,
+        )
 
         self._insert(
             "Past Self-Injurious Behaviors and Suicidality",
@@ -660,10 +651,11 @@ class ReportWriter:
     def exposure_to_violence_and_trauma(self) -> None:
         """Writes the exposure to violence and trauma to the report."""
         logger.debug("Writing the exposure to violence and trauma to the report.")
-        patient = self.intake.patient
 
-        text = str(patient.psychiatric_history.violence_and_trauma)
-        text = string_utils.remove_excess_whitespace(text)
+        text = self._write_basic_psychiatric_history(
+            "violence or trauma",
+            self.intake.patient.psychiatric_history.violence_and_trauma,
+        )
 
         self._insert("Exposure to Violence and Trauma", StyleName.HEADING_2)
         self._insert(text)
@@ -821,10 +813,11 @@ class ReportWriter:
         """Makes edits to the report using a large language model."""
         logger.debug("Making edits to the report using a large language model.")
         extendedDocument = cmi_docx.ExtendDocument(self.report)
-        for placeholder in self.llm_placeholders:
+        while self.llm.placeholders:
+            placeholder = self.llm.placeholders.pop()
             replacement = (await placeholder.replacement).strip()
             extendedDocument.replace(
-                "{{" + placeholder.id + "}}",
+                placeholder.id,
                 replacement,
                 {"font_rgb": RGB.LLM.value},
             )
@@ -945,22 +938,15 @@ class ReportWriter:
             )
             yield Image(person_name, binary_data)
 
-    def _create_llm_placeholder(self, excerpt: str, parent_input: str) -> str:
-        """Stores a placeholder that will later be editted by a large language model.
-
-        Args:
-            excerpt: The excerpt to provide to the large language model.
-            parent_input: The parent input that need be incorporated in the excerpt.
-        """
-        excerpt = string_utils.remove_excess_whitespace(excerpt)
-        parent_input = string_utils.remove_excess_whitespace(parent_input)
-
-        user_prompt = f"""Excerpt: {excerpt}
-Parent Input: {parent_input}
-Child name: {self.intake.patient.first_name}
-Child pronouns: {string_utils.join_with_oxford_comma(self.intake.patient.pronouns)}
-"""
-        id = str(uuid.uuid4())
-        replacement = self.aws_client.run_async(SYSTEM_PROMPT, user_prompt)
-        self.llm_placeholders.append(LlmPlaceholder(id, replacement))
-        return f"{{{{{id}}}}}"
+    def _write_basic_psychiatric_history(self, label: str, report: str) -> str:
+        """Writes the ACS involvement to the report."""
+        if not report:
+            text = f"""
+                {self.intake.patient.guardian.title_name} denied any history of
+                {label} for {self.intake.patient.first_name}.
+            """
+            return string_utils.remove_excess_whitespace(text)
+        return self.llm.run_text_with_parent_input(
+            f"{self.intake.patient.guardian.title_name} reported that {PLACEHOLDER}.",
+            parent_input=f"Details: {report}",
+        )

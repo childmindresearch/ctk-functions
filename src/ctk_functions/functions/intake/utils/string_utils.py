@@ -1,6 +1,7 @@
 """Utilities for working with strings."""
 
 import re
+from typing import Sequence
 
 
 class StringToInt:
@@ -154,7 +155,7 @@ class StringToInt:
 
 
 def join_with_oxford_comma(
-    items: list[str],
+    items: Sequence[str],
 ) -> str:
     """Joins a list of items with an Oxford comma.
 
