@@ -16,7 +16,7 @@ class LanguageCorrecter:
         """Initializes the language tool."""
         self.language_tool = language_tool.LanguageCorrecter()
 
-    def run(
+    async def run(
         self,
         text: str,
         enabled_rules: Collection[str] | None = None,
@@ -41,8 +41,8 @@ class LanguageCorrecter:
             The corrected text.
         """
 
-        def get_corrections(text: str) -> list[language_tool.Correction]:
-            corrections = self.language_tool.check(text)
+        async def get_corrections(text: str) -> list[language_tool.Correction]:
+            corrections = await self.language_tool.check(text)
             if enabled_rules:
                 corrections = [
                     correction
@@ -57,10 +57,10 @@ class LanguageCorrecter:
                 ]
             return corrections
 
-        corrections = get_corrections(text)
+        corrections = await get_corrections(text)
         while corrections:
             text = self._apply_correction(corrections[-1], text)
-            corrections = get_corrections(text)
+            corrections = await get_corrections(text)
         return text
 
     @classmethod

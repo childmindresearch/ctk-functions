@@ -1,5 +1,6 @@
 """Utilities for correcting grammar and syntax."""
 
+import asyncio
 from typing import Sequence
 
 import cmi_docx
@@ -53,26 +54,30 @@ class DocumentCorrections:
         self.enabled_rules = set(enabled_rules) if enabled_rules else set()
         self.disabled_rules = set(disabled_rules) if disabled_rules else set()
 
-    def correct(self) -> None:
+    async def correct(self) -> None:
         """Makes corrections based on the enabled and disabled rules."""
         for paragraph in self.document.paragraphs:
-            self._correct_paragraph(paragraph)
+            await self._correct_paragraph(paragraph)
 
-    def _correct_paragraph(self, paragraph: docx.text.paragraph.Paragraph) -> None:
+    async def _correct_paragraph(
+        self, paragraph: docx.text.paragraph.Paragraph
+    ) -> None:
         """Corrects conjugations in a single paragraph.
 
         Args:
             paragraph: The paragraph to correct.
         """
         sentences = list(NLP(paragraph.text).sents)
-        new_sentences = [
-            self.correcter.run(
-                sentence.text,
-                enabled_rules=self.enabled_rules,
-                disabled_rules=self.disabled_rules,
-            )
-            for sentence in sentences
-        ]
+        new_sentences = await asyncio.gather(
+            *[
+                self.correcter.run(
+                    sentence.text,
+                    enabled_rules=self.enabled_rules,
+                    disabled_rules=self.disabled_rules,
+                )
+                for sentence in sentences
+            ]
+        )
         extended_pargraph = cmi_docx.ExtendParagraph(paragraph)
         for old, new in zip(sentences, new_sentences):
             if old.text != new:

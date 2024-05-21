@@ -1,7 +1,7 @@
 """Provides a class for correcting text using the LanguageTool API."""
 
+import aiohttp
 import pydantic
-import requests
 
 from ctk_functions import config
 
@@ -78,7 +78,7 @@ class LanguageCorrecter:
         """Initializes the correcter with the LanguageTool API URL."""
         self.url = url
 
-    def check(self, text: str, localization: str = "en-US") -> list[Correction]:
+    async def check(self, text: str, localization: str = "en-US") -> list[Correction]:
         """Corrects the text using the LanguageTool API.
 
         Args:
@@ -88,14 +88,12 @@ class LanguageCorrecter:
         Returns:
             The suggested corrections.
         """
-        response = requests.post(
-            self.url,
-            data={
-                "text": text,
-                "language": localization,
-            },
-        )
-
-        response.raise_for_status()
-        results = response.json()
+        data = {
+            "text": text,
+            "language": localization,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.url, data=data) as response:
+                response.raise_for_status()
+                results = await response.json()
         return [Correction(**result) for result in results["matches"]]
