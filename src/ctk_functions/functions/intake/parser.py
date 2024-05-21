@@ -436,16 +436,10 @@ class PsychiatricHistory:
                 f"txhx_{identifier}" if identifier != 2 else f"txhx{identifier}"  # noqa: PLR2004
             ]
         ]
-        self.aggresive_behaviors = transformers.AggressiveBehavior(
-            patient_data["agress_exp"],
-        )
-        self.children_services = transformers.ChildrenServices(
-            patient_data["acs_exp"],
-        )
-        self.violence_and_trauma = transformers.ViolenceAndTrauma(
-            patient_data["violence_exp"],
-        )
-        self.self_harm = transformers.SelfHarm(patient_data["selfharm_exp"])
+        self.aggresive_behaviors = patient_data["agress_exp"]
+        self.children_services = patient_data["acs_exp"]
+        self.violence_and_trauma = patient_data["violence_exp"]
+        self.self_harm = patient_data["selfharm_exp"]
 
 
 class TherapeuticInterventions:

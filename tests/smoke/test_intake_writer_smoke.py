@@ -47,8 +47,8 @@ async def intake_document(
         return_value=AsyncIterator([]),
     )
     mocker.patch(
-        "ctk_functions.functions.intake.writer.ReportWriter._create_llm_placeholder",
-        return_value="llm placeholder",
+        "ctk_functions.microservices.aws.BedRockLlm.run",
+        return_value="",
     )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info)
