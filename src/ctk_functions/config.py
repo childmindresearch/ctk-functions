@@ -17,6 +17,7 @@ class Settings(pydantic_settings.BaseSettings):
         "https://redcap.healthybrainnetwork.org/redcap/api/"
     )
     AZURE_BLOB_CONNECTION_STRING: pydantic.SecretStr
+    LLM_MODEL: str = "mistral.mistral-large-2402-v1:0"
 
     LOGGER_VERBOSITY: int = 20
 

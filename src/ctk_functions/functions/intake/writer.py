@@ -26,6 +26,7 @@ from ctk_functions.microservices import azure
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
+LLM_MODEL = settings.LLM_MODEL
 PLACEHOLDER = "______"
 
 
@@ -85,7 +86,7 @@ class ReportWriter:
         )
 
         self.llm = llm.Llm(
-            "mistral.mistral-large-2402-v1:0",
+            LLM_MODEL,
             intake.patient.first_name,
             intake.patient.pronouns,
         )
