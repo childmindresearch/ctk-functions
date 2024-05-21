@@ -2,9 +2,9 @@
 
 These transformers are used to create more complicated strings based on the
 intake form data. It uses an abstract base class that enforces the creation of a
-matches and transform method for each transformer. Each transformer should
-be callable from the transform method alone, with the matches method being
-used internally.
+transform method for each transformer.
+
+For strings too complicated for the transformers, a large language model is used.
 """
 
 import abc
@@ -452,87 +452,6 @@ class HouseholdMembers(MultiTransformer[HouseholdMemberInterface]):
 
         string += f" ({', '.join(member_properties)})"
         return string
-
-
-class ViolenceAndTrauma(Transformer[str]):
-    """Transformer for the violence and trauma information."""
-
-    def transform(self) -> str:
-        """Transforms the violence and trauma information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return (
-                f"{ReplacementTags.REPORTING_GUARDIAN.value} denied any history of "
-                f"violence or trauma for {ReplacementTags.PREFERRED_NAME.value}."
-            )
-        return (
-            f"{ReplacementTags.REPORTING_GUARDIAN.value} reported that "
-            f'"{self.base}".'
-        )
-
-
-class AggressiveBehavior(Transformer[str]):
-    """Transformer for the aggressive behavior information."""
-
-    def transform(self) -> str:
-        """Transforms the aggressive behavior information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return (
-                f"{ReplacementTags.REPORTING_GUARDIAN.value} denied any history of "
-                "homicidality or severe physically aggressive behaviors towards others "
-                f"for {ReplacementTags.PREFERRED_NAME.value}."
-            )
-        return (
-            f"{ReplacementTags.REPORTING_GUARDIAN.value} reported that "
-            f'"{self.base}".'
-        )
-
-
-class ChildrenServices(Transformer[str]):
-    """Transformer for the children services information."""
-
-    def transform(self) -> str:
-        """Transforms the children services information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return (
-                f"{ReplacementTags.REPORTING_GUARDIAN.value} denied any history of ACS "
-                f"involvement for {ReplacementTags.PREFERRED_NAME.value}."
-            )
-        return (
-            f"{ReplacementTags.REPORTING_GUARDIAN.value} reported that "
-            f'"{self.base}".'
-        )
-
-
-class SelfHarm(Transformer[str]):
-    """Transformer for the self harm information."""
-
-    def transform(self) -> str:
-        """Transforms the self harm information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return (
-                f"{ReplacementTags.REPORTING_GUARDIAN.value} denied any history of "
-                "serious self-injurious harm or suicidal ideation for "
-                f"{ReplacementTags.PREFERRED_NAME.value}."
-            )
-        return (
-            f'{ReplacementTags.REPORTING_GUARDIAN.value} reported that "{self.base}".'
-        )
 
 
 class HearingDevice(Transformer[descriptors.HearingDevice]):
