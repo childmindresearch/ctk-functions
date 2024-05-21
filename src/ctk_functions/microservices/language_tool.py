@@ -1,5 +1,7 @@
 """Provides a class for correcting text using the LanguageTool API."""
 
+from typing import Collection
+
 import aiohttp
 import pydantic
 
@@ -78,12 +80,18 @@ class LanguageCorrecter:
         """Initializes the correcter with the LanguageTool API URL."""
         self.url = url
 
-    async def check(self, text: str, localization: str = "en-US") -> list[Correction]:
+    async def check(
+        self,
+        text: str,
+        localization: str = "en-US",
+        enabled_rules: Collection[str] | None = None,
+    ) -> list[Correction]:
         """Corrects the text using the LanguageTool API.
 
         Args:
             text: The text to check.
             localization: The localization of the text. Defaults to "en-US".
+            enabled_rules: The rules to enable for the correction.
 
         Returns:
             The suggested corrections.
@@ -92,6 +100,10 @@ class LanguageCorrecter:
             "text": text,
             "language": localization,
         }
+        if enabled_rules:
+            data["enabledRules"] = ",".join(enabled_rules)
+            data["enabledOnly"] = "true"
+
         async with aiohttp.ClientSession() as session:
             async with session.post(self.url, data=data) as response:
                 response.raise_for_status()

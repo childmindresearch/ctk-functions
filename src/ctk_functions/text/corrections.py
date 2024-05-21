@@ -20,7 +20,6 @@ class LanguageCorrecter:
         self,
         text: str,
         enabled_rules: Collection[str] | None = None,
-        disabled_rules: Collection[str] | None = None,
     ) -> str:
         """Corrects the text following the object's settings.
 
@@ -34,27 +33,16 @@ class LanguageCorrecter:
             text: The text to correct.
             enabled_rules: The rules to enable for the correction. If None, all rules
                 are enabled.
-            disabled_rules: The rules to disable for the correction. If None, no rules
-                are disabled. Note: disabled rules take precedence over enabled rules.
 
         Returns:
             The corrected text.
         """
 
         async def get_corrections(text: str) -> list[language_tool.Correction]:
-            corrections = await self.language_tool.check(text)
-            if enabled_rules:
-                corrections = [
-                    correction
-                    for correction in corrections
-                    if correction.rule.id in enabled_rules
-                ]
-            if disabled_rules:
-                corrections = [
-                    correction
-                    for correction in corrections
-                    if correction.rule.id not in disabled_rules
-                ]
+            corrections = await self.language_tool.check(
+                text, enabled_rules=enabled_rules
+            )
+
             return corrections
 
         corrections = await get_corrections(text)
