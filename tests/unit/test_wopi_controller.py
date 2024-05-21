@@ -10,6 +10,10 @@ from ctk_functions.functions.wopi import controller
 async def test_get_file_metadata(mocker: pytest_mock.MockFixture) -> None:
     """Test the file metadata is found correctly."""
     mocker.patch(
+        "azure.storage.blob.aio.BlobServiceClient.from_connection_string",
+        return_value=None,
+    )
+    mocker.patch(
         "ctk_functions.microservices.azure.AzureBlobService.read_blob_metadata",
         return_value={"size": 1024},
     )
@@ -30,6 +34,10 @@ async def test_get_file_metadata(mocker: pytest_mock.MockFixture) -> None:
 @pytest.mark.asyncio
 async def test_get_file_contents(mocker: pytest_mock.MockFixture) -> None:
     """Test the file contents are found correctly."""
+    mocker.patch(
+        "azure.storage.blob.aio.BlobServiceClient.from_connection_string",
+        return_value=None,
+    )
     mocker.patch(
         "ctk_functions.microservices.azure.AzureBlobService.read_blob",
         return_value=b"test file contents",
