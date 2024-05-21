@@ -10,7 +10,7 @@ from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
 from ctk_functions.functions.intake import controller as intake_controller
-from ctk_functions.microservices import azure
+from ctk_functions.functions.wopi import controller as wopi_controller
 
 logger = config.get_logger()
 
@@ -120,18 +120,8 @@ async def get_file_metadata(req: functions.HttpRequest) -> functions.HttpRespons
     """
     name = req.route_params.get("name", None)
     logger.info("Fetching file metadata for %s.", name)
-    client = azure.AzureBlobService()
-    metadata = await client.read_blob_metadata("templates", name)
-    file_size = metadata.get("size", 0)
-    response = json.dumps(
-        {
-            "BaseFileName": name,
-            "OwnerId": 1000,
-            "UserId": 1000,
-            "Size": file_size,
-            "UserCanWrite": True,
-        },
-    )
+    metadata = wopi_controller.get_file_metadata(name)
+    response = json.dumps(metadata)
     return functions.HttpResponse(
         body=response,
         status_code=http.HTTPStatus.OK,
@@ -156,10 +146,9 @@ async def get_file_contents(req: functions.HttpRequest) -> functions.HttpRespons
     """
     name = req.route_params.get("name", None)
     logger.info("Fetching file contents for %s.", name)
-    client = azure.AzureBlobService()
-    metadata = await client.read_blob("templates", name)
+    contents = await wopi_controller.get_file_contents(name)
     return functions.HttpResponse(
-        body=metadata,
+        body=contents,
         status_code=http.HTTPStatus.OK,
         mimetype="application/octet-stream",
     )
@@ -175,7 +164,8 @@ async def put_file_contents(req: functions.HttpRequest) -> functions.HttpRespons
     """Fetches the metadata of a file from Azure Blob Storage.
 
     Args:
-        req: The HTTP request object.
+        req: The HTTP request object. The body should contain the new contents of the
+            file.
 
     Returns:
         The HTTP response containing the file metadata
@@ -183,6 +173,5 @@ async def put_file_contents(req: functions.HttpRequest) -> functions.HttpRespons
     name = req.route_params.get("name", None)
     logger.info("Updating file contents for %s.", name)
     contents = req.get_body()
-    client = azure.AzureBlobService()
-    await client.update_blob("templates", name, contents)
+    await wopi_controller.put_file_contents(name, contents)
     return functions.HttpResponse("", status_code=http.HTTPStatus.CREATED)
