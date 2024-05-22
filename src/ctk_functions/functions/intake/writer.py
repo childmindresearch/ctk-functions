@@ -16,7 +16,7 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import llm, parser
+from ctk_functions.functions.intake import llm, parser, transformers
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
@@ -108,8 +108,8 @@ class ReportWriter:
         self.add_page_break()
         self.add_footer()
 
-        self.replace_patient_information()
         self.apply_corrections()
+        self.replace_patient_information()
         await self.add_signatures()
         await self.make_llm_edits()
 
@@ -568,22 +568,17 @@ class ReportWriter:
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
         logger.debug("Writing the family psychiatric history to the report.")
-        patient = self.intake.patient
-        text = f"""
-        {patient.first_name}'s family history is largely unremarkable for
-        psychiatric illnesses. {patient.guardian.title_name} denied any family
-        history related to homicidality, suicidality, depression, bipolar
-        disorder, attention-deficit/hyperactivity disorder, autism spectrum
-        disorder, learning disorders, psychotic disorders, eating disorders,
-        oppositional defiant or conduct disorders, substance abuse, panic,
-        generalized anxiety, or obsessive-compulsive disorders. Information
-        regarding {patient.first_name}'s family psychiatric history was
-        deferred."""
-        text = string_utils.remove_excess_whitespace(text)
+
+        text = (
+            self.intake.patient.psychiatric_history.family_psychiatric_history.replace(
+                transformers.ReplacementTags.PREFERRED_NAME.value,
+                self.intake.patient.first_name,
+            )
+        )
+        placeholder_id = self.llm.run_edit(text)
 
         self._insert("Family Psychiatric History", StyleName.HEADING_2)
-        report = self._insert(text)
-        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB.UNRELIABLE.value)
+        self._insert(placeholder_id)
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""
