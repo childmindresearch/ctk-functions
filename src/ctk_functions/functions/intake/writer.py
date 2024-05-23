@@ -1,12 +1,7 @@
 """Contains report writing functionality for intake information."""
 
-import asyncio
-import dataclasses
 import enum
 import itertools
-import pathlib
-import tempfile
-from typing import AsyncGenerator
 
 import cmi_docx
 import docx
@@ -21,7 +16,6 @@ from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -48,19 +42,6 @@ class StyleName(enum.Enum):
     HEADING_3 = "Heading 3"
     TITLE = "Title"
     NORMAL = "Normal"
-
-
-@dataclasses.dataclass
-class Image:
-    """Represents an image to be inserted into the report.
-
-    Attributes:
-        name: The name of the image.
-        binary_data: The binary data representing the image.
-    """
-
-    name: str
-    binary_data: bytes
 
 
 class ReportWriter:
@@ -110,7 +91,7 @@ class ReportWriter:
 
         self.apply_corrections()
         self.replace_patient_information()
-        await self.add_signatures()
+        self.add_signatures()
         await self.make_llm_edits()
 
     def replace_patient_information(self) -> None:
@@ -780,29 +761,30 @@ class ReportWriter:
         document_corrector = language_utils.DocumentCorrections(self.report)
         document_corrector.correct()
 
-    async def add_signatures(self) -> None:
+    def add_signatures(self) -> None:
         """Adds the signatures to the report.
 
         Michael Milham's signature is placed in a different location than the
         other signatures. As such, it needs some custom handling.
         """
         logger.debug("Adding signatures to the report.")
-        signatures = self._download_signatures()
-        async for signature in signatures:
+        signatures = (DATA_DIR / "signatures").glob("*.png")
+        document = cmi_docx.ExtendDocument(self.report)
+
+        for signature in signatures:
+            signatory = signature.stem.replace("_", " ")
             paragraph_index = next(
                 index
                 for index in range(len(self.report.paragraphs))
-                if self.report.paragraphs[index].text.lower().startswith(signature.name)
+                if self.report.paragraphs[index].text.lower().startswith(signatory)
             )
 
-            if signature.name != "michael p. milham":
+            if signatory != "michael p. milham":
                 paragraph_index -= 1
-            self._insert_image(paragraph_index, signature)
+            document.insert_image(paragraph_index, signature)
 
-            if signature.name != "michael p. milham":
-                cmi_docx.ExtendDocument(self.report)._insert_empty_paragraph(
-                    paragraph_index
-                )
+            if signatory != "michael p. milham":
+                document._insert_empty_paragraph(paragraph_index)
 
     async def make_llm_edits(self) -> None:
         """Makes edits to the report using a large language model."""
@@ -827,16 +809,6 @@ class ReportWriter:
         footer.replace(
             "Large Language Model", "Large Language Model", {"font_rgb": RGB.LLM.value}
         )
-
-    def _insert_image(self, paragraph_index: int, image: Image) -> None:
-        """Inserts an image into the report."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            image_path = pathlib.Path(temp_dir) / f"{image.name}.png"
-            with image_path.open("wb") as file:
-                file.write(image.binary_data)
-            cmi_docx.ExtendDocument(self.report).insert_image(
-                paragraph_index, image_path
-            )
 
     def add_page_break(self) -> None:
         """Adds a page break to the report."""
@@ -900,38 +872,6 @@ class ReportWriter:
         if prepend_is:
             text = "is " + text
         return text
-
-    @staticmethod
-    async def _download_signatures() -> AsyncGenerator[Image, None]:
-        """Downloads signatures from Azure blob storage.
-
-        Returns:
-            Bytes of the downloaded signatures.
-        """
-        azure_blob_service = azure.AzureBlobService(
-            AZURE_BLOB_CONNECTION_STRING.get_secret_value()
-        )
-        container_contents = await azure_blob_service.directory_contents(
-            "ctk-functions"
-        )
-        signature_filepaths = [
-            content
-            for content in container_contents
-            if content.startswith("signatures")
-        ]
-        signature_promises = [
-            azure_blob_service.download_blob("ctk-functions", signature)
-            for signature in signature_filepaths
-        ]
-        signature_bytes = await asyncio.gather(*signature_promises)
-        await azure_blob_service.close()
-        for filepath, binary_data in zip(signature_filepaths, signature_bytes):
-            person_name = (
-                ".".join(filepath.split("/")[-1].split(".")[0:-1])
-                .lower()
-                .replace("_", " ")
-            )
-            yield Image(person_name, binary_data)
 
     def _write_basic_psychiatric_history(self, label: str, report: str) -> str:
         """Writes the ACS involvement to the report."""
