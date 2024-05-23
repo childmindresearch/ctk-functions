@@ -20,5 +20,5 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        docker build . --build-arg AZURE_BLOB_SIGNATURES_CONNECTION_STRING=${{ secrets.AZURE_BLOB_SIGNATURES_CONNECTION_STRING }} -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/ctk-functions:main
+        docker build . --build-arg AZURE_BLOB_SIGNATURES_CONNECTION_STRING="${{ secrets.AZURE_BLOB_SIGNATURES_CONNECTION_STRING }}" -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/ctk-functions:main
         docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/ctk-functions:main
