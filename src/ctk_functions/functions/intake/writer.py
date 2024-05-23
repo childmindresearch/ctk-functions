@@ -920,7 +920,7 @@ class ReportWriter:
             if content.startswith("signatures")
         ]
         signature_promises = [
-            azure_blob_service.download_blob("ctk-functions", signature)
+            azure_blob_service.read_blob("ctk-functions", signature)
             for signature in signature_filepaths
         ]
         signature_bytes = await asyncio.gather(*signature_promises)
