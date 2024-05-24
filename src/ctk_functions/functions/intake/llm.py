@@ -6,7 +6,7 @@ import uuid
 from typing import Awaitable, Sequence
 
 from ctk_functions.functions.intake.utils import string_utils
-from ctk_functions.microservices import aws
+from ctk_functions.microservices import azure
 
 
 @dataclasses.dataclass
@@ -67,9 +67,7 @@ class Llm:
         placeholders: The placeholders and their replacements.
     """
 
-    def __init__(
-        self, model: str, child_name: str, child_pronouns: Sequence[str]
-    ) -> None:
+    def __init__(self, child_name: str, child_pronouns: Sequence[str]) -> None:
         """Initializes the language model.
 
         Args:
@@ -77,7 +75,7 @@ class Llm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = aws.BedRockLlm(model=model, region_name="us-east-1")
+        self.client = azure.AzureLlm()
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []
@@ -99,7 +97,7 @@ class Llm:
             Child pronouns: {string_utils.join_with_oxford_comma(self.child_pronouns)}.
         """
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
-        replacement = self.client.run_async(Prompts.parent_input, user_prompt)
+        replacement = self.client.run(Prompts.parent_input, user_prompt)
         id = str(uuid.uuid4())
         self.placeholders.append(LlmPlaceholder(id, replacement))
         return id
@@ -114,7 +112,7 @@ class Llm:
             The placeholder for the LLM edit.
         """
         user_prompt = string_utils.remove_excess_whitespace(text)
-        replacement = self.client.run_async(Prompts.edit, user_prompt)
+        replacement = self.client.run(Prompts.edit, user_prompt)
         id = str(uuid.uuid4())
         self.placeholders.append(LlmPlaceholder(id, replacement))
         return id
