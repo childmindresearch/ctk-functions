@@ -66,7 +66,6 @@ class ReportWriter:
         )
 
         self.llm = llm.Llm(
-            "mistral.mistral-large-2402-v1:0",
             intake.patient.first_name,
             intake.patient.pronouns,
         )

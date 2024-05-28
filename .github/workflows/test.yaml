@@ -11,6 +11,9 @@ jobs:
     env:
       REDCAP_API_TOKEN: test
       AZURE_BLOB_CONNECTION_STRING: test
+      AZURE_OPENAI_API_KEY: test
+      AZURE_OPENAI_LLM_DEPLOYMENT: test
+      AZURE_OPENAI_ENDPOINT: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

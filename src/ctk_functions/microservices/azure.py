@@ -1,5 +1,6 @@
 """A module to interact with Azure Blob Storage."""
 
+import openai
 from azure.storage.blob import aio
 
 from ctk_functions import config
@@ -8,6 +9,63 @@ logger = config.get_logger()
 
 settings = config.get_settings()
 AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
+AZURE_OPENAI_API_KEY = settings.AZURE_OPENAI_API_KEY
+AZURE_OPENAI_LLM_DEPLOYMENT = settings.AZURE_OPENAI_LLM_DEPLOYMENT
+AZURE_OPENAI_ENDPOINT = settings.AZURE_OPENAI_ENDPOINT
+
+
+class AzureError(Exception):
+    """An exception to raise when an error occurs in the Azure service."""
+
+    pass
+
+
+class AzureLlm:
+    """A class to interact with the Azure Language Model service."""
+
+    def __init__(
+        self,
+    ) -> None:
+        """Initialize the Azure Language Model client.
+
+        Args:
+            deployment: The deployment name.
+            endpoint: The endpoint URL.
+        """
+        self.client = openai.AsyncAzureOpenAI(
+            api_key=AZURE_OPENAI_API_KEY.get_secret_value(),
+            azure_endpoint=AZURE_OPENAI_ENDPOINT.get_secret_value(),
+            api_version="2024-02-01",
+        )
+
+    async def run(self, system_prompt: str, user_prompt: str) -> str:
+        """Runs the model with the given prompts.
+
+        Args:
+            system_prompt: The system prompt.
+            user_prompt: The user prompt.
+
+        Returns:
+            The output text.
+        """
+        system_message = {
+            "role": "system",
+            "content": system_prompt,
+        }
+        user_message = {
+            "role": "user",
+            "content": user_prompt,
+        }
+
+        response = await self.client.chat.completions.create(
+            messages=[system_message, user_message],  # type: ignore
+            model=AZURE_OPENAI_LLM_DEPLOYMENT.get_secret_value(),
+        )
+
+        message = response.choices[0].message.content
+        if message is None:
+            raise AzureError("No response from Azure Language Model.")
+        return message
 
 
 class AzureBlobService:

@@ -16,7 +16,11 @@ class Settings(pydantic_settings.BaseSettings):
     REDCAP_ENDPOINT: pydantic.HttpUrl = pydantic.HttpUrl(
         "https://redcap.healthybrainnetwork.org/redcap/api/"
     )
+
     AZURE_BLOB_CONNECTION_STRING: pydantic.SecretStr
+    AZURE_OPENAI_API_KEY: pydantic.SecretStr
+    AZURE_OPENAI_LLM_DEPLOYMENT: pydantic.SecretStr
+    AZURE_OPENAI_ENDPOINT: pydantic.SecretStr
 
     LOGGER_VERBOSITY: int = 20
 

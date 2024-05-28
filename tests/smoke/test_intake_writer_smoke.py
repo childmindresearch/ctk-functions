@@ -43,7 +43,7 @@ async def intake_document(
 ) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
     mocker.patch(
-        "ctk_functions.microservices.aws.BedRockLlm.run",
+        "ctk_functions.microservices.azure.AzureLlm.run",
         return_value="",
     )
     intake_info = parser.IntakeInformation(test_redcap_data)
