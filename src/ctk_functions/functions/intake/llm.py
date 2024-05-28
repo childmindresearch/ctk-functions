@@ -40,7 +40,7 @@ grammatically incorrect, or incomplete. Make sure that the response is clear, us
 correct grammar, avoids abbreviations and repetition, and is consistent with the
 tone of a clinical report written by a medical professional. For lists that contain
 recurring elements, feel free to merge the elements into a single unit if it makes
-grammatical sense.
+grammatical sense. Report dates in the format "DD Month YYYY" (e.g., 15 June 2022).
 """
     edit = """
 You will receive an excerpt of a clinical report. Your task is to edit the text
@@ -51,7 +51,7 @@ quotations; make sure the response is integrated into the text. Do not alter the
 content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE. Make sure
 that the response is clear, uses correct grammar, avoids abbreviations and
 repetition, and is consistent with the tone of a clinical report written by a
-medical professional.
+medical professional. Report dates in the format "DD Month YYYY" (e.g., 15 June 2022).
 """
 
 
