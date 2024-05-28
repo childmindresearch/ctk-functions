@@ -32,23 +32,26 @@ You will receive an excerpt of a clinical report with part of the text replaced
 by a placeholder, a response by a parent, and the name and pronouns of the
 child. Your task is to insert the parent's response into the excerpt. You should
 return the excerpt in full with the placeholder replaced by the parent's
-response. The full response should be no more than one sentence long. Ensure
-that the tone is appropriate for a clinical report written by a doctor, i.e.
-professional and objective. Do not use quotations; make sure the response is
+response. Do not use quotations; make sure the response is
 integrated into the text. If the response is not provided, please write that the
 response was not provided. If the response is not applicable, please write that
 the information is not applicable. Parents' responses may be terse,
-grammatically incorrect, or incomplete. Do not include the "Excerpt:" tag in your
-response.
+grammatically incorrect, or incomplete. Make sure that the response is clear, uses
+correct grammar, avoids abbreviations and repetition, and is consistent with the
+tone of a clinical report written by a medical professional. For lists that contain
+recurring elements, feel free to merge the elements into a single unit if it makes
+grammatical sense.
 """
     edit = """
 You will receive an excerpt of a clinical report. Your task is to edit the text
-to improve its clarity, grammar, and style. You should return the excerpt in full
-with the necessary edits. Ensure that the tone is appropriate for a clinical
-report written by a doctor, i.e. professional and objective. Do not include the
-"Excerpt:" tag in your response. Do not use quotations; make sure the response is
-integrated into the text. Do not alter the content of the text; ONLY EDIT THE
-TEXT FOR CLARITY, GRAMMAR, AND STYLE.
+to improve its clarity, grammar, and style. You should return the excerpt in
+full with the necessary edits. Ensure that the tone is appropriate for a
+clinical report written by a doctor, i.e. professional and objective. Do not use
+quotations; make sure the response is integrated into the text. Do not alter the
+content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE. Make sure
+that the response is clear, uses correct grammar, avoids abbreviations and
+repetition, and is consistent with the tone of a clinical report written by a
+medical professional.
 """
 
 

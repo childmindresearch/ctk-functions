@@ -33,6 +33,8 @@ def get_settings() -> Settings:
 
 def get_logger() -> logging.Logger:
     """Gets the ctk-functions logger."""
+    if logging.getLogger("ctk-functions").hasHandlers():
+        return logging.getLogger("ctk-functions")
     logger = logging.getLogger("ctk-functions")
     logger.setLevel(get_settings().LOGGER_VERBOSITY)
 

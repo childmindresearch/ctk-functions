@@ -1,5 +1,6 @@
 """Contains report writing functionality for intake information."""
 
+import asyncio
 import enum
 import itertools
 
@@ -789,13 +790,13 @@ class ReportWriter:
         """Makes edits to the report using a large language model."""
         logger.debug("Making edits to the report using a large language model.")
         extendedDocument = cmi_docx.ExtendDocument(self.report)
-        while self.llm.placeholders:
-            placeholder = self.llm.placeholders.pop()
-            replacement = (await placeholder.replacement).strip()
+        replacements = await asyncio.gather(
+            *[placeholder.replacement for placeholder in self.llm.placeholders]
+        )
+        ids = [placeholder.id for placeholder in self.llm.placeholders]
+        for id, replacement in zip(ids, replacements):
             extendedDocument.replace(
-                placeholder.id,
-                replacement,
-                {"font_rgb": RGB.LLM.value},
+                id, replacement.strip(), {"font_rgb": RGB.LLM.value}
             )
 
     def add_footer(self) -> None:
