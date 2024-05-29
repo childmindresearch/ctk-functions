@@ -56,15 +56,19 @@ class AzureLlm:
             "role": "user",
             "content": user_prompt,
         }
+        try:
+            response = await self.client.chat.completions.create(
+                messages=[system_message, user_message],  # type: ignore
+                model=AZURE_OPENAI_LLM_DEPLOYMENT.get_secret_value(),
+            )
+            message = response.choices[0].message.content
+        except openai.BadRequestError:
+            # Fallback: Return a message to the user even on remote server failure.
+            # Example of this being necessary is content management policy.
+            message = "Failure in LLM processing. Please let the development team know."
 
-        response = await self.client.chat.completions.create(
-            messages=[system_message, user_message],  # type: ignore
-            model=AZURE_OPENAI_LLM_DEPLOYMENT.get_secret_value(),
-        )
-
-        message = response.choices[0].message.content
         if message is None:
-            raise AzureError("No response from Azure Language Model.")
+            message = "Failure in LLM processing. Please let the development team know."
         return message
 
 

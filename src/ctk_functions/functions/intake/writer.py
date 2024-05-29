@@ -1,5 +1,6 @@
 """Contains report writing functionality for intake information."""
 
+import asyncio
 import enum
 import itertools
 
@@ -311,22 +312,9 @@ class ReportWriter:
         """Writes the past educational history to the report."""
         logger.debug("Writing the educational history to the report.")
         patient = self.intake.patient
-        education = patient.education
 
-        texts = []
-        for school in education.past_schools:
-            text = f"""
-                {patient.first_name} attended {school.name} for grades {school.grades}.
-                During this time "{PLACEHOLDER}".
-            """
-            texts.append(string_utils.remove_excess_whitespace(text))
-        full_text = "\n\n".join(texts)
-        placeholder_id = self.llm.run_text_with_parent_input(
-            text=full_text,
-            parent_input="\n".join(
-                f"Experience for {school.name}: {school.experience}"
-                for school in education.past_schools
-            ),
+        placeholder_id = self.llm.run_with_list_input(
+            patient.education.past_schools,
         )
 
         self._insert("Educational History", StyleName.HEADING_2)
@@ -478,24 +466,16 @@ class ReportWriter:
             """
             text = string_utils.remove_excess_whitespace(text)
         else:
-            text_draft = f"""{patient.guardian.title_name} reported that
-            {patient.first_name} was diagnosed with the following psychiatric diagnoses:
-            """ + string_utils.join_with_oxford_comma(
-                [
-                    f"DIAGNOSIS_{idx} at AGE_{idx} by DOCTOR_{idx}"
-                    for idx in range(len(past_diagnoses))
-                ]
-            )
-            text = self.llm.run_text_with_parent_input(
-                text=text_draft,
-                parent_input="\n".join(
-                    [
-                        f"Diagnosis {idx}: {diagnosis.diagnosis}"
-                        + f"Age of diagnosis {idx}: {diagnosis.age}"
-                        + f"Doctor {idx}: {diagnosis.clinician}"
-                        for idx, diagnosis in enumerate(past_diagnoses)
-                    ]
-                ),
+            instructions = f"""
+                The start of the first sentence should be, verbatim, as
+                follows: "{patient.guardian.title_name} reported that
+                {patient.first_name} was diagnosed with the following psychiatric
+                diagnoses: "
+            """
+
+            text = self.llm.run_with_list_input(
+                items=past_diagnoses,
+                additional_instruction=instructions,
             )
 
         self._insert("Past Psychiatric Diagnoses", StyleName.HEADING_2)
@@ -549,13 +529,52 @@ class ReportWriter:
         """Writes the family psychiatric history to the report."""
         logger.debug("Writing the family psychiatric history to the report.")
 
+        instructions = """
+            You may group diagnoses together with the given label if they have identical
+             responses:
+                1. Specific learning disorder
+                    - specific learning disorder with impairment in mathematics
+                    - specific learning disorder with impairment in reading
+                    - specific learning disorder with impairment in written expression
+
+                2. Oppositional defiant or conduct disorders
+                    - Conduct disorder
+                    - Oppositional defiant disorder
+
+                3. Panic, or obsessive-compulsive disorders
+                    - Panic disorder
+                    - Obsessive-compulsive disorder (OCD)
+
+                4. Substance abuse:
+                    - Alcohol abuse
+                    - Substance abuse
+
+                5. Anxiety disorders
+                    - Generalized anxiety disorder
+                    - Separation anxiety
+                    - Social anxiety
+
+            The following diagnoses must be omitted if negative:
+                - Enuresis/Encopresis
+                - Excoriation
+                - Gender dysphoria
+                - Intellectual disability
+                - Language disorder
+                - Personality disorder
+                - Reactive attachment disorder
+                - Selective mutism
+                - Agoraphobia
+                - Specific phobias
+                - Tics/Tourette’s
+        """
+
         text = (
             self.intake.patient.psychiatric_history.family_psychiatric_history.replace(
                 transformers.ReplacementTags.PREFERRED_NAME.value,
                 self.intake.patient.first_name,
             )
         )
-        placeholder_id = self.llm.run_edit(text)
+        placeholder_id = self.llm.run_edit(text, instructions)
 
         self._insert("Family Psychiatric History", StyleName.HEADING_2)
         self._insert(placeholder_id)
@@ -568,43 +587,28 @@ class ReportWriter:
         interventions = patient.psychiatric_history.therapeutic_interventions
 
         if not interventions:
-            texts = [
-                f"""
+            text = f"""
                     {patient.guardian.title_name} denied any history of therapeutic
                     interventions.
-                """,
-            ]
+                """
+            text = string_utils.remove_excess_whitespace(text)
         else:
-            text_drafts = [
-                f"""
+            text = self.llm.run_with_list_input(
+                items=interventions,
+                additional_instruction=f"""
+                    An example structure for this paragraph follows:
+
                     From {PLACEHOLDER} to {PLACEHOLDER},
                     {patient.first_name} engaged in therapy with
-                    {intervention.therapist} due to {PLACEHOLDER} at a
+                    {PLACEHOLDER} due to {PLACEHOLDER} at a
                     frequency of {PLACEHOLDER}. {guardian.title_name}
                     described the treatment as {PLACEHOLDER}.
                     Treatment was ended due to {PLACEHOLDER}.
-                    """
-                for intervention in interventions
-            ]
-            texts = [
-                self.llm.run_text_with_parent_input(
-                    text,
-                    parent_input=f"""
-                        Start date: {intervention.start}.
-                        End date: {intervention.end}.
-                        Frequency: {intervention.frequency}.
-                        Effectiveness description: {intervention.effectiveness}.
-                        Reason for starting: {intervention.reason}.
-                        Reason for ending: {intervention.reason_ended}.
                     """,
-                )
-                for text, intervention in zip(text_drafts, interventions)
-            ]
-
-        texts = [string_utils.remove_excess_whitespace(text) for text in texts]
+            )
 
         self._insert("Past Therapeutic Interventions", StyleName.HEADING_2)
-        [self._insert(text) for text in texts]
+        self._insert(text)
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
@@ -789,13 +793,13 @@ class ReportWriter:
         """Makes edits to the report using a large language model."""
         logger.debug("Making edits to the report using a large language model.")
         extendedDocument = cmi_docx.ExtendDocument(self.report)
-        while self.llm.placeholders:
-            placeholder = self.llm.placeholders.pop()
-            replacement = (await placeholder.replacement).strip()
+        replacements = await asyncio.gather(
+            *[placeholder.replacement for placeholder in self.llm.placeholders]
+        )
+        ids = [placeholder.id for placeholder in self.llm.placeholders]
+        for id, replacement in zip(ids, replacements):
             extendedDocument.replace(
-                placeholder.id,
-                replacement,
-                {"font_rgb": RGB.LLM.value},
+                id, replacement.strip(), {"font_rgb": RGB.LLM.value}
             )
 
     def add_footer(self) -> None:
