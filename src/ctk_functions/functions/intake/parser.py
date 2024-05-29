@@ -423,7 +423,7 @@ class PsychiatricHistory:
             descriptors.PastDiagnosis(
                 diagnosis=patient_data[f"pastdx_{index}"],
                 clinician=patient_data[f"dx_name{index}"],
-                age=str(patient_data[f"age_{index}"]),
+                age_at_diagnosis=str(patient_data[f"age_{index}"]),
             )
             for index in range(1, 11)
             if patient_data[f"pastdx_{index}"]

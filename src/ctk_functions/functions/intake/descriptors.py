@@ -293,7 +293,7 @@ class PastDiagnosis(pydantic.BaseModel):
 
     diagnosis: str
     clinician: str
-    age: str
+    age_at_diagnosis: str
 
 
 class FamilyDiagnosis(pydantic.BaseModel):
@@ -451,7 +451,7 @@ family_psychiatric_diagnoses = [
         text_abbreviation="suba",
     ),
     FamilyDiagnosis(
-        name="suicide",
+        name="suicidality",
         checkbox_abbreviation="suicide",
         text_abbreviation="suicide",
     ),

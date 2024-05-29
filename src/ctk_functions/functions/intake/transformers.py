@@ -370,7 +370,7 @@ class PastDiagnoses(MultiTransformer[descriptors.PastDiagnosis]):
             "was diagnosed with the following psychiatric diagnoses: "
             + string_utils.join_with_oxford_comma(
                 [
-                    f"{val.diagnosis} at {val.age} by {val.clinician}"
+                    f"{val.diagnosis} at {val.age_at_diagnosis} by {val.clinician}"
                     for val in self.base
                 ],
             )
