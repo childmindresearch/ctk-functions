@@ -59,12 +59,12 @@ clinically relevant information from the list. You should return the text in
 full with the necessary edits. Make sure that the text flows naturally, i.e.,
 DO NOT MAKE A BULLET LIST.
 
-This text will be inserted into a clinical report. Ensure that the tone
-is appropriate for a clinical report written by a doctor, i.e. professional and
+This text will be inserted into a clinical report. Ensure that the tone is
+appropriate for a clinical report written by a doctor, i.e. professional and
 objective. Do not use quotations; make sure the response is integrated into the
 text. Your response should be in plain text i.e., do not use Markdown. Do not
-include an introduction, summary, or conclusion. Report
-dates in the format "DD Month YYYY" (e.g., 15 June 2022).
+include an introduction, summary, or conclusion. Report dates in the format "DD
+Month YYYY" (e.g., 15 June 2022).
 """
 
 
