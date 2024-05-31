@@ -1,0 +1,24 @@
+name: Deploy to Azure Container Registry
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout GitHub Action
+      uses: actions/checkout@main
+
+    - name: Build and push image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    - run: |
+        docker build . --build-arg AZURE_BLOB_SIGNATURES_CONNECTION_STRING="${{ secrets.AZURE_BLOB_SIGNATURES_CONNECTION_STRING }}" -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/ctk-functions:main
+        docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/ctk-functions:main

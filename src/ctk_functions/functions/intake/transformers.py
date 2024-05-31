@@ -370,7 +370,7 @@ class PastDiagnoses(MultiTransformer[descriptors.PastDiagnosis]):
             "was diagnosed with the following psychiatric diagnoses: "
             + string_utils.join_with_oxford_comma(
                 [
-                    f"{val.diagnosis} at {val.age} by {val.clinician}"
+                    f"{val.diagnosis} at {val.age_at_diagnosis} by {val.clinician}"
                     for val in self.base
                 ],
             )
@@ -586,3 +586,59 @@ class EducationGrades(Transformer[descriptors.EducationGrades]):
         if self.base.name in word_to_number:
             return word_to_number[self.base.name]
         return self.base.name.replace("_", " ")
+
+
+class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
+    """The transformer for family diagnoses."""
+
+    def transform(self) -> str:
+        """Transforms the family diagnoses information to a string.
+
+        Returns:
+            str: The transformed object.
+        """
+        no_past_diagnosis = [val for val in self.base if val.no_formal_diagnosis]
+        past_diagnosis = [val for val in self.base if not val.no_formal_diagnosis]
+
+        text = self.other if self.other else ""
+        if len(past_diagnosis) > 0:
+            if text:
+                text += " "
+            text += (
+                f"{ReplacementTags.PREFERRED_NAME.value}'s family history is "
+                + "significant for "
+            )
+            past_diagosis_texts = [
+                self._past_diagnosis_text(val) for val in past_diagnosis
+            ]
+            text += string_utils.join_with_oxford_comma(past_diagosis_texts)
+            text += "."
+
+        if len(no_past_diagnosis) > 0:
+            if text:
+                text += " "
+            if len(no_past_diagnosis) > 1:
+                no_diagnosis_names = [val.diagnosis for val in no_past_diagnosis]
+                text += (
+                    "Family history of the following diagnoses was denied: "
+                    + string_utils.join_with_oxford_comma(no_diagnosis_names)
+                )
+            else:
+                text += f"Family history of {no_past_diagnosis[0].diagnosis} was denied"
+            text += "."
+        return text
+
+    @staticmethod
+    def _past_diagnosis_text(diagnosis: descriptors.FamilyPsychiatricHistory) -> str:
+        """Transforms a family diagnosis to a string.
+
+        Args:
+            diagnosis: The family diagnosis.
+
+        Returns:
+            str: The transformed object.
+        """
+        family_members = string_utils.join_with_oxford_comma(diagnosis.family_members)
+        if family_members:
+            return f"{diagnosis.diagnosis} ({family_members})"
+        return diagnosis.diagnosis

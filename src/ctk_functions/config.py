@@ -16,10 +16,11 @@ class Settings(pydantic_settings.BaseSettings):
     REDCAP_ENDPOINT: pydantic.HttpUrl = pydantic.HttpUrl(
         "https://redcap.healthybrainnetwork.org/redcap/api/"
     )
+
     AZURE_BLOB_CONNECTION_STRING: pydantic.SecretStr
-    LANGUAGE_TOOL_ENDPOINT: pydantic.HttpUrl = pydantic.Field(
-        ..., json_schema_extra={"env": "LANGUAGE_TOOL_ENDPOINT"}
-    )
+    AZURE_OPENAI_API_KEY: pydantic.SecretStr
+    AZURE_OPENAI_LLM_DEPLOYMENT: pydantic.SecretStr
+    AZURE_OPENAI_ENDPOINT: pydantic.SecretStr
 
     LOGGER_VERBOSITY: int = 20
 
@@ -32,6 +33,8 @@ def get_settings() -> Settings:
 
 def get_logger() -> logging.Logger:
     """Gets the ctk-functions logger."""
+    if logging.getLogger("ctk-functions").hasHandlers():
+        return logging.getLogger("ctk-functions")
     logger = logging.getLogger("ctk-functions")
     logger.setLevel(get_settings().LOGGER_VERBOSITY)
 
