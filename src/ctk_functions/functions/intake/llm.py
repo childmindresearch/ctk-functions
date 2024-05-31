@@ -59,12 +59,12 @@ clinically relevant information from the list. You should return the text in
 full with the necessary edits. Make sure that the text flows naturally, i.e.,
 DO NOT MAKE A BULLET LIST.
 
-This text will be inserted into a clinical report. Ensure that the tone
-is appropriate for a clinical report written by a doctor, i.e. professional and
+This text will be inserted into a clinical report. Ensure that the tone is
+appropriate for a clinical report written by a doctor, i.e. professional and
 objective. Do not use quotations; make sure the response is integrated into the
 text. Your response should be in plain text i.e., do not use Markdown. Do not
-include a introduction, summary, or conclusion. Report
-dates in the format "DD Month YYYY" (e.g., 15 June 2022).
+include an introduction, summary, or conclusion. Report dates in the format "DD
+Month YYYY" (e.g., 15 June 2022).
 """
 
 
@@ -113,11 +113,14 @@ class Llm:
         user_prompt = f"""
             Excerpt: {text}.
             Parent Input: {parent_input}.
-            Child name: {self.child_name}.
-            Child pronouns: {string_utils.join_with_oxford_comma(self.child_pronouns)}.
         """
+        additional_instruction = string_utils.remove_excess_whitespace(
+            additional_instruction
+        )
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
-        system_prompt = "\n".join((Prompts.parent_input, additional_instruction))
+        system_prompt = "\n".join(
+            (Prompts.parent_input, self.child_info, additional_instruction)
+        )
         return self._run(system_prompt, user_prompt)
 
     def run_edit(self, text: str, additional_instruction: str = str()) -> str:
@@ -131,6 +134,9 @@ class Llm:
         Returns:
             The placeholder for the LLM edit.
         """
+        additional_instruction = string_utils.remove_excess_whitespace(
+            additional_instruction
+        )
         user_prompt = string_utils.remove_excess_whitespace(text)
         system_prompt = "\n".join((Prompts.edit, additional_instruction))
         return self._run(system_prompt, user_prompt)
@@ -148,21 +154,19 @@ class Llm:
         Returns:
             The placeholder for the LLM edit.
         """
-        child_info = f"""
-            In case the child's name or pronouns are needed for the text, they are as
-            follows:
-            Child name: {self.child_name}.
-            Child pronouns: {string_utils.join_with_oxford_comma(self.child_pronouns)}
-        """
-        system_propmt = "\n".join(
-            (Prompts.list_input, child_info, additional_instruction)
+        additional_instruction = string_utils.remove_excess_whitespace(
+            additional_instruction
+        )
+
+        system_prompt = "\n".join(
+            (Prompts.list_input, self.child_info, additional_instruction)
         )
         items_json = [
             json.dumps(item.__dict__, indent=4, ensure_ascii=False) for item in items
         ]
         user_prompt = "\n<NEXT ITEM>\n".join(items_json)
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
-        return self._run(system_propmt, user_prompt)
+        return self._run(system_prompt, user_prompt)
 
     def _run(self, system_prompt: str, user_prompt: str) -> str:
         """Creates a placeholder for an LLM edit.
@@ -180,3 +184,13 @@ class Llm:
         id = str(uuid.uuid4())
         self.placeholders.append(LlmPlaceholder(id, replacement))
         return id
+
+    @property
+    def child_info(self) -> str:
+        """Returns the child information for the LLM."""
+        return string_utils.remove_excess_whitespace(f"""
+            In case the child's name or pronouns are needed for the text, they are as
+            follows:
+            Child name: {self.child_name}.
+            Child pronouns: {string_utils.join_with_oxford_comma(self.child_pronouns)}.
+        """)
