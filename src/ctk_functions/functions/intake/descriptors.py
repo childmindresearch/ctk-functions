@@ -296,6 +296,14 @@ class PastDiagnosis(pydantic.BaseModel):
     age_at_diagnosis: str
 
 
+class PastSchool(pydantic.BaseModel):
+    """The model for past schools."""
+
+    name: str
+    grades: str
+    experience: str
+
+
 class FamilyDiagnosis(pydantic.BaseModel):
     """The model for a family diagnosis."""
 
