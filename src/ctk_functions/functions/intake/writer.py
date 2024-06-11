@@ -558,15 +558,11 @@ class ReportWriter:
                     - Conduct disorder
                     - Oppositional defiant disorder
 
-                3. Panic, or obsessive-compulsive disorders
-                    - Panic disorder
-                    - Obsessive-compulsive disorder (OCD)
-
-                4. Substance abuse:
+                3. Substance abuse:
                     - Alcohol abuse
                     - Substance abuse
 
-                5. Anxiety disorders
+                4. Anxiety disorders
                     - Generalized anxiety disorder
                     - Separation anxiety
                     - Social anxiety
