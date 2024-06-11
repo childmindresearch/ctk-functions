@@ -293,7 +293,15 @@ class PastDiagnosis(pydantic.BaseModel):
 
     diagnosis: str
     clinician: str
-    age: str
+    age_at_diagnosis: str
+
+
+class PastSchool(pydantic.BaseModel):
+    """The model for past schools."""
+
+    name: str
+    grades: str
+    experience: str
 
 
 class FamilyDiagnosis(pydantic.BaseModel):
@@ -451,7 +459,7 @@ family_psychiatric_diagnoses = [
         text_abbreviation="suba",
     ),
     FamilyDiagnosis(
-        name="suicide",
+        name="suicidality",
         checkbox_abbreviation="suicide",
         text_abbreviation="suicide",
     ),
@@ -522,3 +530,20 @@ class EducationGrades(enum.Enum):
     THREE = 8
     FOUR = 9
     not_graded = 10
+
+
+class FamilyPsychiatricHistory(pydantic.BaseModel):
+    """The model for the patient's family psychiatric history."""
+
+    diagnosis: str
+    no_formal_diagnosis: bool
+    family_members: list[str]
+
+    @pydantic.field_validator("family_members", mode="before")
+    def split_comma_separated_values(cls, value: str | list[str] | None) -> list[str]:  # noqa: N805
+        """Splits comma separated values."""
+        if isinstance(value, list):
+            return [string.lower() for string in value]
+        if value is None:
+            return []
+        return value.lower().split(",")

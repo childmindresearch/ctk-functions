@@ -264,12 +264,12 @@ def test_development_skill_transformer(
             [
                 descriptors.PastDiagnosis(
                     diagnosis="Anxiety",
-                    age="8",
+                    age_at_diagnosis="8",
                     clinician="Dr. Smith",
                 ),
                 descriptors.PastDiagnosis(
                     diagnosis="Depression",
-                    age="9",
+                    age_at_diagnosis="9",
                     clinician="Dr. Johnson",
                 ),
             ],
@@ -283,12 +283,12 @@ def test_development_skill_transformer(
             [
                 descriptors.PastDiagnosis(
                     diagnosis="Anxiety",
-                    age="2022-01-01",
+                    age_at_diagnosis="2022-01-01",
                     clinician="Dr. Smith",
                 ),
                 descriptors.PastDiagnosis(
                     diagnosis="Depression",
-                    age="2022-02-01",
+                    age_at_diagnosis="2022-02-01",
                     clinician="Dr. Johnson",
                 ),
             ],

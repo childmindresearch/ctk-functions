@@ -1,12 +1,8 @@
 """Contains report writing functionality for intake information."""
 
 import asyncio
-import dataclasses
 import enum
 import itertools
-import pathlib
-import tempfile
-from typing import AsyncGenerator
 
 import cmi_docx
 import docx
@@ -16,12 +12,11 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import llm, parser
+from ctk_functions.functions.intake import llm, parser, transformers
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import azure
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -51,19 +46,6 @@ class StyleName(enum.Enum):
     NORMAL = "Normal"
 
 
-@dataclasses.dataclass
-class Image:
-    """Represents an image to be inserted into the report.
-
-    Attributes:
-        name: The name of the image.
-        binary_data: The binary data representing the image.
-    """
-
-    name: str
-    binary_data: bytes
-
-
 class ReportWriter:
     """Writes a report for intake information."""
 
@@ -86,7 +68,6 @@ class ReportWriter:
         )
 
         self.llm = llm.Llm(
-            LLM_MODEL,
             intake.patient.first_name,
             intake.patient.pronouns,
         )
@@ -109,9 +90,9 @@ class ReportWriter:
         self.add_page_break()
         self.add_footer()
 
-        self.replace_patient_information()
         self.apply_corrections()
-        await self.add_signatures()
+        self.replace_patient_information()
+        self.add_signatures()
         await self.make_llm_edits()
 
     def replace_patient_information(self) -> None:
@@ -149,16 +130,22 @@ class ReportWriter:
 
         placeholder_id = self.llm.run_text_with_parent_input(
             text=(
-                f"""{patient.guardian.title_name} attended the present
-                evaluation due to concerns regarding {PLACEHOLDER}.
-                The family is hoping for {PLACEHOLDER}.
-                The family learned of the study through {PLACEHOLDER}."
+                f"""
+                    {patient.guardian.title_name} attended the present
+                    evaluation due to concerns regarding {PLACEHOLDER}.
+                    The family is hoping for {PLACEHOLDER}.
+                    The family learned of the study through {PLACEHOLDER}."
             """
             ),
             parent_input=f"""
-            Reason for visit: {patient.reason_for_visit}.
-            Hopes: {patient.hopes}.
-            Learned of study: {patient.learned_of_study}.
+                Reason for visit: {patient.reason_for_visit}.
+                Hopes: {patient.hopes}.
+                Learned of study: {patient.learned_of_study}.
+            """,
+            additional_instruction="""
+                The placeholders should be replaced with at most one sentence.
+                Further details will be provided later in the report, so include
+                only the most pertinent information here.
             """,
         )
 
@@ -332,22 +319,20 @@ class ReportWriter:
         """Writes the past educational history to the report."""
         logger.debug("Writing the educational history to the report.")
         patient = self.intake.patient
-        education = patient.education
 
-        texts = []
-        for school in education.past_schools:
-            text = f"""
-                {patient.first_name} attended {school.name} for grades {school.grades}.
-                During this time "{PLACEHOLDER}".
-            """
-            texts.append(string_utils.remove_excess_whitespace(text))
-        full_text = "\n\n".join(texts)
-        placeholder_id = self.llm.run_text_with_parent_input(
-            text=full_text,
-            parent_input="\n".join(
-                f"Experience for {school.name}: {school.experience}"
-                for school in education.past_schools
-            ),
+        placeholder_id = self.llm.run_with_list_input(
+            patient.education.past_schools,
+            additional_instruction="""
+                Try to keep the text as concise as possible. THE TEXT SHOULD BE A
+                SINGLE PARAGRAPH!
+
+                Include only information that may be pertinent to the child's
+                mental health. For example, if the child had strong negative
+                experiences at a school, that would be important to include,
+                whereas a teacher remarking that the child was average would not
+                be relevant unless that was a significant change from other
+                schools.
+            """,
         )
 
         self._insert("Educational History", StyleName.HEADING_2)
@@ -499,24 +484,16 @@ class ReportWriter:
             """
             text = string_utils.remove_excess_whitespace(text)
         else:
-            text_draft = f"""{patient.guardian.title_name} reported that
-            {patient.first_name} was diagnosed with the following psychiatric diagnoses:
-            """ + string_utils.join_with_oxford_comma(
-                [
-                    f"DIAGNOSIS_{idx} at AGE_{idx} by DOCTOR_{idx}"
-                    for idx in range(len(past_diagnoses))
-                ]
-            )
-            text = self.llm.run_text_with_parent_input(
-                text=text_draft,
-                parent_input="\n".join(
-                    [
-                        f"Diagnosis {idx}: {diagnosis.diagnosis}"
-                        + f"Age of diagnosis {idx}: {diagnosis.age}"
-                        + f"Doctor {idx}: {diagnosis.clinician}"
-                        for idx, diagnosis in enumerate(past_diagnoses)
-                    ]
-                ),
+            instructions = f"""
+                The start of the first sentence should be, verbatim, as
+                follows: "{patient.guardian.title_name} reported that
+                {patient.first_name} was diagnosed with the following psychiatric
+                diagnoses: "
+            """
+
+            text = self.llm.run_with_list_input(
+                items=past_diagnoses,
+                additional_instruction=instructions,
             )
 
         self._insert("Past Psychiatric Diagnoses", StyleName.HEADING_2)
@@ -569,22 +546,52 @@ class ReportWriter:
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
         logger.debug("Writing the family psychiatric history to the report.")
-        patient = self.intake.patient
-        text = f"""
-        {patient.first_name}'s family history is largely unremarkable for
-        psychiatric illnesses. {patient.guardian.title_name} denied any family
-        history related to homicidality, suicidality, depression, bipolar
-        disorder, attention-deficit/hyperactivity disorder, autism spectrum
-        disorder, learning disorders, psychotic disorders, eating disorders,
-        oppositional defiant or conduct disorders, substance abuse, panic,
-        generalized anxiety, or obsessive-compulsive disorders. Information
-        regarding {patient.first_name}'s family psychiatric history was
-        deferred."""
-        text = string_utils.remove_excess_whitespace(text)
+
+        instructions = """
+            You may group diagnoses together with the given label if they have identical
+             responses:
+                1. Specific learning disorder
+                    - specific learning disorder with impairment in mathematics
+                    - specific learning disorder with impairment in reading
+                    - specific learning disorder with impairment in written expression
+
+                2. Oppositional defiant or conduct disorders
+                    - Conduct disorder
+                    - Oppositional defiant disorder
+
+                3. Substance abuse:
+                    - Alcohol abuse
+                    - Substance abuse
+
+                4. Anxiety disorders
+                    - Generalized anxiety disorder
+                    - Separation anxiety
+                    - Social anxiety
+
+            The following diagnoses must be omitted if negative:
+                - Enuresis/Encopresis
+                - Excoriation
+                - Gender dysphoria
+                - Intellectual disability
+                - Language disorder
+                - Personality disorder
+                - Reactive attachment disorder
+                - Selective mutism
+                - Agoraphobia
+                - Specific phobias
+                - Tics/Tourette’s
+        """
+
+        text = (
+            self.intake.patient.psychiatric_history.family_psychiatric_history.replace(
+                transformers.ReplacementTags.PREFERRED_NAME.value,
+                self.intake.patient.first_name,
+            )
+        )
+        placeholder_id = self.llm.run_edit(text, instructions)
 
         self._insert("Family Psychiatric History", StyleName.HEADING_2)
-        report = self._insert(text)
-        cmi_docx.ExtendParagraph(report).format(font_rgb=RGB.UNRELIABLE.value)
+        self._insert(placeholder_id)
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""
@@ -594,43 +601,28 @@ class ReportWriter:
         interventions = patient.psychiatric_history.therapeutic_interventions
 
         if not interventions:
-            texts = [
-                f"""
+            text = f"""
                     {patient.guardian.title_name} denied any history of therapeutic
                     interventions.
-                """,
-            ]
+                """
+            text = string_utils.remove_excess_whitespace(text)
         else:
-            text_drafts = [
-                f"""
+            text = self.llm.run_with_list_input(
+                items=interventions,
+                additional_instruction=f"""
+                    An example structure for this paragraph follows:
+
                     From {PLACEHOLDER} to {PLACEHOLDER},
                     {patient.first_name} engaged in therapy with
-                    {intervention.therapist} due to {PLACEHOLDER} at a
+                    {PLACEHOLDER} due to {PLACEHOLDER} at a
                     frequency of {PLACEHOLDER}. {guardian.title_name}
                     described the treatment as {PLACEHOLDER}.
                     Treatment was ended due to {PLACEHOLDER}.
-                    """
-                for intervention in interventions
-            ]
-            texts = [
-                self.llm.run_text_with_parent_input(
-                    text,
-                    parent_input=f"""
-                        Start date: {intervention.start}.
-                        End date: {intervention.end}.
-                        Frequency: {intervention.frequency}.
-                        Effectiveness description: {intervention.effectiveness}.
-                        Reason for starting: {intervention.reason}.
-                        Reason for ending: {intervention.reason_ended}.
                     """,
-                )
-                for text, intervention in zip(text_drafts, interventions)
-            ]
-
-        texts = [string_utils.remove_excess_whitespace(text) for text in texts]
+            )
 
         self._insert("Past Therapeutic Interventions", StyleName.HEADING_2)
-        [self._insert(text) for text in texts]
+        self._insert(text)
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
@@ -786,41 +778,42 @@ class ReportWriter:
         document_corrector = language_utils.DocumentCorrections(self.report)
         document_corrector.correct()
 
-    async def add_signatures(self) -> None:
+    def add_signatures(self) -> None:
         """Adds the signatures to the report.
 
         Michael Milham's signature is placed in a different location than the
         other signatures. As such, it needs some custom handling.
         """
         logger.debug("Adding signatures to the report.")
-        signatures = self._download_signatures()
-        async for signature in signatures:
+        signatures = (DATA_DIR / "signatures").glob("*.png")
+        document = cmi_docx.ExtendDocument(self.report)
+
+        for signature in signatures:
+            signatory = signature.stem.replace("_", " ")
             paragraph_index = next(
                 index
                 for index in range(len(self.report.paragraphs))
-                if self.report.paragraphs[index].text.lower().startswith(signature.name)
+                if self.report.paragraphs[index].text.lower().startswith(signatory)
             )
 
-            if signature.name != "michael p. milham":
+            if signatory != "michael p. milham":
                 paragraph_index -= 1
-            self._insert_image(paragraph_index, signature)
+            document.insert_image(paragraph_index, signature)
 
-            if signature.name != "michael p. milham":
-                cmi_docx.ExtendDocument(self.report)._insert_empty_paragraph(
-                    paragraph_index
-                )
+            if signatory != "michael p. milham":
+                document._insert_empty_paragraph(paragraph_index)
 
     async def make_llm_edits(self) -> None:
         """Makes edits to the report using a large language model."""
         logger.debug("Making edits to the report using a large language model.")
         extendedDocument = cmi_docx.ExtendDocument(self.report)
-        while self.llm.placeholders:
-            placeholder = self.llm.placeholders.pop()
-            replacement = (await placeholder.replacement).strip()
+        replacements = await asyncio.gather(
+            *[placeholder.replacement for placeholder in self.llm.placeholders]
+        )
+        ids = [placeholder.id for placeholder in self.llm.placeholders]
+        for id, replacement in zip(ids, replacements):
             extendedDocument.replace(
-                placeholder.id,
-                replacement,
-                {"font_rgb": RGB.LLM.value},
+                id, replacement.strip(), {"font_rgb": RGB.LLM.value}
             )
 
     def add_footer(self) -> None:
@@ -833,16 +826,6 @@ class ReportWriter:
         footer.replace(
             "Large Language Model", "Large Language Model", {"font_rgb": RGB.LLM.value}
         )
-
-    def _insert_image(self, paragraph_index: int, image: Image) -> None:
-        """Inserts an image into the report."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            image_path = pathlib.Path(temp_dir) / f"{image.name}.png"
-            with image_path.open("wb") as file:
-                file.write(image.binary_data)
-            cmi_docx.ExtendDocument(self.report).insert_image(
-                paragraph_index, image_path
-            )
 
     def add_page_break(self) -> None:
         """Adds a page break to the report."""
@@ -906,38 +889,6 @@ class ReportWriter:
         if prepend_is:
             text = "is " + text
         return text
-
-    @staticmethod
-    async def _download_signatures() -> AsyncGenerator[Image, None]:
-        """Downloads signatures from Azure blob storage.
-
-        Returns:
-            Bytes of the downloaded signatures.
-        """
-        azure_blob_service = azure.AzureBlobService(
-            AZURE_BLOB_CONNECTION_STRING.get_secret_value()
-        )
-        container_contents = await azure_blob_service.directory_contents(
-            "ctk-functions"
-        )
-        signature_filepaths = [
-            content
-            for content in container_contents
-            if content.startswith("signatures")
-        ]
-        signature_promises = [
-            azure_blob_service.download_blob("ctk-functions", signature)
-            for signature in signature_filepaths
-        ]
-        signature_bytes = await asyncio.gather(*signature_promises)
-        await azure_blob_service.close()
-        for filepath, binary_data in zip(signature_filepaths, signature_bytes):
-            person_name = (
-                ".".join(filepath.split("/")[-1].split(".")[0:-1])
-                .lower()
-                .replace("_", " ")
-            )
-            yield Image(person_name, binary_data)
 
     def _write_basic_psychiatric_history(self, label: str, report: str) -> str:
         """Writes the ACS involvement to the report."""
