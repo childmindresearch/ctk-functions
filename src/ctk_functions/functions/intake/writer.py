@@ -21,7 +21,6 @@ from ctk_functions.functions.intake.utils import (
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
-LLM_MODEL = settings.LLM_MODEL
 PLACEHOLDER = "______"
 
 

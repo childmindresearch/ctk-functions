@@ -37,7 +37,7 @@ async def llm(req: functions.HttpRequest) -> functions.HttpResponse:
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
-    text = llm_controller.run_llm(system_prompt, user_prompt)
+    text = await llm_controller.run_llm(system_prompt, user_prompt)
     return functions.HttpResponse(
         body=text,
         status_code=http.HTTPStatus.OK,
