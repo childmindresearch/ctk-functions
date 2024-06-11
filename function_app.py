@@ -10,10 +10,38 @@ from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
 from ctk_functions.functions.intake import controller as intake_controller
+from ctk_functions.functions.llm import controller as llm_controller
 
 logger = config.get_logger()
 
 app = functions.FunctionApp()
+
+
+@app.function_name(name="llm")
+@app.route(route="llm", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"])
+async def llm(req: functions.HttpRequest) -> functions.HttpResponse:
+    """Runs a large language model.
+
+    Args:
+        req: The HTTP request object.
+
+    Returns:
+        The HTTP response containing the output text.
+    """
+    body_dict = json.loads(req.get_body().decode("utf-8"))
+    system_prompt = body_dict.get("system_prompt", "")
+    user_prompt = body_dict.get("user_prompt", "")
+    if not system_prompt or not user_prompt:
+        return functions.HttpResponse(
+            "Please provide a system prompt and user prompt.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
+        )
+
+    text = await llm_controller.run_llm(system_prompt, user_prompt)
+    return functions.HttpResponse(
+        body=text,
+        status_code=http.HTTPStatus.OK,
+    )
 
 
 @app.function_name(name="IntakeReport")
