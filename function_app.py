@@ -10,11 +10,38 @@ from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
 from ctk_functions.functions.intake import controller as intake_controller
-from ctk_functions.functions.wopi import controller as wopi_controller
+from ctk_functions.functions.llm import controller as llm_controller
 
 logger = config.get_logger()
 
 app = functions.FunctionApp()
+
+
+@app.function_name(name="llm")
+@app.route(route="llm", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"])
+async def llm(req: functions.HttpRequest) -> functions.HttpResponse:
+    """Runs a large language model.
+
+    Args:
+        req: The HTTP request object.
+
+    Returns:
+        The HTTP response containing the output text.
+    """
+    body_dict = json.loads(req.get_body().decode("utf-8"))
+    system_prompt = body_dict.get("system_prompt", "")
+    user_prompt = body_dict.get("user_prompt", "")
+    if not system_prompt or not user_prompt:
+        return functions.HttpResponse(
+            "Please provide a system prompt and user prompt.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
+        )
+
+    text = await llm_controller.run_llm(system_prompt, user_prompt)
+    return functions.HttpResponse(
+        body=text,
+        status_code=http.HTTPStatus.OK,
+    )
 
 
 @app.function_name(name="IntakeReport")
@@ -101,77 +128,3 @@ async def health(req: functions.HttpRequest) -> functions.HttpResponse:
         body="Healthy",
         status_code=http.HTTPStatus.OK,
     )
-
-
-@app.function_name(name="GetFileMetaData")
-@app.route(
-    route="wopi/files/{name}",
-    auth_level=functions.AuthLevel.FUNCTION,
-    methods=["GET"],
-)
-async def get_file_metadata(req: functions.HttpRequest) -> functions.HttpResponse:
-    """Fetches the metadata of a file from Azure Blob Storage.
-
-    Args:
-        req: The HTTP request object.
-
-    Returns:
-        The HTTP response containing the file metadata
-    """
-    name = req.route_params.get("name", None)
-    logger.info("Fetching file metadata for %s.", name)
-    metadata = wopi_controller.get_file_metadata(name)
-    response = json.dumps(metadata)
-    return functions.HttpResponse(
-        body=response,
-        status_code=http.HTTPStatus.OK,
-        mimetype="application/json",
-    )
-
-
-@app.function_name(name="GetFileContents")
-@app.route(
-    route="wopi/files/{name}/contents",
-    auth_level=functions.AuthLevel.FUNCTION,
-    methods=["GET"],
-)
-async def get_file_contents(req: functions.HttpRequest) -> functions.HttpResponse:
-    """Fetches the metadata of a file from Azure Blob Storage.
-
-    Args:
-        req: The HTTP request object.
-
-    Returns:
-        The HTTP response containing the file metadata
-    """
-    name = req.route_params.get("name", None)
-    logger.info("Fetching file contents for %s.", name)
-    contents = await wopi_controller.get_file_contents(name)
-    return functions.HttpResponse(
-        body=contents,
-        status_code=http.HTTPStatus.OK,
-        mimetype="application/octet-stream",
-    )
-
-
-@app.function_name(name="PutFileContents")
-@app.route(
-    route="wopi/files/{name}/contents",
-    auth_level=functions.AuthLevel.FUNCTION,
-    methods=["PUT"],
-)
-async def put_file_contents(req: functions.HttpRequest) -> functions.HttpResponse:
-    """Fetches the metadata of a file from Azure Blob Storage.
-
-    Args:
-        req: The HTTP request object. The body should contain the new contents of the
-            file.
-
-    Returns:
-        The HTTP response containing the file metadata
-    """
-    name = req.route_params.get("name", None)
-    logger.info("Updating file contents for %s.", name)
-    contents = req.get_body()
-    await wopi_controller.put_file_contents(name, contents)
-    return functions.HttpResponse("", status_code=http.HTTPStatus.CREATED)

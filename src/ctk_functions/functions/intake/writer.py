@@ -129,16 +129,22 @@ class ReportWriter:
 
         placeholder_id = self.llm.run_text_with_parent_input(
             text=(
-                f"""{patient.guardian.title_name} attended the present
-                evaluation due to concerns regarding {PLACEHOLDER}.
-                The family is hoping for {PLACEHOLDER}.
-                The family learned of the study through {PLACEHOLDER}."
+                f"""
+                    {patient.guardian.title_name} attended the present
+                    evaluation due to concerns regarding {PLACEHOLDER}.
+                    The family is hoping for {PLACEHOLDER}.
+                    The family learned of the study through {PLACEHOLDER}."
             """
             ),
             parent_input=f"""
-            Reason for visit: {patient.reason_for_visit}.
-            Hopes: {patient.hopes}.
-            Learned of study: {patient.learned_of_study}.
+                Reason for visit: {patient.reason_for_visit}.
+                Hopes: {patient.hopes}.
+                Learned of study: {patient.learned_of_study}.
+            """,
+            additional_instruction="""
+                The placeholders should be replaced with at most one sentence.
+                Further details will be provided later in the report, so include
+                only the most pertinent information here.
             """,
         )
 
@@ -315,6 +321,17 @@ class ReportWriter:
 
         placeholder_id = self.llm.run_with_list_input(
             patient.education.past_schools,
+            additional_instruction="""
+                Try to keep the text as concise as possible. THE TEXT SHOULD BE A
+                SINGLE PARAGRAPH!
+
+                Include only information that may be pertinent to the child's
+                mental health. For example, if the child had strong negative
+                experiences at a school, that would be important to include,
+                whereas a teacher remarking that the child was average would not
+                be relevant unless that was a significant change from other
+                schools.
+            """,
         )
 
         self._insert("Educational History", StyleName.HEADING_2)
@@ -541,15 +558,11 @@ class ReportWriter:
                     - Conduct disorder
                     - Oppositional defiant disorder
 
-                3. Panic, or obsessive-compulsive disorders
-                    - Panic disorder
-                    - Obsessive-compulsive disorder (OCD)
-
-                4. Substance abuse:
+                3. Substance abuse:
                     - Alcohol abuse
                     - Substance abuse
 
-                5. Anxiety disorders
+                4. Anxiety disorders
                     - Generalized anxiety disorder
                     - Separation anxiety
                     - Social anxiety

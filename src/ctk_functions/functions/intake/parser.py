@@ -1,6 +1,5 @@
 """Utilities for the file conversion router."""
 
-import dataclasses
 import math
 from typing import Any
 
@@ -297,15 +296,6 @@ class HouseholdMember:
         self.grade_occupation = patient_data[f"peopleinhome{identifier}_gradeocc"]
 
 
-@dataclasses.dataclass
-class PastSchool:
-    """Dataclass for  for past school class."""
-
-    name: str
-    grades: str
-    experience: str
-
-
 class Education:
     """The parser for the patient's education."""
 
@@ -330,7 +320,7 @@ class Education:
             other=patient_data["classroomtype_other"],
         )
         self.past_schools = [
-            PastSchool(
+            descriptors.PastSchool(
                 name=patient_data[f"pastschool{identifier}"],
                 grades=patient_data[f"pastschool{identifier}_grades"],
                 experience=patient_data[f"pastschool{identifier}comments"],
