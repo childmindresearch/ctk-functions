@@ -114,7 +114,9 @@ def parse_redcap_dtypes(csv_data: str) -> dict[str, Any]:
     for index in range(1, 13):
         dtypes[f"guardian_relationship___{index}"] = pl.Int8
 
-    dataframe = pl.read_csv(io.StringIO(csv_data), dtypes=dtypes, infer_schema_length=0)
+    dataframe = pl.read_csv(
+        io.StringIO(csv_data), schema_overrides=dtypes, infer_schema_length=0
+    )
     if dataframe.is_empty() or dataframe.shape[0] == 0:
         raise exceptions.RedcapException("No data found for the given MRN.")
 
