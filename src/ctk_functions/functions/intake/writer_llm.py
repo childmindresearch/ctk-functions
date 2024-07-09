@@ -7,7 +7,7 @@ import uuid
 from typing import Awaitable, Sequence
 
 from ctk_functions.functions.intake.utils import string_utils
-from ctk_functions.microservices import azure
+from ctk_functions.microservices import llm
 
 
 @dataclasses.dataclass
@@ -68,7 +68,7 @@ Month YYYY" (e.g., 15 June 2022).
 """
 
 
-class Llm:
+class WriterLlm:
     """Class to represent the interface to a large language model.
 
     Each run_* method will return a placeholder that can be inserted into the
@@ -83,7 +83,12 @@ class Llm:
         placeholders: The placeholders and their replacements.
     """
 
-    def __init__(self, child_name: str, child_pronouns: Sequence[str]) -> None:
+    def __init__(
+        self,
+        model: llm.VALID_LLM_MODELS,
+        child_name: str,
+        child_pronouns: Sequence[str],
+    ) -> None:
         """Initializes the language model.
 
         Args:
@@ -91,7 +96,7 @@ class Llm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = azure.AzureLlm()
+        self.client = llm.LargeLanguageModel(model)
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []

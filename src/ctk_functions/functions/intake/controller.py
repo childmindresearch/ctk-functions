@@ -3,14 +3,15 @@
 import tempfile
 
 from ctk_functions.functions.intake import parser, writer
-from ctk_functions.microservices import redcap
+from ctk_functions.microservices import llm, redcap
 
 
-async def get_intake_report(survey_id: str) -> bytes:
+async def get_intake_report(survey_id: str, model: llm.VALID_LLM_MODELS) -> bytes:
     """Generates an intake report for a survey.
 
     Args:
         survey_id: The survey ID.
+        model: The model to use for the language model.
 
     Returns:
         The .docx file bytes.

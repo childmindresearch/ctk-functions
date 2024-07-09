@@ -12,7 +12,7 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import llm, parser, transformers
+from ctk_functions.functions.intake import parser, transformers, writer_llm
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
@@ -66,7 +66,8 @@ class ReportWriter:
             in paragraph.text
         )
 
-        self.llm = llm.Llm(
+        self.llm = writer_llm.WriterLlm(
+            "gpt-4o",
             intake.patient.first_name,
             intake.patient.pronouns,
         )
@@ -547,6 +548,13 @@ class ReportWriter:
         logger.debug("Writing the family psychiatric history to the report.")
 
         instructions = """
+            DO NOT USE BULLETED LISTS.
+
+            Please refer to the patient's family by the degree of relation (e.g.,
+            "mother," and "father," would be "1st degree relatives," while "aunt"
+            and "uncle" would be "2nd degree relatives"), do not use the exact
+            relationship. We do this to protect the privacy of the family members.
+
             You may group diagnoses together with the given label if they have identical
              responses:
                 1. Specific learning disorder

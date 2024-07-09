@@ -17,6 +17,9 @@ class Settings(pydantic_settings.BaseSettings):
         "https://redcap.healthybrainnetwork.org/redcap/api/"
     )
 
+    AWS_ACCESS_KEY_ID: pydantic.SecretStr
+    AWS_SECRET_ACCESS_KEY: pydantic.SecretStr
+
     AZURE_BLOB_CONNECTION_STRING: pydantic.SecretStr
     AZURE_OPENAI_API_KEY: pydantic.SecretStr
     AZURE_OPENAI_LLM_DEPLOYMENT: pydantic.SecretStr
