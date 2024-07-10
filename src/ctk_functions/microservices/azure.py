@@ -4,6 +4,7 @@ import openai
 from azure.storage.blob import aio
 
 from ctk_functions import config
+from ctk_functions.microservices import utils
 
 logger = config.get_logger()
 
@@ -20,7 +21,7 @@ class AzureError(Exception):
     pass
 
 
-class AzureLlm:
+class AzureLlm(utils.LlmAbstractBaseClass):
     """A class to interact with the Azure Language Model service."""
 
     def __init__(

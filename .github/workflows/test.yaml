@@ -9,6 +9,8 @@ on:
 jobs:
   unit:
     env:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
       REDCAP_API_TOKEN: test
       AZURE_BLOB_CONNECTION_STRING: test
       AZURE_OPENAI_API_KEY: test

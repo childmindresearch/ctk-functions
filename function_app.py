@@ -31,13 +31,14 @@ async def llm(req: functions.HttpRequest) -> functions.HttpResponse:
     body_dict = json.loads(req.get_body().decode("utf-8"))
     system_prompt = body_dict.get("system_prompt", "")
     user_prompt = body_dict.get("user_prompt", "")
+    model = body_dict.get("model", "gpt-4o")
     if not system_prompt or not user_prompt:
         return functions.HttpResponse(
             "Please provide a system prompt and user prompt.",
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
-    text = await llm_controller.run_llm(system_prompt, user_prompt)
+    text = await llm_controller.run_llm(model, system_prompt, user_prompt)
     return functions.HttpResponse(
         body=text,
         status_code=http.HTTPStatus.OK,
@@ -60,13 +61,14 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
         The HTTP response containing the .docx file.
     """
     survey_id = req.route_params.get("survey_id")
+    model = req.params.get("model", "gpt-4o")
     if not survey_id:
         return functions.HttpResponse(
             "Please provide a survey ID.", status_code=http.HTTPStatus.BAD_REQUEST
         )
 
     try:
-        docx_bytes = await intake_controller.get_intake_report(survey_id)
+        docx_bytes = await intake_controller.get_intake_report(survey_id, model)
     except exceptions.RedcapException as exc_info:
         logger.error(exc_info)
         return functions.HttpResponse(
