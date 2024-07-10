@@ -61,10 +61,11 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
         The HTTP response containing the .docx file.
     """
     survey_id = req.route_params.get("survey_id")
-    model = req.headers.get("X-Model", "gpt-4o")
-    if not survey_id:
+    model = req.headers.get("X-Model")
+    if not survey_id or not model:
         return functions.HttpResponse(
-            "Please provide a survey ID.", status_code=http.HTTPStatus.BAD_REQUEST
+            "Please provide a survey ID and model name.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
     try:
