@@ -47,7 +47,7 @@ async def intake_document(
         return_value="",
     )
     intake_info = parser.IntakeInformation(test_redcap_data)
-    intake_writer = writer.ReportWriter(intake_info)
+    intake_writer = writer.ReportWriter(intake_info, "gpt-4o")
     await intake_writer.transform()
     return intake_writer.report
 

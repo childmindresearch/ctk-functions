@@ -52,7 +52,7 @@ def test_replace_patient_information() -> None:
     document = docx.Document()
     paragraph = document.add_paragraph("{{FULL_NAME}} is a {{PRONOUN_0}}.")
     paragraph.add_run(" {{PRONOUN_2}}")
-    report_writer = writer.ReportWriter(intake)  # type: ignore[arg-type]
+    report_writer = writer.ReportWriter(intake, "gpt-4o")  # type: ignore[arg-type]
     report_writer.report = document
     expected = "Lea Avatar is a she. her"
 

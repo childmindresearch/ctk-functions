@@ -17,6 +17,7 @@ from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
+from ctk_functions.microservices import llm
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -48,11 +49,14 @@ class StyleName(enum.Enum):
 class ReportWriter:
     """Writes a report for intake information."""
 
-    def __init__(self, intake: parser.IntakeInformation) -> None:
+    def __init__(
+        self, intake: parser.IntakeInformation, model: llm.VALID_LLM_MODELS
+    ) -> None:
         """Initializes the report writer.
 
         Args:
             intake: The intake information.
+            model: The model to use for the language model.
         """
         logger.debug("Initializing the report writer.")
         self.intake = intake
@@ -67,7 +71,7 @@ class ReportWriter:
         )
 
         self.llm = writer_llm.WriterLlm(
-            "gpt-4o",
+            model,
             intake.patient.first_name,
             intake.patient.pronouns,
         )

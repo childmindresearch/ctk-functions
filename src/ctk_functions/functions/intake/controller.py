@@ -18,7 +18,7 @@ async def get_intake_report(survey_id: str, model: llm.VALID_LLM_MODELS) -> byte
     """
     intake_data = redcap.get_intake_data(survey_id)
     parsed_data = parser.IntakeInformation(intake_data)
-    report = writer.ReportWriter(parsed_data)
+    report = writer.ReportWriter(parsed_data, model=model)
     await report.transform()
 
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
