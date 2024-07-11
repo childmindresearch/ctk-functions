@@ -1,11 +1,11 @@
 """This module coalesces all large language models from different microservices."""
 
-from typing import Literal
+import typing
 
 from ctk_functions import config
 from ctk_functions.microservices import aws, azure, utils
 
-VALID_LLM_MODELS = Literal["gpt-4o", "anthropic.claude-3-opus-20240229-v1:0"]
+VALID_LLM_MODELS = aws.ANTHROPIC_MODELS | azure.GPT_MODELS
 
 logger = config.get_logger()
 
@@ -24,13 +24,13 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
             model: The model to use for the language model.
         """
         self.client: azure.AzureLlm | aws.ClaudeLlm
-        if model == "gpt-4o":
-            logger.info("Using Azure LLM")
-            self.client = azure.AzureLlm()
-        elif model == "anthropic.claude-3-opus-20240229-v1:0":
-            logger.info("Using AWS LLM")
-            self.client = aws.ClaudeLlm()
+        logger.info("Using LLM model: %s", model)
+        if model in typing.get_args(azure.GPT_MODELS):
+            self.client = azure.AzureLlm(model)  # type: ignore[arg-type] # mypy doesn't detect typing.get_args() as type narrowing.
+        elif model in typing.get_args(aws.ANTHROPIC_MODELS):
+            self.client = aws.ClaudeLlm(model)  # type: ignore[arg-type] # mypy doesn't detect typing.get_args() as type narrowing.
         else:
+            # As the model name can be supplied by the user, this case might be reached.
             raise ValueError(f"Invalid LLM model: {model}")
 
     async def run(self, system_prompt: str, user_prompt: str) -> str:

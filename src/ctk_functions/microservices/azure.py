@@ -1,5 +1,7 @@
 """A module to interact with Azure Blob Storage."""
 
+from typing import Literal
+
 import openai
 from azure.storage.blob import aio
 
@@ -14,6 +16,8 @@ AZURE_OPENAI_API_KEY = settings.AZURE_OPENAI_API_KEY
 AZURE_OPENAI_LLM_DEPLOYMENT = settings.AZURE_OPENAI_LLM_DEPLOYMENT
 AZURE_OPENAI_ENDPOINT = settings.AZURE_OPENAI_ENDPOINT
 
+GPT_MODELS = Literal["gpt-4o"]
+
 
 class AzureError(Exception):
     """An exception to raise when an error occurs in the Azure service."""
@@ -26,18 +30,19 @@ class AzureLlm(utils.LlmAbstractBaseClass):
 
     def __init__(
         self,
+        model: GPT_MODELS = "gpt-4o",
     ) -> None:
         """Initialize the Azure Language Model client.
 
         Args:
-            deployment: The deployment name.
-            endpoint: The endpoint URL.
+            model: The model to use for the language model.
         """
         self.client = openai.AsyncAzureOpenAI(
             api_key=AZURE_OPENAI_API_KEY.get_secret_value(),
             azure_endpoint=AZURE_OPENAI_ENDPOINT.get_secret_value(),
             api_version="2024-02-01",
         )
+        self.model = model
 
     async def run(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts.

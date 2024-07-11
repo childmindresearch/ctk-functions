@@ -2,6 +2,7 @@
 
 import http
 import json
+import typing
 
 from azure import functions
 
@@ -11,6 +12,7 @@ from ctk_functions.functions.file_conversion import (
 )
 from ctk_functions.functions.intake import controller as intake_controller
 from ctk_functions.functions.llm import controller as llm_controller
+from ctk_functions.microservices import llm
 
 logger = config.get_logger()
 
@@ -19,7 +21,7 @@ app = functions.FunctionApp()
 
 @app.function_name(name="llm")
 @app.route(route="llm", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"])
-async def llm(req: functions.HttpRequest) -> functions.HttpResponse:
+async def llm_endpoint(req: functions.HttpRequest) -> functions.HttpResponse:
     """Runs a large language model.
 
     Args:
@@ -29,12 +31,19 @@ async def llm(req: functions.HttpRequest) -> functions.HttpResponse:
         The HTTP response containing the output text.
     """
     body_dict = json.loads(req.get_body().decode("utf-8"))
-    system_prompt = body_dict.get("system_prompt", "")
-    user_prompt = body_dict.get("user_prompt", "")
-    model = body_dict.get("model", "gpt-4o")
-    if not system_prompt or not user_prompt:
+    system_prompt = body_dict.get("system_prompt")
+    user_prompt = body_dict.get("user_prompt")
+    model = body_dict.get("model")
+    if not system_prompt or not user_prompt or not model:
         return functions.HttpResponse(
-            "Please provide a system prompt and user prompt.",
+            "Please provide a system prompt, a user prompt, and a model name.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
+        )
+    if model not in typing.get_args(llm.VALID_LLM_MODELS):
+        return functions.HttpResponse(
+            "Invalid model, valid models are: "
+            + ", ".join(typing.get_args(llm.VALID_LLM_MODELS))
+            + ".",
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
@@ -65,6 +74,13 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
     if not survey_id or not model:
         return functions.HttpResponse(
             "Please provide a survey ID and model name.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
+        )
+    if model not in typing.get_args(llm.VALID_LLM_MODELS):
+        return functions.HttpResponse(
+            "Invalid model, valid models are: "
+            + ", ".join(typing.get_args(llm.VALID_LLM_MODELS))
+            + ".",
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
