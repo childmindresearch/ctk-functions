@@ -5,7 +5,7 @@ import typing
 from ctk_functions import config
 from ctk_functions.microservices import aws, azure, utils
 
-VALID_LLM_MODELS = aws.ANTHROPIC_MODELS | azure.GPT_MODELS
+VALID_LLM_MODELS = typing.Literal[aws.ANTHROPIC_MODELS, azure.GPT_MODELS]
 
 logger = config.get_logger()
 
