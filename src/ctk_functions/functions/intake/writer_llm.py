@@ -39,7 +39,7 @@ the information is not applicable. Parents' responses may be terse,
 grammatically incorrect, or incomplete. Make sure that the response is clear,
 uses correct grammar, avoids abbreviations and repetition, and is consistent
 with the tone of a clinical report written by a medical professional.  Report
-dates in the format "DD Month YYYY" (e.g., 15 June 2022). Do not include the "Excerpt:"
+dates in the format "Month YYYY" (e.g., June 2022). Do not include the "Excerpt:"
 or "Parent Input:" headers in your response.
 """
     edit = """
@@ -51,7 +51,7 @@ quotations; make sure the response is integrated into the text. Do not alter the
 content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE. Make sure
 that the response is clear, uses correct grammar, avoids abbreviations and
 repetition, and is consistent with the tone of a clinical report written by a
-medical professional. Report dates in the format "DD Month YYYY" (e.g., 15 June 2022).
+medical professional. Report dates in the format "Month YYYY" (e.g., 15 June 2022).
 """
     list_input = """
 You will receive a list of items. Your task is to write a text that includes the
@@ -63,8 +63,8 @@ This text will be inserted into a clinical report. Ensure that the tone is
 appropriate for a clinical report written by a doctor, i.e. professional and
 objective. Do not use quotations; make sure the response is integrated into the
 text. Your response should be in plain text i.e., do not use Markdown. Do not
-include an introduction, summary, or conclusion. Report dates in the format "DD
-Month YYYY" (e.g., 15 June 2022).
+include an introduction, summary, or conclusion. Report dates in the format "Month YYYY"
+(e.g., 15 June 2022).
 """
 
 
