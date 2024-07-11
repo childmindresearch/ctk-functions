@@ -597,6 +597,9 @@ class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
         Returns:
             str: The transformed object.
         """
+        if not self.base:
+            return self.other
+
         no_past_diagnosis = [val for val in self.base if val.no_formal_diagnosis]
         past_diagnosis = [val for val in self.base if not val.no_formal_diagnosis]
 

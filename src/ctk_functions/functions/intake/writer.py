@@ -12,7 +12,7 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import parser, transformers, writer_llm
+from ctk_functions.functions.intake import descriptors, parser, transformers, writer_llm
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
@@ -31,9 +31,9 @@ logger = config.get_logger()
 class RGB(enum.Enum):
     """Represents an RGB color code for specific sections."""
 
-    UNRELIABLE = (247, 150, 70)
     LLM = (0, 0, 255)
     TESTING = (155, 187, 89)
+    UNRELIABLE = (247, 150, 70)
 
 
 class StyleName(enum.Enum):
@@ -194,11 +194,18 @@ class ReportWriter:
         adaptability = development.adaptability
         duration_of_pregnancy = development.duration_of_pregnancy
 
+        birth_sentence = f"""
+            {patient.first_name} was born at {duration_of_pregnancy} of
+            gestation with {delivery} at {delivery_location}.
+        """
+
+        if delivery.base == descriptors.BirthDelivery.cesarean:
+            # Contains a quote by the parent.
+            birth_sentence = self.llm.run_edit(birth_sentence)
+
         text = f"""
             {patient.guardian.title_name} reported {pregnancy_symptoms}.
-            {patient.first_name} was born at
-            {duration_of_pregnancy} of gestation with {delivery} at
-            {delivery_location}. {patient.first_name} had {adaptability}
+            {birth_sentence} {patient.first_name} had {adaptability}
             during infancy and was {development.soothing_difficulty.name} to
             soothe.
         """
@@ -400,17 +407,21 @@ class ReportWriter:
         household = patient.household
         language_fluencies = self._join_patient_languages(self.intake.patient.languages)
 
-        text_home = f"""
+        text_home_base = f"""
             {patient.first_name} lives in {household.city},
             {household.state}, with {household.members}.
             The {patient.guardian.parent_or_guardian}s are
             {household.guardian_marital_status}.
+        """
+        text_home_languages = f"""
             {string_utils.join_with_oxford_comma(household.languages)} {"are" if
             len(household.languages) > 1 else "is"} spoken at home.
             {patient.language_spoken_best} is reportedly
             {patient.first_name}'s preferred language.
-            {patient.first_name} {language_fluencies}.
-        """
+            {patient.first_name} {language_fluencies}."""
+        languages_tag = self.llm.run_edit(text_home_languages)
+        text_home = f"{text_home_base} {languages_tag}"
+
         if not household.home_functioning:
             text_adaptive = f"""
                 {patient.guardian.title_name} denied any concerns with
@@ -559,6 +570,11 @@ class ReportWriter:
             and "uncle" would be "2nd degree relatives"), do not use the exact
             relationship. We do this to protect the privacy of the family members.
 
+            Write your response with the relative degree in brackets.
+            For example: "John's family history is remarkable for alcohol abuse (3rd
+            degree relative), and depression (2nd and 3rd degree relatives)." List
+            the diagnoses in alphabetical order.
+
             You may group diagnoses together with the given label if they have identical
              responses:
                 1. Specific learning disorder
@@ -593,16 +609,19 @@ class ReportWriter:
                 - Tics/Tourette’s
         """
 
-        text = (
-            self.intake.patient.psychiatric_history.family_psychiatric_history.replace(
+        history = self.intake.patient.psychiatric_history.family_psychiatric_history
+        self._insert("Family Psychiatric History", StyleName.HEADING_2)
+
+        if not history.base:
+            # No known family history.
+            text = str(history)
+        else:
+            llm_text = str(history).replace(
                 transformers.ReplacementTags.PREFERRED_NAME.value,
                 self.intake.patient.first_name,
             )
-        )
-        placeholder_id = self.llm.run_edit(text, instructions)
-
-        self._insert("Family Psychiatric History", StyleName.HEADING_2)
-        self._insert(placeholder_id)
+            text = self.llm.run_edit(llm_text, instructions)
+        self._insert(text)
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""

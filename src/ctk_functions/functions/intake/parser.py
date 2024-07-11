@@ -430,11 +430,9 @@ class PsychiatricHistory:
         self.children_services = patient_data["acs_exp"]
         self.violence_and_trauma = patient_data["violence_exp"]
         self.self_harm = patient_data["selfharm_exp"]
-        self.family_psychiatric_history = (
-            FamilyPyshicatricHistory(patient_data)
-            .get_family_diagnoses(patient_data)
-            .transform()
-        )
+        self.family_psychiatric_history = FamilyPyshicatricHistory(
+            patient_data
+        ).get_family_diagnoses(patient_data)
 
 
 class FamilyPyshicatricHistory:
@@ -477,7 +475,6 @@ class FamilyPyshicatricHistory:
             history_known = "Family history for the father is unknown."
         elif not self.is_mother_history_known:
             history_known = "Family history for the mother is unknown."
-
         else:
             history_known = ""
 
