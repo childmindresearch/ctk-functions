@@ -1,14 +1,15 @@
 """Utilities for the microservices."""
 
 import abc
-from typing import Any
 
 
 class LlmAbstractBaseClass(abc.ABC):
     """An abstract class for large language model interfaces."""
 
+    model: str
+
     @abc.abstractmethod
-    def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
+    def __init__(self, model: str) -> None:
         """Initialize the Language Model client."""
         pass
 
