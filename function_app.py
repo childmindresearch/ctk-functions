@@ -47,6 +47,7 @@ async def llm_endpoint(req: functions.HttpRequest) -> functions.HttpResponse:
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
+    logger.info("Running LLM with model: %s", model)
     text = await llm_controller.run_llm(model, system_prompt, user_prompt)
     return functions.HttpResponse(
         body=text,
@@ -84,6 +85,9 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
+    logger.info(
+        "Generating intake report for identifier %s with model %s.", survey_id, model
+    )
     try:
         docx_bytes = await intake_controller.get_intake_report(survey_id, model)
     except exceptions.RedcapException as exc_info:
@@ -120,6 +124,7 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
             "Please provide a Markdown document.",
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
+    logger.info("Converting Markdown to .docx")
     docx_bytes = file_conversion_controller.markdown2docx(
         markdown,
         correct_they=correct_they,
