@@ -31,6 +31,7 @@ logger = config.get_logger()
 class RGB(enum.Enum):
     """Represents an RGB color code for specific sections."""
 
+    BASIC = (0, 0, 0)
     LLM = (0, 0, 255)
     TESTING = (155, 187, 89)
     UNRELIABLE = (247, 150, 70)
@@ -539,14 +540,15 @@ class ReportWriter:
             "Administration for Children's Services (ACS) Involvement",
             StyleName.HEADING_2,
         )
-        self._insert(text)
+        paragraph = self._insert(text)
+        if not self.intake.patient.psychiatric_history.is_follow_up_done:
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.UNRELIABLE.value)
 
     def write_past_aggressive_behaviors_and_homicidality(self) -> None:
         """Writes the past aggressive behaviors and homicidality to the report."""
         logger.debug(
             "Writing the past aggressive behaviors and homicidality to the report."
         )
-
         text = self._write_basic_psychiatric_history(
             "homicidality or severe physically aggressive behaviors towards others",
             self.intake.patient.psychiatric_history.aggresive_behaviors,
@@ -556,7 +558,9 @@ class ReportWriter:
             "Past Severe Aggressive Behaviors and Homicidality",
             StyleName.HEADING_2,
         )
-        self._insert(text)
+        paragraph = self._insert(text)
+        if not self.intake.patient.psychiatric_history.is_follow_up_done:
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.UNRELIABLE.value)
 
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
@@ -659,7 +663,6 @@ class ReportWriter:
         logger.debug(
             "Writing the past self-injurious behaviors and suicidality to the report."
         )
-
         text = self._write_basic_psychiatric_history(
             "serious self-injurious harm or suicidal ideation",
             self.intake.patient.psychiatric_history.self_harm,
@@ -669,7 +672,9 @@ class ReportWriter:
             "Past Self-Injurious Behaviors and Suicidality",
             StyleName.HEADING_2,
         )
-        self._insert(text)
+        paragraph = self._insert(text)
+        if not self.intake.patient.psychiatric_history.is_follow_up_done:
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.UNRELIABLE.value)
 
     def exposure_to_violence_and_trauma(self) -> None:
         """Writes the exposure to violence and trauma to the report."""
@@ -681,7 +686,9 @@ class ReportWriter:
         )
 
         self._insert("Exposure to Violence and Trauma", StyleName.HEADING_2)
-        self._insert(text)
+        paragraph = self._insert(text)
+        if not self.intake.patient.psychiatric_history.is_follow_up_done:
+            cmi_docx.ExtendParagraph(paragraph).format(font_rgb=RGB.UNRELIABLE.value)
 
     def write_medical_history(self) -> None:
         """Writes the medical history to the end of the report."""
@@ -920,7 +927,7 @@ class ReportWriter:
             text = "is " + text
         return text
 
-    def _write_basic_psychiatric_history(self, label: str, report: str) -> str:
+    def _write_basic_psychiatric_history(self, label: str, report: str | None) -> str:
         """Writes the ACS involvement to the report."""
         if not report:
             text = f"""
