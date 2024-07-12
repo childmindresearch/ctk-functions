@@ -426,10 +426,11 @@ class PsychiatricHistory:
                 f"txhx_{identifier}" if identifier != 2 else f"txhx{identifier}"  # noqa: PLR2004
             ]
         ]
-        self.aggresive_behaviors = patient_data["agress_exp"]
-        self.children_services = patient_data["acs_exp"]
-        self.violence_and_trauma = patient_data["violence_exp"]
-        self.self_harm = patient_data["selfharm_exp"]
+        self.is_follow_up_done = patient_data["clinician"] is not None
+        self.aggresive_behaviors: str | None = patient_data["agress_exp"]
+        self.children_services: str | None = patient_data["acs_exp"]
+        self.violence_and_trauma: str | None = patient_data["violence_exp"]
+        self.self_harm: str | None = patient_data["selfharm_exp"]
         self.family_psychiatric_history = FamilyPyshicatricHistory(
             patient_data
         ).get_family_diagnoses(patient_data)
