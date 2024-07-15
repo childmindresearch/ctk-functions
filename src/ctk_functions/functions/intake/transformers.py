@@ -332,11 +332,16 @@ class DevelopmentSkill(Transformer[str | int]):
     def transform(self) -> str:
         """Transforms the developmental skills information to a string.
 
+        It is assumed that any integer value less than 7 is in years, and
+        otherwise it is in months.
+
         Returns:
             str: The transformed object.
         """
         if isinstance(self.base, int) or self.base.isnumeric():
-            return f"{self.other} at {self.base} months/years"
+            if float(self.base) > 6:
+                return f"{self.other} at {self.base} months"
+            return f"{self.other} at {self.base} years"
         if self.base.lower() == "not yet":
             return f"has not {self.other} yet"
         if self.base.lower() in ["normal", "late"]:
