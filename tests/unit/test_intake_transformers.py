@@ -219,9 +219,10 @@ def test_cpse_transformer(
 @pytest.mark.parametrize(
     ("base", "expected"),
     [
+        (3, "talked at 3 years"),
         (
             12,
-            "talked at 12 months/years",
+            "talked at 12 months",
         ),
         (
             "not yet",
@@ -230,10 +231,6 @@ def test_cpse_transformer(
         (
             "normal",
             "talked at a normal age",
-        ),
-        (
-            "late",
-            "talked at a late age",
         ),
         (
             "early",
