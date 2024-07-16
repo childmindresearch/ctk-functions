@@ -11,7 +11,14 @@ def correcter() -> corrections.LanguageCorrecter:
 
     The initialization is slow, so it is performed at the module level.
     """
-    return corrections.LanguageCorrecter()
+    return corrections.LanguageCorrecter(
+        enabled_rules=[
+            "PERS_PRONOUN_AGREEMENT",
+            "UPPERCASE_SENTENCE_START",
+            "NON3PRS_VERB",
+            "COMMA_COMPOUND_SENTENCE_2",
+        ]
+    )
 
 
 @pytest.mark.parametrize(

@@ -30,8 +30,8 @@ def markdown2docx(
     if correct_capitalization:
         enabled_rules += ["UPPERCASE_SENTENCE_START"]
     if enabled_rules:
-        correcter = corrections.LanguageCorrecter()
-        markdown = correcter.run(markdown, enabled_rules=enabled_rules)
+        correcter = corrections.LanguageCorrecter(enabled_rules)
+        markdown = correcter.run(markdown)
 
     with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
         pypandoc.convert_text(

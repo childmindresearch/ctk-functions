@@ -1,6 +1,6 @@
 """Module for syntax and grammatical correctionss of text."""
 
-from typing import Collection
+from typing import Iterable
 
 import language_tool_python
 import spacy
@@ -11,16 +11,21 @@ NLP = spacy.load("en_core_web_sm")
 class LanguageCorrecter:
     """Corrects the grammar and syntax of text."""
 
-    def __init__(self) -> None:
-        """Initializes the language tool."""
-        self.language_tool = language_tool_python.LanguageTool("en-US")
-
-    def run(
+    def __init__(
         self,
-        text: str,
-        enabled_rules: Collection[str] | None = None,
-        disabled_rules: Collection[str] | None = None,
-    ) -> str:
+        enabled_rules: Iterable[str],
+    ) -> None:
+        """Initializes the language tool.
+
+        Args:
+            enabled_rules: The rules to enable for the correction.
+
+        """
+        self.language_tool = language_tool_python.LanguageTool("en-US")
+        self.language_tool.enabled_rules = set(enabled_rules)
+        self.language_tool.enabled_rules_only = True
+
+    def run(self, text: str) -> str:
         """Corrects the text following the object's settings.
 
         Initializing the language tool takes a while, so it is performed at
@@ -31,35 +36,14 @@ class LanguageCorrecter:
 
         Args:
             text: The text to correct.
-            enabled_rules: The rules to enable for the correction. If None, all rules
-                are enabled.
-            disabled_rules: The rules to disable for the correction. If None, no rules
-                are disabled. Note: disabled rules take precedence over enabled rules.
 
         Returns:
             The corrected text.
         """
-
-        def get_corrections(text: str) -> list[language_tool_python.Match]:
-            corrections = self.language_tool.check(text)
-            if enabled_rules:
-                corrections = [
-                    correction
-                    for correction in corrections
-                    if correction.ruleId in enabled_rules
-                ]
-            if disabled_rules:
-                corrections = [
-                    correction
-                    for correction in corrections
-                    if correction.ruleId not in disabled_rules
-                ]
-            return corrections
-
-        corrections = get_corrections(text)
+        corrections = self.language_tool.check(text)
         while corrections:
             text = self._apply_correction(corrections[-1], text)
-            corrections = get_corrections(text)
+            corrections = self.language_tool.check(text)
         return text
 
     @classmethod
