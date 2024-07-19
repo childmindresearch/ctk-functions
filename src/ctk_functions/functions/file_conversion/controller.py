@@ -57,7 +57,10 @@ def mark_warnings_as_red(docx_file: str | pathlib.Path) -> None:
     extend_document = cmi_docx.ExtendDocument(document)
     text = "\n".join([paragraph.text for paragraph in document.paragraphs])
     warningRegex = re.compile(r"{{!.*?}}")
-    matches = set(warningRegex.finditer(text))
-    for match in matches:
-        extend_document.replace(match.group(), match.group(), {"font_rgb": (255, 0, 0)})
+    matches = warningRegex.finditer(text)
+    uniqueMatches = set([match.group() for match in matches])
+
+    for match in uniqueMatches:
+        extend_document.replace(match, match, {"font_rgb": (255, 0, 0)})
+
     document.save(str(docx_file))
