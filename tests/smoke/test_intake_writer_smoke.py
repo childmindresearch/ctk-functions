@@ -6,7 +6,7 @@ for easy-to-make mistakes.
 """
 
 import re
-from typing import Any, Coroutine, Iterable, Self, TypeVar
+from typing import Any, Coroutine, TypeVar
 
 import pytest
 import pytest_mock
@@ -15,25 +15,6 @@ from docx import document
 from ctk_functions.functions.intake import parser, writer
 
 T = TypeVar("T")
-
-
-class AsyncIterator:
-    """An async iterator for testing purposes."""
-
-    def __init__(self, seq: Iterable[T]) -> None:
-        """Initialize the async iterator with a sequence."""
-        self.iter = iter(seq)
-
-    def __aiter__(self) -> Self:
-        """Return the iterator itself."""
-        return self
-
-    async def __anext__(self) -> T:
-        """Return the next item from the iterator."""
-        try:
-            return next(self.iter)
-        except StopIteration:
-            raise StopAsyncIteration
 
 
 @pytest.fixture(scope="function")

@@ -61,6 +61,6 @@ def mark_warnings_as_red(docx_file: str | pathlib.Path) -> None:
     uniqueMatches = set([match.group() for match in matches])
 
     for match in uniqueMatches:
-        extend_document.replace(match, match, {"font_rgb": (255, 0, 0)})
+        extend_document.replace(match, match, cmi_docx.RunStyle(font_rgb=(255, 0, 0)))
 
     document.save(str(docx_file))
