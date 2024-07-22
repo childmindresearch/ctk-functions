@@ -37,7 +37,7 @@ def markdown2docx(
         pypandoc.convert_text(
             markdown,
             "docx",
-            format="md",
+            format="commonmark",
             outputfile=temp_file.name,
         )
         temp_file.seek(0)
