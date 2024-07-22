@@ -11,6 +11,7 @@ from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
 from ctk_functions.functions.intake import controller as intake_controller
+from ctk_functions.functions.language_tool import controller as language_tool_controller
 from ctk_functions.functions.llm import controller as llm_controller
 from ctk_functions.microservices import llm
 
@@ -134,6 +135,41 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
+
+@app.function_name(name="LanguageTool")
+@app.route(
+    route="language-tool", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"]
+)
+async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
+    """Runs the LanguageTool grammar checker.
+
+    Args:
+        req: The HTTP request object.
+
+    Returns:
+        The HTTP response containing the output text.
+    """
+    body_dict = json.loads(req.get_body().decode("utf-8"))
+    text = body_dict.get("text")
+    rules = body_dict.get("rules", [])
+
+    if not rules:
+        return functions.HttpResponse(
+            "Please provide some rules.", status_code=http.HTTPStatus.BAD_REQUEST
+        )
+
+    if not text:
+        return functions.HttpResponse(
+            "Please provide some text.", status_code=http.HTTPStatus.BAD_REQUEST
+        )
+
+    logger.info("Running LanguageTool")
+    corrected_text = language_tool_controller.language_tool(text, rules)
+    return functions.HttpResponse(
+        body=corrected_text,
+        status_code=http.HTTPStatus.OK,
     )
 
 
