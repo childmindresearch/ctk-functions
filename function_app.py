@@ -168,7 +168,7 @@ async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
     """
     body_dict = json.loads(req.get_body().decode("utf-8"))
     text = body_dict.get("text")
-    rules = body_dict.get("rules", [])
+    rules = json.loads(body_dict.get("rules", "[]"))
 
     if not rules:
         return functions.HttpResponse(
