@@ -41,7 +41,7 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
     """Tests the conversion of Markdown to docx."""
     markdown = "# Header\n\nThis is a paragraph.\n\nThis is a {{!WARNING-TEXT}}."
 
-    docx_bytes = controller.markdown2docx(markdown)
+    docx_bytes = controller.markdown2docx(markdown, formatting={"bold": True})
     filename = tmp_path / "test.docx"
     with open(filename, "wb") as file:
         file.write(docx_bytes)
@@ -52,3 +52,4 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
     assert doc.paragraphs[2].runs[1].text == "{{!WARNING-TEXT}}"
     assert not is_run_font_color_red(doc.paragraphs[2].runs[0])
     assert is_run_font_color_red(doc.paragraphs[2].runs[1])
+    assert doc.paragraphs[0].runs[0].font.bold

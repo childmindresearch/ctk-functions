@@ -25,6 +25,11 @@ app = functions.FunctionApp()
 async def llm_endpoint(req: functions.HttpRequest) -> functions.HttpResponse:
     """Runs a large language model.
 
+    The request body should contain a JSON object with the following keys:
+    - system_prompt: The system prompt.
+    - user_prompt: The user prompt.
+    - model: The model name. See ctk_functions.microservices.llm.VALID_LLM_MODELS.
+
     Args:
         req: The HTTP request object.
 
@@ -35,6 +40,7 @@ async def llm_endpoint(req: functions.HttpRequest) -> functions.HttpResponse:
     system_prompt = body_dict.get("system_prompt")
     user_prompt = body_dict.get("user_prompt")
     model = body_dict.get("model")
+
     if not system_prompt or not user_prompt or not model:
         return functions.HttpResponse(
             "Please provide a system prompt, a user prompt, and a model name.",
@@ -65,6 +71,10 @@ async def llm_endpoint(req: functions.HttpRequest) -> functions.HttpResponse:
 async def get_intake_report(req: functions.HttpRequest) -> functions.HttpResponse:
     """Generates an intake report for a survey.
 
+    The survey ID should be provided in the URL path. The model should be provided as
+    an "X-Model" header. See ctk_functions.microservices.llm.VALID_LLM_MODELS for valid
+    models.
+
     Args:
         req: The HTTP request object.
 
@@ -73,6 +83,7 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
     """
     survey_id = req.route_params.get("survey_id")
     model = req.headers.get("X-Model")
+
     if not survey_id or not model:
         return functions.HttpResponse(
             "Please provide a survey ID and model name.",
@@ -110,6 +121,10 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
 async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     """Converts a Markdown document to a .docx file.
 
+    The request body should contain a JSON object with the following keys:
+    - markdown: The Markdown document.
+    - formatting: Formatting options, must abide by cmi_docx.ParagraphStyle arguments.
+
     Args:
         req: The HTTP request object.
 
@@ -117,8 +132,8 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
         The HTTP response containing the .docx file.
     """
     body_dict = json.loads(req.get_body().decode("utf-8"))
-    correct_they = req.headers.get("X-Correct-They", False)
-    correct_capitalization = req.headers.get("X-Correct-Capitalization", False)
+    formatting = body_dict.get("formatting", None)
+
     markdown = body_dict.get("markdown", None)
     if not markdown:
         return functions.HttpResponse(
@@ -126,11 +141,7 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
     logger.info("Converting Markdown to .docx")
-    docx_bytes = file_conversion_controller.markdown2docx(
-        markdown,
-        correct_they=correct_they,
-        correct_capitalization=correct_capitalization,
-    )
+    docx_bytes = file_conversion_controller.markdown2docx(markdown, formatting)
     return functions.HttpResponse(
         body=docx_bytes,
         status_code=http.HTTPStatus.OK,
@@ -144,6 +155,10 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
 )
 async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
     """Runs the LanguageTool grammar checker.
+
+    The request body should contain a JSON object with the following keys:
+    - text: The text to correct.
+    - rules: The rules to enable c.f. LanguageTool for a list of rules.
 
     Args:
         req: The HTTP request object.
@@ -177,6 +192,8 @@ async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
 @app.route(route="health", auth_level=functions.AuthLevel.FUNCTION, methods=["GET"])
 async def health(req: functions.HttpRequest) -> functions.HttpResponse:
     """Health check endpoint.
+
+    This endpoint takes no arguments and always returns a 200 OK response.
 
     Args:
         req: The HTTP request object.
