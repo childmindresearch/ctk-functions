@@ -3,46 +3,46 @@
 import pathlib
 import re
 import tempfile
+from typing import Any
 
 import cmi_docx
 import docx
 import pypandoc
 
-from ctk_functions.text import corrections
-
 
 def markdown2docx(
-    markdown: str, *, correct_they: bool = False, correct_capitalization: bool = False
+    markdown: str, formatting: None | dict[str, Any] | cmi_docx.ParagraphStyle = None
 ) -> bytes:
     """Converts a Markdown document to a .docx file.
 
     Args:
         markdown: The Markdown document.
-        correct_they: Whether to correct verb conjugations associated with 'they'.
-        correct_capitalization: Whether to correct the capitalization of the text.
+        formatting: Formatting options, must abide by cmi_docx.ParagraphStyle arguments
+            if it is provided as a dictionary.
 
     Returns:
-        The .docx file.
+        The .docx file as bytes.
     """
-    enabled_rules = []
-    if correct_they:
-        enabled_rules += ["BASE_FORM", "PERS_PRONOUN_AGREEMENT", "NON3PRS_VERB"]
-    if correct_capitalization:
-        enabled_rules += ["UPPERCASE_SENTENCE_START"]
-    if enabled_rules:
-        correcter = corrections.LanguageCorrecter(enabled_rules)
-        markdown = correcter.run(markdown)
-
-    with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
+    with tempfile.NamedTemporaryFile(suffix=".docx") as docx_file:
         pypandoc.convert_text(
             markdown,
             "docx",
             format="commonmark_x",
-            outputfile=temp_file.name,
+            outputfile=docx_file.name,
         )
-        temp_file.seek(0)
-        mark_warnings_as_red(temp_file.name)
-        return temp_file.read()
+
+        docx_file.seek(0)
+        mark_warnings_as_red(docx_file.name)
+
+        if formatting is not None:
+            if isinstance(formatting, dict):
+                formatting = cmi_docx.ParagraphStyle(**formatting)
+            document = docx.Document(docx_file.name)
+            for paragraph in document.paragraphs:
+                extend_paragraph = cmi_docx.ExtendParagraph(paragraph)
+                extend_paragraph.format(formatting)
+            document.save(docx_file.name)
+        return docx_file.read()
 
 
 def mark_warnings_as_red(docx_file: str | pathlib.Path) -> None:
