@@ -47,9 +47,9 @@ class Patient:
             timezone: The timezone of the intake.
         """
         logger.debug("Parsing patient information.")
-        self.first_name = patient_data["firstname"]
-        self.last_name = patient_data["lastname"]
-        self.nickname = patient_data["othername"]
+        self.first_name = all_caps_to_title(patient_data["firstname"])
+        self.last_name = all_caps_to_title(patient_data["lastname"])
+        self.nickname = all_caps_to_title(patient_data["othername"])
         self.age = math.floor(patient_data["age"])
         self.date_of_birth = dateutil_parser.parse(
             patient_data["dob"],
@@ -151,8 +151,8 @@ class Guardian:
             patient_data: The patient dataframe.
         """
         logger.debug("Parsing guardian information.")
-        self.first_name = patient_data["guardian_first_name"]
-        self.last_name = patient_data["guardian_last_name"]
+        self.first_name = all_caps_to_title(patient_data["guardian_first_name"])
+        self.last_name = all_caps_to_title(patient_data["guardian_last_name"])
         relationship_id = next(
             (
                 identifier
@@ -226,7 +226,7 @@ class Household:
         self.guardian_marital_status = descriptors.GuardianMaritalStatus(
             patient_data["guardian_maritalstatus"],
         ).name.replace("_", " ")
-        self.city = patient_data["city"]
+        self.city = all_caps_to_title(patient_data["city"])
 
         self.state = descriptors.USState(int(patient_data["state"])).name.replace(
             "_",
@@ -273,7 +273,7 @@ class HouseholdMember:
             identifier: The id of the household member.
         """
         logger.debug(f"Parsing household member {identifier}.")
-        self.name = patient_data[f"peopleinhome{identifier}"]
+        self.name = all_caps_to_title(patient_data[f"peopleinhome{identifier}"])
         self.age = patient_data[f"peopleinhome{identifier}_age"]
         self.relationship = transformers.HouseholdRelationship(
             descriptors.HouseholdRelationship(
@@ -305,7 +305,7 @@ class Education:
         """
         logger.debug("Parsing education information.")
         self.years_of_education = patient_data["yrs_school"]
-        self.school_name = patient_data["school"]
+        self.school_name = all_caps_to_title(patient_data["school"])
         self.grade = patient_data["grade"]
         self.individualized_educational_program = (
             transformers.IndividualizedEducationProgram(
@@ -565,3 +565,19 @@ class SocialFunctioning:
         self.friendship_quality = descriptors.FriendshipQuality(
             patient_data["peer_relations"],
         ).name
+
+
+def all_caps_to_title(name: str) -> str:
+    """Converts a name from all caps to title case.
+
+    Though this won't always be correct, it's a good heuristic for names.
+
+    Args:
+        name: The name to convert.
+
+    Returns:
+        The name in title case.
+    """
+    if all(char.isupper() for char in name if char.isalpha()):
+        return name.title()
+    return name
