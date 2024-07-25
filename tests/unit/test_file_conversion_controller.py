@@ -63,7 +63,7 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
 
 def test_markdown2docx_lua(tmp_path: pathlib.Path) -> None:
     """Tests the custom lua filters."""
-    markdown = "\n\n".join(["++underlined++", "^ttabbed"])
+    markdown = "\n\n".join(["++underlined++", "|ttabbed"])
 
     docx_bytes = controller.markdown2docx(markdown)
     filename = tmp_path / "test.docx"
