@@ -226,7 +226,7 @@ class Household:
         self.guardian_marital_status = descriptors.GuardianMaritalStatus(
             patient_data["guardian_maritalstatus"],
         ).name.replace("_", " ")
-        self.city = patient_data["city"]
+        self.city = all_caps_to_title(patient_data["city"])
 
         self.state = descriptors.USState(int(patient_data["state"])).name.replace(
             "_",
