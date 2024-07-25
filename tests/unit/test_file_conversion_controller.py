@@ -44,7 +44,6 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
             "# Header",
             "This is a paragraph.",
             "This is a {{!WARNING-TEXT}}.",
-            "++This is underlined.++",
         ]
     )
 
@@ -60,4 +59,17 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
     assert not is_run_font_color_red(doc.paragraphs[2].runs[0])
     assert is_run_font_color_red(doc.paragraphs[2].runs[1])
     assert doc.paragraphs[0].runs[0].font.bold
-    assert doc.paragraphs[3].runs[0].underline
+
+
+def test_markdown2docx_lua(tmp_path: pathlib.Path) -> None:
+    """Tests the custom lua filters."""
+    markdown = "\n\n".join(["++underlined++", "^ttabbed"])
+
+    docx_bytes = controller.markdown2docx(markdown)
+    filename = tmp_path / "test.docx"
+    with open(filename, "wb") as file:
+        file.write(docx_bytes)
+    doc = docx.Document(str(filename))
+
+    assert doc.paragraphs[0].runs[0].underline
+    assert doc.paragraphs[1].text[0] == "\t"
