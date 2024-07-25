@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import pytest
+
 from ctk_functions.functions.intake import descriptors, parser
 
 
@@ -80,3 +82,16 @@ def test_language_parser(
     )
     assert language.setting == test_redcap_data[f"child_language{identifier}_setting"]
     assert language.fluency == expected_fluency
+
+
+@pytest.mark.parametrize(
+    ("input", "expected"),
+    [
+        ("ALL CAPS-", "All Caps-"),
+        ("Not all caps", "Not all caps"),
+    ],
+)
+def test_all_caps_to_title(input: str, expected: str) -> None:
+    """Tests the conversion of all caps to title case."""
+    actual = parser.all_caps_to_title(input)
+    assert actual == expected
