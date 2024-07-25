@@ -25,14 +25,15 @@ def markdown2docx(
     Returns:
         The .docx file as bytes.
     """
-    lua_filter = pathlib.Path(__file__).parent / "underline.lua"
+    underline_filter = pathlib.Path(__file__).parent / "lua" / "underline.lua"
+    tab_filter = pathlib.Path(__file__).parent / "lua" / "tab.lua"
     with tempfile.NamedTemporaryFile(suffix=".docx") as docx_file:
         pypandoc.convert_text(
             markdown,
             "docx",
             format="commonmark_x",
             outputfile=docx_file.name,
-            filters=[str(lua_filter)],
+            filters=[str(underline_filter), str(tab_filter)],
         )
 
         docx_file.seek(0)

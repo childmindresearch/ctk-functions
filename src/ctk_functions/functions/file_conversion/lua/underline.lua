@@ -6,14 +6,6 @@ local in_underline = false
 local start_tag = "++"
 local end_tag = "++"
 
-local function handle_generic(elem)
-    if in_underline then
-        return pandoc.Underline { elem }
-    else
-        return elem
-    end
-end
-
 return {
     {
         Str = function(elem)
@@ -34,9 +26,5 @@ return {
                 return elem
             end
         end,
-
-        Space = handle_generic,
-        Para = handle_generic,
-        Plain = handle_generic,
     }
 }
