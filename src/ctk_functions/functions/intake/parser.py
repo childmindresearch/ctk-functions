@@ -88,8 +88,6 @@ class Patient:
     @property
     def full_name(self) -> str:
         """The full name of the patient."""
-        if self.nickname:
-            return f'{self.first_name} "{self.nickname}" {self.last_name}'
         return f"{self.first_name} {self.last_name}"
 
     @property
