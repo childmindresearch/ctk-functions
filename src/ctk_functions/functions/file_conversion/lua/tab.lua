@@ -3,7 +3,6 @@
 -- so we need to rely on a custom charater (|t) to represent a tab in the markdown file.
 
 local tab_replacement = "%|t"
-
 return {
     {
         Str = function(elem)
