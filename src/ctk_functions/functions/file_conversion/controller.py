@@ -15,6 +15,8 @@ def markdown2docx(
 ) -> bytes:
     """Converts a Markdown document to a .docx file.
 
+    Uses a custom lua filter to allow underlining text between two '++'.
+
     Args:
         markdown: The Markdown document.
         formatting: Formatting options, must abide by cmi_docx.ParagraphStyle arguments
@@ -23,12 +25,14 @@ def markdown2docx(
     Returns:
         The .docx file as bytes.
     """
+    lua_filter = pathlib.Path(__file__).parent / "underline.lua"
     with tempfile.NamedTemporaryFile(suffix=".docx") as docx_file:
         pypandoc.convert_text(
             markdown,
             "docx",
             format="commonmark_x",
             outputfile=docx_file.name,
+            filters=[str(lua_filter)],
         )
 
         docx_file.seek(0)
