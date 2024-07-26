@@ -95,8 +95,8 @@ class ReportWriter:
         self.add_page_break()
         self.add_footer()
 
-        self.apply_corrections()
         self.replace_patient_information()
+        self.apply_corrections()
         self.add_signatures()
         await self.make_llm_edits()
 
@@ -175,6 +175,7 @@ class ReportWriter:
 
         self._insert("REASON FOR VISIT", StyleName.HEADING_1)
         self._insert(text)
+        self._insert("")
 
     def write_developmental_history(self) -> None:
         """Writes the developmental history to the end of the report."""
@@ -214,6 +215,7 @@ class ReportWriter:
 
         self._insert("Prenatal and Birth History", StyleName.HEADING_2)
         self._insert(text)
+        self._insert("")
 
     def write_developmental_milestones(self) -> None:
         """Writes the developmental milestones to the report."""
@@ -243,6 +245,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).replace(
             texts[0], texts[0], cmi_docx.RunStyle(font_rgb=RGB.UNRELIABLE.value)
         )
+        self._insert("")
 
     def write_early_education(self) -> None:
         """Writes the early education information to the report."""
@@ -262,6 +265,7 @@ class ReportWriter:
 
         self._insert("Early Educational Interventions", StyleName.HEADING_2)
         self._insert(text)
+        self._insert("")
 
     def write_academic_history(self) -> None:
         """Writes the academic history to the end of the report."""
@@ -290,6 +294,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
         )
+        self._insert("")
 
     def write_academic_history_table(self) -> None:
         """Writes the academic history table to the report."""
@@ -359,6 +364,7 @@ class ReportWriter:
 
         self._insert("Educational History", StyleName.HEADING_2)
         self._insert(placeholder_id)
+        self._insert("")
 
     def write_current_education(self) -> None:
         """Writes the current educational history to the report."""
@@ -403,6 +409,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).replace(
             texts[1], texts[1], cmi_docx.RunStyle(font_rgb=RGB.UNRELIABLE.value)
         )
+        self._insert("")
 
     def write_social_history(self) -> None:
         """Writes the social history to the end of the report."""
@@ -454,7 +461,9 @@ class ReportWriter:
 
         self._insert("Home and Adaptive Functioning", StyleName.HEADING_2)
         self._insert(text_home)
+        self._insert("")
         self._insert(text_adaptive)
+        self._insert("")
 
     def write_social_functioning(self) -> None:
         """Writes the social functioning to the report."""
@@ -483,6 +492,7 @@ class ReportWriter:
 
         self._insert("Social Functioning", StyleName.HEADING_2)
         self._insert(text)
+        self._insert("")
 
     def write_psychiatric_history(self) -> None:
         """Writes the psychiatric history to the end of the report."""
@@ -491,6 +501,7 @@ class ReportWriter:
         self.write_past_psychiatric_diagnoses()
         self.write_past_psychiatric_hospitalizations()
         self.write_past_therapeutic_interventions()
+        self.write_past_psychiatric_medications()
         self.write_past_self_injurious_behaviors_and_suicidality()
         self.write_past_aggressive_behaviors_and_homicidality()
         self.exposure_to_violence_and_trauma()
@@ -524,6 +535,7 @@ class ReportWriter:
 
         self._insert("Past Psychiatric Diagnoses", StyleName.HEADING_2)
         self._insert(text)
+        self._insert("")
 
     def write_past_psychiatric_hospitalizations(self) -> None:
         """Writes the past psychiatric hospitalizations to the report."""
@@ -540,6 +552,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
         )
+        self._insert("")
 
     def administration_for_childrens_services_involvement(self) -> None:
         """Writes the ACS involvement to the report."""
@@ -557,6 +570,7 @@ class ReportWriter:
             cmi_docx.ExtendParagraph(paragraph).format(
                 cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
             )
+        self._insert("")
 
     def write_past_aggressive_behaviors_and_homicidality(self) -> None:
         """Writes the past aggressive behaviors and homicidality to the report."""
@@ -577,6 +591,7 @@ class ReportWriter:
             cmi_docx.ExtendParagraph(paragraph).format(
                 cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
             )
+        self._insert("")
 
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
@@ -642,6 +657,7 @@ class ReportWriter:
             )
             text = self.llm.run_edit(llm_text, instructions)
         self._insert(text)
+        self._insert("")
 
     def write_past_therapeutic_interventions(self) -> None:
         """Writes the past therapeutic history to the report."""
@@ -673,6 +689,22 @@ class ReportWriter:
 
         self._insert("Past Therapeutic Interventions", StyleName.HEADING_2)
         self._insert(text)
+        self._insert("")
+
+    def write_past_psychiatric_medications(self) -> None:
+        """Writes the past psychiatric medications to the report."""
+        logger.debug("Writing the past psychiatric medications to the report.")
+
+        text = f"""{self.intake.patient.first_name} does not have any history of
+                treatment with psychiatric medications."""
+        text = string_utils.remove_excess_whitespace(text)
+
+        self._insert("Past Psychiatric Medications", StyleName.HEADING_2)
+        paragraph = self._insert(text)
+        cmi_docx.ExtendParagraph(paragraph).format(
+            cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
+        )
+        self._insert("")
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:
         """Writes the past self-injurious behaviors and suicidality to the report."""
@@ -693,6 +725,7 @@ class ReportWriter:
             cmi_docx.ExtendParagraph(paragraph).format(
                 cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
             )
+        self._insert("")
 
     def exposure_to_violence_and_trauma(self) -> None:
         """Writes the exposure to violence and trauma to the report."""
@@ -709,6 +742,7 @@ class ReportWriter:
             cmi_docx.ExtendParagraph(paragraph).format(
                 cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
             )
+        self._insert("")
 
     def write_medical_history(self) -> None:
         """Writes the medical history to the end of the report."""
@@ -733,6 +767,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).replace(
             texts[0], texts[0], cmi_docx.RunStyle(font_rgb=RGB.UNRELIABLE.value)
         )
+        self._insert("")
 
     def write_clinical_summary_and_impressions(self) -> None:
         """Writes the clinical summary and impressions to the report."""
@@ -757,6 +792,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=RGB.TESTING.value)
         )
+        self._insert("")
 
     def write_current_psychiatric_functioning(self) -> None:
         """Writes the current psychiatric functioning to the report.
@@ -788,6 +824,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
         )
+        self._insert("")
 
     def write_current_psychiatric_medications_testing(self) -> None:
         """Writes the current psychiatric medications to the report."""
@@ -818,6 +855,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=RGB.TESTING.value, italic=True)
         )
+        self._insert("")
 
     def write_denied_symptoms(self) -> None:
         """Writes the denied symptoms to the report."""
@@ -836,6 +874,7 @@ class ReportWriter:
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=RGB.TESTING.value)
         )
+        self._insert("")
 
     def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
