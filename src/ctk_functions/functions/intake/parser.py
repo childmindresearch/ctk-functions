@@ -49,7 +49,11 @@ class Patient:
         logger.debug("Parsing patient information.")
         self.first_name = all_caps_to_title(patient_data["firstname"])
         self.last_name = all_caps_to_title(patient_data["lastname"])
-        self.nickname = all_caps_to_title(patient_data["othername"])
+        self.nickname = (
+            all_caps_to_title(patient_data["othername"])
+            if patient_data["othername"]
+            else None
+        )
         self.age = math.floor(patient_data["age"])
         self.date_of_birth = dateutil_parser.parse(
             patient_data["dob"],
