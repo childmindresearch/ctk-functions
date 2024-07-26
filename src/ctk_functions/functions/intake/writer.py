@@ -695,15 +695,43 @@ class ReportWriter:
         """Writes the past psychiatric medications to the report."""
         logger.debug("Writing the past psychiatric medications to the report.")
 
-        text = f"""{self.intake.patient.first_name} does not have any history of
-                treatment with psychiatric medications."""
-        text = string_utils.remove_excess_whitespace(text)
+        medications = self.intake.patient.psychiatric_history.medications
 
         self._insert("Past Psychiatric Medications", StyleName.HEADING_2)
-        paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(paragraph).format(
-            cmi_docx.ParagraphStyle(font_rgb=RGB.UNRELIABLE.value)
-        )
+        if not medications.past_medication and not medications.current_medication:
+            text = f"""
+                {self.intake.patient.guardian.title_name} denied any history of
+                psychiatric medications for {self.intake.patient.first_name}.
+            """
+            text = string_utils.remove_excess_whitespace(text)
+        else:
+            if medications.past_medication and medications.current_medication:
+                all_medication = (
+                    medications.past_medication + medications.current_medication
+                )
+            elif medications.past_medication:
+                all_medication = medications.past_medication  # type: ignore
+            else:
+                all_medication = medications.current_medication  # type: ignore
+
+            text = self.llm.run_with_list_input(
+                items=all_medication,
+                additional_instruction="""
+                    You will receive a list of both past and current
+                    medications. Please describe this patient's medication
+                    history. An example format for past medication follows:
+
+                    "From April 2022 to June 2022, [PATIENT_NAME] was prescribed a
+                    course of [MEDICATION] (initial dosage: [INITIAL_DOSAGE],
+                    maximum dosage: [MAXIMUM_DOSAGE]) by [DOCTOR NAME].
+                    [REASON_FOR_TAKING and RESPONSE_TO_MEDICATION]."
+
+                    For current medications, maintain the same format but change the
+                    date format to "Since [DATE_STARTED].
+                """,
+            )
+
+        self._insert(text)
         self._insert("")
 
     def write_past_self_injurious_behaviors_and_suicidality(self) -> None:

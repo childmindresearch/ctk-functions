@@ -340,6 +340,53 @@ class Education:
         self.school_functioning = patient_data["school_func"]
 
 
+class PsychiatricMedication:
+    """The parser for psychiatric medication."""
+
+    def __init__(self, patient_data: dict[str, Any]) -> None:
+        """Initializes the psychiatric medication.
+
+        Args:
+            patient_data: The patient dataframe.
+        """
+        logger.debug("Parsing psychiatric medication.")
+        if patient_data["psychmed_num"]:
+            self.current_medication: (
+                list[descriptors.CurrentPsychiatricMedication] | None
+            ) = [
+                descriptors.CurrentPsychiatricMedication(
+                    name=patient_data[f"psychmed_name_{index}"],
+                    initial_dosage=patient_data[f"startdose_{index}"],
+                    current_dosage=patient_data[f"currentdose_{index}"],
+                    reason_for_taking=patient_data[f"med{index}_reason"]
+                    if index != 2
+                    else patient_data["med2_current_reason"],
+                    date_started=patient_data[f"med{index}_start"],
+                    response_to_medication=patient_data[f"med{index}_se"],
+                    prescribing_doctor=patient_data[f"med{index}_doc"],
+                )
+                for index in range(1, patient_data["psychmed_num"] + 1)
+            ]
+        else:
+            self.current_medication = None
+
+        if patient_data["psych_meds_past"]:
+            self.past_medication: list[descriptors.PastPsychiatricMedication] | None = [
+                descriptors.PastPsychiatricMedication(
+                    name=patient_data[f"medname{index}_past"],
+                    initial_dosage=patient_data[f"dose{index}_start_past"],
+                    maximum_dosage=patient_data[f"dose{index}_max_past"],
+                    date_taken=patient_data[f"med{index}_past_date"],
+                    targetted_symptoms=patient_data[f"med{index}_past_reason"],
+                    response=patient_data[f"med{index}_past_se"],
+                    prescribing_doctor=patient_data[f"med{index}_past_doc"],
+                )
+                for index in range(1, patient_data["past_psychmed_num"] + 1)
+            ]
+        else:
+            self.past_medication = None
+
+
 class Development:
     """The parser for the patient's development history."""
 
@@ -428,6 +475,7 @@ class PsychiatricHistory:
                 f"txhx_{identifier}" if identifier != 2 else f"txhx{identifier}"  # noqa: PLR2004
             ]
         ]
+        self.medications = PsychiatricMedication(patient_data)
         self.is_follow_up_done = patient_data["clinician"] is not None
         self.aggresive_behaviors: str | None = patient_data["agress_exp"]
         self.children_services: str | None = patient_data["acs_exp"]
