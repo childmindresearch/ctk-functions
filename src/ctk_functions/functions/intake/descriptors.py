@@ -547,3 +547,27 @@ class FamilyPsychiatricHistory(pydantic.BaseModel):
         if value is None:
             return []
         return value.lower().split(",")
+
+
+class CurrentPsychiatricMedication(pydantic.BaseModel):
+    """The model for current psychiatric medication."""
+
+    name: str
+    initial_dosage: str
+    current_dosage: str
+    date_started: str
+    reason_for_taking: str
+    response_to_medication: str
+    prescribing_doctor: str
+
+
+class PastPsychiatricMedication(pydantic.BaseModel):
+    """The model for past psychiatric medication."""
+
+    name: str
+    initial_dosage: str
+    maximum_dosage: str
+    date_taken: str
+    targetted_symptoms: str
+    response: str
+    prescribing_doctor: str
