@@ -26,5 +26,13 @@ return {
                 return elem
             end
         end,
+
+        Space = function(elem)
+            if in_underline then
+                return pandoc.Underline { pandoc.Str(" ") }
+            else
+                return elem
+            end
+        end,
     }
 }
