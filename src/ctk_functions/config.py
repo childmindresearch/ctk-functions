@@ -25,7 +25,7 @@ class Settings(pydantic_settings.BaseSettings):
     AZURE_OPENAI_LLM_DEPLOYMENT: pydantic.SecretStr
     AZURE_OPENAI_ENDPOINT: pydantic.SecretStr
 
-    LOGGER_VERBOSITY: int = 20
+    LOGGER_VERBOSITY: int = logging.INFO
 
 
 @functools.lru_cache()
