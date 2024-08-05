@@ -96,6 +96,7 @@ def parse_redcap_dtypes(csv_data: str) -> dict[str, Any]:
         "infanttemp1": pl.Int8,
         "language_spoken": pl.Int8,
         "opt_delivery": pl.Int8,
+        "psych_meds_past": pl.Int8,
         "past_psychmed_num": pl.Int8,
         "peer_relations": pl.Int8,
         "psychmed_num": pl.Int8,
