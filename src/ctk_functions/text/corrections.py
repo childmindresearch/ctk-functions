@@ -1,11 +1,12 @@
 """Module for syntax and grammatical correctionss of text."""
 
+import asyncio
 from typing import Iterable
 
 import language_tool_python
 import spacy
 
-NLP = spacy.load("en_core_web_sm")
+NLP = spacy.load("en_core_web_sm", enable=["tagger"])
 
 
 class LanguageCorrecter:
@@ -25,14 +26,21 @@ class LanguageCorrecter:
         self.language_tool.enabled_rules = set(enabled_rules)
         self.language_tool.enabled_rules_only = True
 
-    def run(self, text: str) -> str:
-        """Corrects the text following the object's settings.
+    async def _check(self, text: str) -> list[language_tool_python.Match]:
+        """Checks the text for errors.
 
-        Initializing the language tool takes a while, so it is performed at
-        the class level. This, however, creates a race condition when multiple
-        threads try to access the language tool at the same time. To prevent
-        this, a lock is used to ensure that only one thread can access the
-        language tool at a time.
+        Args:
+            text: The text to check.
+
+        Returns:
+            A list of errors in the text.
+        """
+        return await asyncio.get_event_loop().run_in_executor(
+            None, self.language_tool.check, text
+        )
+
+    async def run(self, text: str) -> str:
+        """Corrects the text following the object's settings.
 
         Args:
             text: The text to correct.
@@ -40,15 +48,17 @@ class LanguageCorrecter:
         Returns:
             The corrected text.
         """
-        corrections = self.language_tool.check(text)
+        if not text:
+            return text
+
+        corrections = await self._check(text)
         while corrections:
             text = self._apply_correction(corrections[-1], text)
-            corrections = self.language_tool.check(text)
+            corrections = await self._check(text)
         return text
 
-    @classmethod
     def _apply_correction(
-        cls, correction: language_tool_python.Match, full_text: str
+        self, correction: language_tool_python.Match, full_text: str
     ) -> str:
         """Applies a correction to a text.
 
@@ -64,13 +74,12 @@ class LanguageCorrecter:
             )
 
         if correction.ruleId == "PERS_PRONOUN_AGREEMENT":
-            return cls._resolve_pers_pronoun_agreement(correction, full_text)
+            return self._resolve_pers_pronoun_agreement(correction, full_text)
         else:
             raise ValueError(f"Cannot resolve replacement {correction}.")
 
-    @classmethod
     def _resolve_pers_pronoun_agreement(
-        cls,
+        self,
         correction: language_tool_python.Match,
         full_text: str,
     ) -> str:
@@ -85,7 +94,7 @@ class LanguageCorrecter:
         Returns:
             The corrected text.
         """
-        verb_tense = cls._get_verb_tense(full_text, correction.offset)
+        verb_tense = self._get_verb_tense(full_text, correction.offset)
 
         # Example correction message: "Use a third-person plural verb with ‘they’.""
 
@@ -104,14 +113,14 @@ class LanguageCorrecter:
                 + replacement
                 + full_text[correction.offset + correction.errorLength :]
             )
-            new_verb_tense = cls._get_verb_tense(new_sentence, correction.offset)
+            new_verb_tense = self._get_verb_tense(new_sentence, correction.offset)
             if new_verb_tense == target_tense:
                 return new_sentence
 
         raise ValueError(f"Could not find a suitable replacement for {correction}.")
 
-    @classmethod
-    def _get_verb_tense(cls, sentence: str, verb_offset: int) -> str:
+    @staticmethod
+    def _get_verb_tense(sentence: str, verb_offset: int) -> str:
         """Gets the tense of a verb."""
         doc = NLP(sentence)
         verb = next(word for word in doc if word.idx == verb_offset)
