@@ -96,7 +96,7 @@ class ReportWriter:
         self.add_footer()
 
         self.replace_patient_information()
-        await self.apply_corrections()
+        self.apply_corrections()
         self.add_signatures()
         await self.make_llm_edits()
 
@@ -904,11 +904,11 @@ class ReportWriter:
         )
         self._insert("")
 
-    async def apply_corrections(self) -> None:
+    def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
         logger.debug("Applying corrections to the report.")
         document_corrector = language_utils.DocumentCorrections(self.report)
-        await document_corrector.correct()
+        document_corrector.correct()
 
     def add_signatures(self) -> None:
         """Adds the signatures to the report.

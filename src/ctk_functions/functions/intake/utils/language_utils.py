@@ -1,6 +1,6 @@
 """Utilities for correcting grammar and syntax."""
 
-import asyncio
+import concurrent.futures
 
 import cmi_docx
 import docx
@@ -9,7 +9,7 @@ from docx import document
 
 from ctk_functions.text import corrections
 
-NLP = spacy.load("en_core_web_sm", enable=["parser"])
+NLP = spacy.load("en_core_web_sm")
 
 # c.f. https://community.languagetool.org/rule/list?lang=en for a list of rules.
 # These are the rules that have been tested on existing intake reports and are
@@ -46,31 +46,26 @@ class DocumentCorrections:
         self.document = document
         self.correcter = corrections.LanguageCorrecter(enabled_rules)
 
-    async def correct(self) -> None:
-        """Makes corrections based on the enabled rules."""
-        promises = [
-            self._correct_paragraph(paragraph) for paragraph in self.document.paragraphs
-        ]
-        await asyncio.gather(*promises)
+    def correct(self) -> None:
+        """Makes corrections based on the enabled and disabled rules."""
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(self._correct_paragraph, paragraph)
+                for paragraph in self.document.paragraphs
+            ]
 
-    async def _correct_paragraph(
-        self, paragraph: docx.text.paragraph.Paragraph
-    ) -> None:
+            for _ in concurrent.futures.as_completed(futures):
+                pass
+
+    def _correct_paragraph(self, paragraph: docx.text.paragraph.Paragraph) -> None:
         """Corrects conjugations in a single paragraph.
 
         Args:
             paragraph: The paragraph to correct.
         """
-        sentences = NLP(paragraph.text)
-
-        async def correct_with_old(sentence: str) -> tuple[str, str]:
-            return sentence, await self.correcter.run(sentence)
-
-        new_sentences_promises = [
-            correct_with_old(sentence.text) for sentence in sentences.sents
-        ]
+        sentences = list(NLP(paragraph.text).sents)
+        new_sentences = [self.correcter.run(sentence.text) for sentence in sentences]
         extended_pargraph = cmi_docx.ExtendParagraph(paragraph)
-
-        for correction in asyncio.as_completed(new_sentences_promises):
-            old, new = await correction
-            extended_pargraph.replace(old, new)
+        for old, new in zip(sentences, new_sentences):
+            if old.text != new:
+                extended_pargraph.replace(old.text, new)

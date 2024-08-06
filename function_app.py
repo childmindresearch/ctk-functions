@@ -181,7 +181,7 @@ async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
         )
 
     logger.info("Running LanguageTool")
-    corrected_text = await language_tool_controller.language_tool(text, rules)
+    corrected_text = language_tool_controller.language_tool(text, rules)
     return functions.HttpResponse(
         body=corrected_text,
         status_code=http.HTTPStatus.OK,

@@ -21,7 +21,6 @@ def correcter() -> corrections.LanguageCorrecter:
     )
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "input_text, expected",
     [
@@ -47,10 +46,10 @@ def correcter() -> corrections.LanguageCorrecter:
         ("", ""),
     ],
 )
-async def test_text_corrections(
+def test_text_corrections(
     correcter: corrections.LanguageCorrecter, input_text: str, expected: str
 ) -> None:
     """Tests the entrypoint of the TextCorrections class."""
-    actual = await correcter.run(input_text)
+    actual = correcter.run(input_text)
 
     assert actual == expected
