@@ -5,7 +5,7 @@ from typing import Iterable
 import language_tool_python
 import spacy
 
-NLP = spacy.load("en_core_web_sm")
+NLP = spacy.load("en_core_web_sm", enable=["tagger"])
 
 
 class LanguageCorrecter:
@@ -21,7 +21,9 @@ class LanguageCorrecter:
             enabled_rules: The rules to enable for the correction.
 
         """
-        self.language_tool = language_tool_python.LanguageTool("en-US")
+        self.language_tool = language_tool_python.LanguageTool(
+            "en-US",
+        )
         self.language_tool.enabled_rules = set(enabled_rules)
         self.language_tool.enabled_rules_only = True
 
