@@ -9,7 +9,7 @@ from docx import document
 
 from ctk_functions.text import corrections
 
-NLP = spacy.load("en_core_web_sm")
+NLP = spacy.load("en_core_web_sm", enable=["parser"])
 
 # c.f. https://community.languagetool.org/rule/list?lang=en for a list of rules.
 # These are the rules that have been tested on existing intake reports and are
