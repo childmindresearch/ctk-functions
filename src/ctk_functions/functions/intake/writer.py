@@ -254,14 +254,46 @@ class ReportWriter:
         development = patient.development
 
         reporting_guardian = patient.guardian.title_name
-        early_intervention = development.early_intervention_age
-        cpse = development.cpse_age
+        early_intervention = development.early_intervention
+        cpse = development.cpse_services
 
-        text = f"""
-            {reporting_guardian} reported that
-            {patient.first_name} {early_intervention} and {cpse}.
-        """
-        text = string_utils.remove_excess_whitespace(text)
+        if early_intervention + cpse:
+            text = self.llm.run_with_list_input(
+                items=early_intervention + cpse,
+                additional_instruction=f"""
+                    You will receive a list of all CPSE and early intervention services
+                    received.
+
+                    You should write a paragraph for the reporting of early
+                    intervention and committee on preschool special education (CPSE)
+                    services. An example paragraph structure follows:
+
+                    "{reporting_guardian} reported that {patient.first_name}
+                    received occupational therapy (2x/monthly) from May 2020 - June
+                    2021  and speech therapy (1x/weekly) from June 2022 - July 2022.
+                    services. {reporting_guardian} denied any history of Early
+                    Intervention for {patient.first_name}."
+
+                    Make sure to always report dates as Month Year - Month Year, unless
+                    the service is ongoing, or the dates are unknown. Always put the
+                    frequency between brackets.
+
+                    If no Early Intervention was received, write that the reporting
+                    guardian denied any history of early intervention.
+
+                    If no CPSE services were received, write that the reporting guardian
+                    denied any history of CPSE services.
+
+                    If neither were received, write that the reporting guardian denied
+                    any history of early intervention or CPSE services.
+                """,
+            )
+        else:
+            text = f"""
+                {reporting_guardian} denied any history of Early Intervention or CPSE
+                services for {patient.first_name}.
+            """
+            text = string_utils.remove_excess_whitespace(text)
 
         self._insert("Early Educational Interventions", StyleName.HEADING_2)
         self._insert(text)

@@ -171,6 +171,8 @@ class WriterLlm:
         ]
         user_prompt = "\n<NEXT ITEM>\n".join(items_json)
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
+        if not user_prompt:
+            user_prompt = "No items provided."
         return self._run(system_prompt, user_prompt)
 
     def _run(self, system_prompt: str, user_prompt: str) -> str:

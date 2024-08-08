@@ -426,10 +426,38 @@ class Development:
         self.soothing_difficulty = descriptors.SoothingDifficulty(
             patient_data["infanttemp1"],
         )
-        self.early_intervention_age = transformers.EarlyIntervention(
-            patient_data["ei_age"],
+
+        cpse_encodings = (
+            ("speechlang", "speech and language therapy"),
+            ("occ_therapy", "occupational therapy"),
+            ("phy_therapy", "physical therapy"),
+            ("seit", "special education itinerant teacher"),
+            ("aba", "applied behavior analysis"),
+            ("other", "other"),
         )
-        self.cpse_age = transformers.CPSE(patient_data["cpse_age"])
+
+        self.early_intervention = [
+            descriptors.EiCpseTherapy(
+                name=service[1],
+                type="early intervention",
+                dates=patient_data[f"{service[0]}_dates"],
+                duration=patient_data[f"{service[0]}_dur"],
+            )
+            for index, service in enumerate(cpse_encodings)
+            if patient_data[f"schoolservices___{index+1}"] == "1"
+        ]
+
+        self.cpse_services = [
+            descriptors.EiCpseTherapy(
+                name=service[1],
+                type="cpse",
+                dates=patient_data[f"cpse_{service[0]}_dates"],
+                duration=patient_data[f"cpse_{service[0]}_dur"],
+            )
+            for index, service in enumerate(cpse_encodings)
+            if patient_data[f"cpse_services___{index+1}"] == "1"
+        ]
+
         self.started_walking = transformers.DevelopmentSkill(
             patient_data["skill6"],
             other="started walking",
