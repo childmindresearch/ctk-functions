@@ -275,40 +275,6 @@ class GuardianMaritalStatus(Transformer[descriptors.GuardianMaritalStatus]):
         return f"The parents/guardians are {self.base.name.replace('_', ' ')}"
 
 
-class EarlyIntervention(Transformer[str]):
-    """The transformer for early intervention."""
-
-    def transform(self) -> str:
-        """Transforms the early intervention information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return "did not receive Early Intervention (EI)"
-        return f"received Early Intervention (EI) starting at {self.base}"
-
-
-class CPSE(Transformer[str]):
-    """The transformer for CPSE."""
-
-    def transform(self) -> str:
-        """Transforms the CPSE information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return (
-                "did not receive Committee on Preschool Special Education (CPSE) "
-                "services"
-            )
-        return (
-            "received Committee on Preschool Special Education (CPSE) services "
-            f'starting at "{self.base}"'
-        )
-
-
 class ClassroomType(Transformer[descriptors.ClassroomType]):
     """The transformer for classroom type."""
 

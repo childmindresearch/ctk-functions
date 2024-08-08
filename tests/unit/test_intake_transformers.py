@@ -170,55 +170,6 @@ def test_adaptability_transformer(
 @pytest.mark.parametrize(
     ("base", "expected"),
     [
-        (
-            "",
-            "did not receive Early Intervention (EI)",
-        ),
-        (
-            "2022-01-01",
-            "received Early Intervention (EI) starting at 2022-01-01",
-        ),
-    ],
-)
-def test_early_intervention_transformer(
-    base: str,
-    expected: str,
-) -> None:
-    """Test that the EarlyIntervention transformer returns the expected strings."""
-    transformer = transformers.EarlyIntervention(base)
-
-    assert str(transformer) == expected
-
-
-@pytest.mark.parametrize(
-    ("base", "expected"),
-    [
-        (
-            "",
-            "did not receive Committee on Preschool Special Education (CPSE) services",
-        ),
-        (
-            "2022-01-01",
-            (
-                "received Committee on Preschool Special Education (CPSE) services "
-                'starting at "2022-01-01"'
-            ),
-        ),
-    ],
-)
-def test_cpse_transformer(
-    base: str,
-    expected: str,
-) -> None:
-    """Test that the CPSE transformer returns the expected strings."""
-    transformer = transformers.CPSE(base)
-
-    assert str(transformer) == expected
-
-
-@pytest.mark.parametrize(
-    ("base", "expected"),
-    [
         (3, "talked at 3 years"),
         (
             12,

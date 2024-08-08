@@ -1,6 +1,7 @@
 """Contains descriptors of the columns of the REDCap intake form."""
 
 import enum
+from typing import Literal
 
 import pydantic
 
@@ -571,3 +572,12 @@ class PastPsychiatricMedication(pydantic.BaseModel):
     targetted_symptoms: str
     response: str
     prescribing_doctor: str
+
+
+class EiCpseTherapy(pydantic.BaseModel):
+    """Therapies from Committee on Preschool Special Education services."""
+
+    type: Literal["early intervention", "cpse"]
+    name: str
+    duration: str
+    dates: str
