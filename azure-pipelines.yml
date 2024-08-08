@@ -1,0 +1,31 @@
+trigger:
+- main
+
+pr:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: PythonScript@0
+  displayName: 'Create test_intake.py'
+  inputs:
+    scriptSource: 'inline'
+    script: |
+      with open('test_intake.py', 'w') as f:
+          f.write('import asyncio\n')
+          f.write('from ctk_functions.functions.intake import controller as intake_controller\n')
+          f.write('survey_id = "$(SUBJECT_1)"\n')
+          f.write('asyncio.run(\n')
+          f.write('    intake_controller.get_intake_report(\n')
+          f.write('        survey_id, "anthropic.claude-3-5-sonnet-20240620-v1:0"\n')
+          f.write('    )\n')
+          f.write(')\n')
+- script: |
+    python -m pip install poetry
+    poetry install
+  displayName: 'Install dependencies'
+
+- script: poetry run python test_intake.py
+  displayName: 'Run test_intake.py'
