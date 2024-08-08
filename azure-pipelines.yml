@@ -8,6 +8,10 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+    addToPath: true
 - task: PythonScript@0
   displayName: 'Create test_intake.py'
   inputs:
