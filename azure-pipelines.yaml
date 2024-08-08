@@ -1,0 +1,30 @@
+trigger:
+- main
+
+pr:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+    addToPath: true
+- script: |
+    python -m pip install poetry
+    poetry install
+  displayName: Install dependencies
+
+- script: poetry run python tests/integration/azure_test_intakes.py
+  displayName: Run test_intake.py
+  env:
+    SURVEY_IDS: $(SURVEY_IDS)
+    REDCAP_API_TOKEN: $(REDCAP_API_TOKEN)
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AZURE_BLOB_CONNECTION_STRING: unused
+    AZURE_OPENAI_API_KEY: unused
+    AZURE_OPENAI_LLM_DEPLOYMENT: unused
+    AZURE_OPENAI_ENDPOINT: unused
