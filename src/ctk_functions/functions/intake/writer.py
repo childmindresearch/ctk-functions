@@ -829,31 +829,6 @@ class ReportWriter:
         )
         self._insert("")
 
-    def write_clinical_summary_and_impressions(self) -> None:
-        """Writes the clinical summary and impressions to the report."""
-        logger.debug("Writing the clinical summary and impressions to the report.")
-        patient = self.intake.patient
-        gender = patient.age_gender_label
-
-        text = f"""
-            {patient.first_name} is a
-            sociable/resourceful/pleasant/hardworking/etc. {gender} who
-            participated in the Healthy Brain Network research project through
-            the Child Mind Institute in the interest of participating in
-            research/due to parental concerns regarding {PLACEHOLDER}.
-        """
-        text = string_utils.remove_excess_whitespace(text)
-
-        heading = self._insert("CLINICAL SUMMARY AND IMPRESSIONS", StyleName.HEADING_1)
-        paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(heading).format(
-            cmi_docx.ParagraphStyle(font_rgb=RGB.TESTING.value)
-        )
-        cmi_docx.ExtendParagraph(paragraph).format(
-            cmi_docx.ParagraphStyle(font_rgb=RGB.TESTING.value)
-        )
-        self._insert("")
-
     def write_current_psychiatric_functioning(self) -> None:
         """Writes the current psychiatric functioning to the report.
 
