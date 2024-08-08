@@ -7,15 +7,6 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
-variables:
-  REDCAP_API_TOKEN: $(REDCAP_API_TOKEN)
-  AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
-  AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-  AZURE_BLOB_CONNECTION_STRING: unused
-  AZURE_OPENAI_API_KEY: unused
-  AZURE_OPENAI_LLM_DEPLOYMENT: unused
-  AZURE_OPENAI_ENDPOINT: unused
-
 steps:
 - task: UsePythonVersion@0
   inputs:
@@ -23,6 +14,8 @@ steps:
     addToPath: true
 - task: PythonScript@0
   displayName: 'Create test_intake.py'
+  env:
+    SUBJECT_1: $(SUBJECT_1)
   inputs:
     scriptSource: 'inline'
     script: |
@@ -42,3 +35,11 @@ steps:
 
 - script: poetry run python test_intake.py
   displayName: 'Run test_intake.py'
+  env:
+    REDCAP_API_TOKEN: $(REDCAP_API_TOKEN)
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AZURE_BLOB_CONNECTION_STRING: unused
+    AZURE_OPENAI_API_KEY: unused
+    AZURE_OPENAI_LLM_DEPLOYMENT: unused
+    AZURE_OPENAI_ENDPOINT: unused
