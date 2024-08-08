@@ -12,6 +12,7 @@ steps:
   inputs:
     versionSpec: '3.11'
     addToPath: true
+
 - script: |
     python -m pip install poetry
     poetry install
