@@ -20,7 +20,7 @@ pytz = "^2024.1"
 pydantic-settings = "^2.4.0"
 cmi-docx = "^0.3.0"
 aiofiles = "^24.1.0"
-aiohttp = "^3.10.0"
+aiohttp = "^3.10.2"
 pycap = "^2.6.0"
 pypandoc-binary = "^1.13"
 en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz"}
