@@ -1,13 +1,18 @@
 """Large language model functionality for the intake module."""
 
 import dataclasses
-import enum
 import json
 import uuid
 from collections.abc import Awaitable, Sequence
 
+from ctk_functions import config
 from ctk_functions.functions.intake.utils import string_utils
 from ctk_functions.microservices import llm
+
+logger = config.get_logger()
+settings = config.get_settings()
+
+LOGGER_PHI_LOGGING_LEVEL = settings.LOGGER_PHI_LOGGING_LEVEL
 
 
 @dataclasses.dataclass
@@ -24,7 +29,8 @@ class LlmPlaceholder:
     replacement: Awaitable[str]
 
 
-class Prompts(str, enum.Enum):
+@dataclasses.dataclass
+class Prompts:
     """Prompts for the large language model."""
 
     parent_input = """
@@ -39,8 +45,10 @@ the information is not applicable. Parents' responses may be terse,
 grammatically incorrect, or incomplete. Make sure that the response is clear,
 uses correct grammar, avoids abbreviations and repetition, and is consistent
 with the tone of a clinical report written by a medical professional.  Report
-dates in the format "Month YYYY" (e.g., June 2022). Do not include the "Excerpt:"
-or "Parent Input:" headers in your response.
+dates in the format "Month YYYY" (e.g., June 2022). Do not include an initial
+message in the response like "Based on the parent input provided here is a
+suggested completion" or a header like "Excerpt:" or "Parent Input"; INCLUDE
+ONLY THE EXCERPT ITSELF.
 """
     edit = """
 You will receive an excerpt of a clinical report. Your task is to edit the text
@@ -52,12 +60,14 @@ content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE. Make su
 that the response is clear, uses correct grammar, avoids abbreviations and
 repetition, and is consistent with the tone of a clinical report written by a
 medical professional. Report dates in the format "Month YYYY" (e.g., 15 June 2022).
+Do not include any headers like "Excerpt" or "Here is the editted text". Format
+your response as plaintext.
 """
     list_input = """
 You will receive a list of items. Your task is to write a text that includes the
 clinically relevant information from the list. You should return the text in
 full with the necessary edits. Make sure that the text flows naturally, i.e.,
-DO NOT MAKE A BULLET LIST.
+DO NOT MAKE A BULLET LIST. Format the text as plaintext.
 
 This text will be inserted into a clinical report. Ensure that the tone is
 appropriate for a clinical report written by a doctor, i.e. professional and
@@ -106,6 +116,7 @@ class WriterLlm:
         text: str,
         parent_input: str,
         additional_instruction: str = "",
+        context: str = "",
     ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt with parent input.
 
@@ -114,6 +125,7 @@ class WriterLlm:
             parent_input: The parent input to insert into the excerpt.
             additional_instruction: Additional instructions to include in the system
                 prompt.
+            context: The context in which the excerpt will be placed.
 
         Returns:
             The placeholder for the LLM edit.
@@ -127,17 +139,30 @@ class WriterLlm:
         )
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
         system_prompt = (
-            f"{Prompts.parent_input}\n{self.child_info}\n{additional_instruction}"
+            f"{Prompts.parent_input}\n\n{self.child_info}\n\n{additional_instruction}"
         )
+        if context:
+            instruction = (
+                "The following is the context preceding where the excerpt will be "
+                "placed, do not include this context in your response:"
+            )
+            system_prompt = f"{system_prompt} {instruction} {context}\n\n"
+
         return self._run(system_prompt, user_prompt)
 
-    def run_edit(self, text: str, additional_instruction: str = "") -> str:
+    def run_edit(
+        self,
+        text: str,
+        additional_instruction: str = "",
+        context: str = "",
+    ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt.
 
         Args:
             text: The excerpt to edit.
             additional_instruction: Additional instructions to include in the system
                 prompt.
+            context: The context in which the excerpt will be placed.
 
         Returns:
             The placeholder for the LLM edit.
@@ -147,6 +172,12 @@ class WriterLlm:
         )
         user_prompt = string_utils.remove_excess_whitespace(text)
         system_prompt = f"{Prompts.edit}\n{additional_instruction}"
+        if context:
+            instruction = (
+                "The following is the context preceding where the excerpt will be "
+                "placed, do not include this context in your response:"
+            )
+            system_prompt = f"{system_prompt} {instruction} {context}\n\n"
         return self._run(system_prompt, user_prompt)
 
     def run_with_list_input(
@@ -192,6 +223,17 @@ class WriterLlm:
         Returns:
             The placeholder for the LLM edit.
         """
+        logger.log(
+            LOGGER_PHI_LOGGING_LEVEL,
+            "Running LLM with system prompt: %s",
+            system_prompt,
+        )
+        logger.log(
+            LOGGER_PHI_LOGGING_LEVEL,
+            "Running LLM with user prompt: %s",
+            user_prompt,
+        )
+
         replacement = self.client.run(system_prompt, user_prompt)
         placeholder_uuid = str(uuid.uuid4())
         self.placeholders.append(LlmPlaceholder(placeholder_uuid, replacement))
