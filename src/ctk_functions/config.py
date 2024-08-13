@@ -3,6 +3,7 @@
 import functools
 import logging
 import pathlib
+from typing import Self
 
 import pydantic
 import pydantic_settings
@@ -26,6 +27,34 @@ class Settings(pydantic_settings.BaseSettings):
     AZURE_OPENAI_ENDPOINT: pydantic.SecretStr
 
     LOGGER_VERBOSITY: int = logging.INFO
+    LOGGER_PHI_LOGGING_LEVEL: int = pydantic.Field(1, lt=logging.DEBUG)
+    LOG_PHI: bool = pydantic.Field(
+        default=False,
+        description=(
+            "Safe-guard against accidentally setting the logger verbosity "
+            "below the PHI logging level."
+        ),
+    )
+
+    @pydantic.model_validator(mode="after")
+    def check_phi_logging(self) -> Self:
+        """Checks if the PHI logging level is set too low."""
+        if self.LOGGER_PHI_LOGGING_LEVEL >= self.LOGGER_VERBOSITY and not self.LOG_PHI:
+            msg = (
+                "The logging level may only be lower than the PHI logging level "
+                "if LOG_PHI is set to True."
+            )
+
+            raise ValueError(msg)
+
+        if self.LOG_PHI and self.LOGGER_VERBOSITY > self.LOGGER_PHI_LOGGING_LEVEL:
+            msg = (
+                "The PHI logging level may not be lower than the logger verbosity "
+                "when LOG_PHI is set to True."
+            )
+
+            raise ValueError(msg)
+        return self
 
 
 @functools.lru_cache
@@ -39,6 +68,7 @@ def get_logger() -> logging.Logger:
     if logging.getLogger("ctk-functions").hasHandlers():
         return logging.getLogger("ctk-functions")
     logger = logging.getLogger("ctk-functions")
+
     logger.setLevel(get_settings().LOGGER_VERBOSITY)
 
     formatter = logging.Formatter(

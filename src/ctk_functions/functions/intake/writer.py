@@ -133,6 +133,23 @@ class ReportWriter:
         classroom = patient.education.classroom_type
         age_determinant = "an" if patient.age in (8, 18) else "a"
 
+        if patient.education.grade.isnumeric():
+            grade_superscript = string_utils.ordinal_suffix(
+                int(patient.education.grade),
+            )
+        else:
+            grade_superscript = ""
+
+        text = f"""
+                At the time of enrollment, {patient.first_name} was {age_determinant}
+                {patient.age}-year-old, {handedness} {patient.age_gender_label}
+                {past_diagnoses}. {patient.first_name} was placed in a {classroom}
+                {patient.education.grade}{grade_superscript}
+                grade classroom at {patient.education.school_name}.
+                {patient.first_name} {iep}. {patient.first_name} and
+                {patient.pronouns[2]} {patient.guardian.relationship}
+        """
+
         placeholder_id = self.llm.run_text_with_parent_input(
             text=(
                 f"""
@@ -152,25 +169,10 @@ class ReportWriter:
                 Further details will be provided later in the report, so include
                 only the most pertinent information here.
             """,
+            context=text,
         )
 
-        if patient.education.grade.isnumeric():
-            grade_superscript = string_utils.ordinal_suffix(
-                int(patient.education.grade),
-            )
-        else:
-            grade_superscript = ""
-
-        text = f"""
-                At the time of enrollment, {patient.first_name} was {age_determinant}
-                {patient.age}-year-old, {handedness} {patient.age_gender_label}
-                {past_diagnoses}. {patient.first_name} was placed in a {classroom}
-                {patient.education.grade}{grade_superscript}
-                grade classroom at {patient.education.school_name}.
-                {patient.first_name} {iep}. {patient.first_name} and
-                {patient.pronouns[2]} {patient.guardian.relationship}
-                {placeholder_id}
-        """
+        text += f" {placeholder_id}"
         text = string_utils.remove_excess_whitespace(text)
 
         self._insert("REASON FOR VISIT", StyleName.HEADING_1)
@@ -412,16 +414,6 @@ class ReportWriter:
         else:
             grade_superscript = ""
 
-        if education.school_functioning:
-            placeholder_id = self.llm.run_text_with_parent_input(
-                text=f"{patient.guardian.title_name} reported that {PLACEHOLDER}.",
-                parent_input=f"""
-                    Details on school functioning: {education.school_functioning}
-                """,
-            )
-        else:
-            placeholder_id = ""
-
         texts = [
             f"""
                 {patient.first_name} is currently in the
@@ -436,9 +428,21 @@ class ReportWriter:
                 {patient.first_name}'s current academic performance was
                 described as "{education.performance}" by
                 {patient.guardian.title_name}, as they receive mostly
-                {education.grades}. {placeholder_id}
+                {education.grades}.
             """,
         ]
+        if education.school_functioning:
+            placeholder_id = self.llm.run_text_with_parent_input(
+                text=f"{patient.guardian.title_name} reported that {PLACEHOLDER}.",
+                parent_input=f"""
+                    Details on school functioning: {education.school_functioning}
+                """,
+                context=" ".join(texts),
+            )
+        else:
+            placeholder_id = ""
+
+        texts[-1] += f" {placeholder_id}"
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
         paragraph = self._insert(" ".join(texts))
@@ -475,7 +479,16 @@ class ReportWriter:
             {patient.language_spoken_best} is reportedly
             {patient.first_name}'s preferred language.
             {patient.first_name} {language_fluencies}."""
-        languages_tag = self.llm.run_edit(text_home_languages)
+        languages_tag = self.llm.run_edit(
+            text_home_languages,
+            additional_instruction="""
+                Ensure that the text flows naturally. What follows is an example:
+                "The family maintains a bilingual household, speaking English and
+                French. English is reportedly John's preferred language. His level
+                of proficiency in French is intermediate.
+            """,
+            context=text_home_base,
+        )
         text_home = f"{text_home_base} {languages_tag}"
 
         if not household.home_functioning:
@@ -492,6 +505,7 @@ class ReportWriter:
                 parent_input=f"""
                     Details on home functioning: {household.home_functioning}
                 """,
+                context=text_home_base,
             )
 
         text_home = string_utils.remove_excess_whitespace(text_home)
@@ -509,23 +523,23 @@ class ReportWriter:
         patient = self.intake.patient
         social_functioning = patient.social_functioning
 
-        hobbies_id = self.llm.run_text_with_parent_input(
-            text=f"""
-                {patient.guardian.title_name} reported that {patient.pronouns[0]} has
-                {PLACEHOLDER} friends in {patient.pronouns[2]} peer group.
-                {patient.first_name}'s hobbies include {PLACEHOLDER}.
-                """,
-            parent_input=f"""
-             Hobbies: {social_functioning.hobbies}
-             Number of friends: {social_functioning.n_friends}.
-             """,
-        )
-
         text = f"""
             {patient.guardian.title_name} was pleased to describe
             {patient.first_name} as a (insert adjective e.g., affectionate)
-            {patient.age_gender_label}. {hobbies_id}
+            {patient.age_gender_label}.
         """
+        hobbies_id = self.llm.run_edit(
+            text=f"""
+                {patient.guardian.title_name} reported that
+                {patient.pronouns[0]} has {social_functioning.n_friends} friends
+                in {patient.pronouns[2]} peer group. {patient.first_name}'s
+                hobbies include {social_functioning.hobbies}.
+                """,
+            additional_instruction="""Keep the text concise and to the point. It should
+                be only one or two sentences.""",
+            context=text,
+        )
+        text += f" {hobbies_id}"
         text = string_utils.remove_excess_whitespace(text)
 
         self._insert("Social Functioning", StyleName.HEADING_2)
