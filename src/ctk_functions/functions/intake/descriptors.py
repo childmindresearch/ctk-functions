@@ -1,4 +1,4 @@
-"""Contains descriptors of the columns of the REDCap intake form."""
+"""Contains descriptors of  REDCap intake form data."""
 
 import enum
 from typing import Literal
