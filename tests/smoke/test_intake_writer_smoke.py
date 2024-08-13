@@ -6,7 +6,8 @@ for easy-to-make mistakes.
 """
 
 import re
-from typing import Any, Coroutine, TypeVar
+from collections.abc import Coroutine
+from typing import Any, TypeVar
 
 import pytest
 import pytest_mock
@@ -17,7 +18,7 @@ from ctk_functions.functions.intake import parser, writer
 T = TypeVar("T")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def intake_document(
     mocker: pytest_mock.MockFixture,
     test_redcap_data: dict[str, Any],
@@ -33,7 +34,7 @@ async def intake_document(
     return intake_writer.report
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_no_printed_objects(
     intake_document: Coroutine[document.Document, None, None],
 ) -> None:
@@ -45,7 +46,7 @@ async def test_no_printed_objects(
     """
     regex_scientific_notation = r"\de[-\d]"
 
-    text = "\n".join([p.text.lower() for p in (await intake_document).paragraphs])  # type: ignore
+    text = "\n".join([p.text.lower() for p in (await intake_document).paragraphs])  # type: ignore[attr-defined, func-returns-value]
 
     assert "[]" not in text
     assert "{" not in text
@@ -59,13 +60,13 @@ async def test_no_printed_objects(
     assert re.match(regex_scientific_notation, text) is None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_expected_strings_in_document(
     intake_document: Coroutine[document.Document, None, None],
     test_redcap_data: dict[str, Any],
 ) -> None:
     """Tests that the document contains some expected strings."""
-    text = "\n".join([p.text for p in (await intake_document).paragraphs])  # type: ignore
+    text = "\n".join([p.text for p in (await intake_document).paragraphs])  # type: ignore[attr-defined, func-returns-value]
     headers = [
         "REASON FOR VISIT",
         "IDENTIFYING INFORMATION",

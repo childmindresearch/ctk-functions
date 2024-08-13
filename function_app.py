@@ -98,14 +98,17 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
         )
 
     logger.info(
-        "Generating intake report for identifier %s with model %s.", survey_id, model
+        "Generating intake report for identifier %s with model %s.",
+        survey_id,
+        model,
     )
     try:
         docx_bytes = await intake_controller.get_intake_report(survey_id, model)
-    except exceptions.RedcapException as exc_info:
-        logger.error(exc_info)
+    except exceptions.RedcapError as exc_info:
+        logger.exception("Error generating intake report.")
         return functions.HttpResponse(
-            str(exc_info), status_code=http.HTTPStatus.BAD_REQUEST
+            str(exc_info),
+            status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
     return functions.HttpResponse(
@@ -116,7 +119,9 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
 
 @app.function_name(name="MarkdownToDocx")
 @app.route(
-    route="markdown2docx", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"]
+    route="markdown2docx",
+    auth_level=functions.AuthLevel.FUNCTION,
+    methods=["POST"],
 )
 async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
     """Converts a Markdown document to a .docx file.
@@ -151,7 +156,9 @@ async def markdown2docx(req: functions.HttpRequest) -> functions.HttpResponse:
 
 @app.function_name(name="LanguageTool")
 @app.route(
-    route="language-tool", auth_level=functions.AuthLevel.FUNCTION, methods=["POST"]
+    route="language-tool",
+    auth_level=functions.AuthLevel.FUNCTION,
+    methods=["POST"],
 )
 async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
     """Runs the LanguageTool grammar checker.
@@ -172,12 +179,14 @@ async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
 
     if not rules:
         return functions.HttpResponse(
-            "Please provide some rules.", status_code=http.HTTPStatus.BAD_REQUEST
+            "Please provide some rules.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
     if not text:
         return functions.HttpResponse(
-            "Please provide some text.", status_code=http.HTTPStatus.BAD_REQUEST
+            "Please provide some text.",
+            status_code=http.HTTPStatus.BAD_REQUEST,
         )
 
     logger.info("Running LanguageTool")
@@ -190,7 +199,7 @@ async def language_tool(req: functions.HttpRequest) -> functions.HttpResponse:
 
 @app.function_name(name="Health")
 @app.route(route="health", auth_level=functions.AuthLevel.FUNCTION, methods=["GET"])
-async def health(req: functions.HttpRequest) -> functions.HttpResponse:
+async def health(req: functions.HttpRequest) -> functions.HttpResponse:  # noqa: ARG001
     """Health check endpoint.
 
     This endpoint takes no arguments and always returns a 200 OK response.

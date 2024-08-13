@@ -11,7 +11,8 @@ import pypandoc
 
 
 def markdown2docx(
-    markdown: str, formatting: None | dict[str, Any] | cmi_docx.ParagraphStyle = None
+    markdown: str,
+    formatting: None | dict[str, Any] | cmi_docx.ParagraphStyle = None,
 ) -> bytes:
     """Converts a Markdown document to a .docx file.
 
@@ -61,11 +62,11 @@ def mark_warnings_as_red(docx_file: str | pathlib.Path) -> None:
     document = docx.Document(str(docx_file))
     extend_document = cmi_docx.ExtendDocument(document)
     text = "\n".join([paragraph.text for paragraph in document.paragraphs])
-    warningRegex = re.compile(r"{{!.*?}}")
-    matches = warningRegex.finditer(text)
-    uniqueMatches = set([match.group() for match in matches])
+    warning_regex = re.compile(r"{{!.*?}}")
+    matches = warning_regex.finditer(text)
+    unique_matches = {match.group() for match in matches}
 
-    for match in uniqueMatches:
+    for match in unique_matches:
         extend_document.replace(match, match, cmi_docx.RunStyle(font_rgb=(255, 0, 0)))
 
     document.save(str(docx_file))

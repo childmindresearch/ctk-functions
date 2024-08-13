@@ -5,7 +5,7 @@ from ctk_functions import config
 logger = config.get_logger()
 
 
-class LoggingException(Exception):
+class LoggingError(Exception):
     """Exception that logs the error message."""
 
     def __init__(self, message: str) -> None:
@@ -18,5 +18,9 @@ class LoggingException(Exception):
         super().__init__(message)
 
 
-class RedcapException(LoggingException):
+class TransformerError(LoggingError):
+    """Exception for transformer errors."""
+
+
+class RedcapError(LoggingError):
     """Exception for REDCap errors."""

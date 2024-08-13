@@ -85,13 +85,13 @@ def test_language_parser(
 
 
 @pytest.mark.parametrize(
-    ("input", "expected"),
+    ("test_input", "expected"),
     [
         ("ALL CAPS-", "All Caps-"),
         ("Not all caps", "Not all caps"),
     ],
 )
-def test_all_caps_to_title(input: str, expected: str) -> None:
+def test_all_caps_to_title(test_input: str, expected: str) -> None:
     """Tests the conversion of all caps to title case."""
-    actual = parser.all_caps_to_title(input)
+    actual = parser.all_caps_to_title(test_input)
     assert actual == expected

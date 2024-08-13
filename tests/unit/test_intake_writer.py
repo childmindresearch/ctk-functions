@@ -31,11 +31,16 @@ class MockPatient:
 
     full_name: str = "Lea Avatar"
     first_name: str = "Lea"
-    date_of_birth: datetime.datetime = datetime.datetime(2015, 1, 1)
+    date_of_birth: datetime.datetime = datetime.datetime(
+        2015,
+        1,
+        1,
+        tzinfo=datetime.UTC,
+    )
     guardian: MockGuardian = dataclasses.field(default_factory=MockGuardian)
     age_gender_label: str = "girl"
     pronouns: list[str] = dataclasses.field(
-        default_factory=lambda: ["she", "her", "her", "hers", "herself"]
+        default_factory=lambda: ["she", "her", "her", "hers", "herself"],
     )
 
 

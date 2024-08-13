@@ -33,10 +33,11 @@ def get_intake_data(mrn: str) -> dict[str, Any]:
         The intake data for the survey.
     """
     if not re.match(r"^\d{5}$", mrn):
-        raise exceptions.RedcapException("MRN must be five consecutive numbers.")
+        msg = "MRN must be five consecutive numbers."
+        raise exceptions.RedcapError(msg)
 
-    logger.debug(f"Getting intake data for MRN {mrn}.")
-    project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore
+    logger.debug("Getting intake data for MRN %s.", mrn)
+    project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())
     redcap_fields = project.export_records(
         format_type="csv",
         fields=["firstname"],
@@ -46,11 +47,12 @@ def get_intake_data(mrn: str) -> dict[str, Any]:
 
     redcap_fields = pl.read_csv(io.StringIO(redcap_fields), infer_schema_length=0)
     record_ids = redcap_fields.filter(
-        pl.col("redcap_survey_identifier").str.contains(mrn)
+        pl.col("redcap_survey_identifier").str.contains(mrn),
     )["record_id"]
 
     if len(record_ids) == 0:
-        raise exceptions.RedcapException("No record found for the given MRN.")
+        msg = "No record found for the given MRN."
+        raise exceptions.RedcapError(msg)
 
     patient_data = project.export_records(
         format_type="csv",
@@ -118,12 +120,16 @@ def parse_redcap_dtypes(csv_data: str) -> dict[str, Any]:
         dtypes[f"guardian_relationship___{index}"] = pl.Int8
 
     dataframe = pl.read_csv(
-        io.StringIO(csv_data), schema_overrides=dtypes, infer_schema_length=0
+        io.StringIO(csv_data),
+        schema_overrides=dtypes,
+        infer_schema_length=0,
     )
     if dataframe.is_empty() or dataframe.shape[0] == 0:
-        raise exceptions.RedcapException("No data found for the given MRN.")
+        msg = "No data found for the given MRN."
+        raise exceptions.RedcapError(msg)
 
     if dataframe.shape[0] > 1:
-        raise exceptions.RedcapException("Multiple records found for the given MRN.")
+        msg = "Multiple records found for the given MRN."
+        raise exceptions.RedcapError(msg)
 
     return dataframe.row(0, named=True)

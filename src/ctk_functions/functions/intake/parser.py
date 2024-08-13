@@ -256,7 +256,7 @@ class Language:
             patient_data: The patient dataframe.
             identifier: The id of the language.
         """
-        logger.debug(f"Parsing language {identifier}.")
+        logger.debug("Parsing language %s.", identifier)
         self.name = patient_data[f"child_language{identifier}"]
         self.spoken_whole_life = patient_data[f"child_language{identifier}_spoken"]
         self.spoken_since_age = patient_data[f"child_language{identifier}_age"]
@@ -276,7 +276,7 @@ class HouseholdMember:
             patient_data: The patient dataframe.
             identifier: The id of the household member.
         """
-        logger.debug(f"Parsing household member {identifier}.")
+        logger.debug("Parsing household member %s.", identifier)
         self.name = all_caps_to_title(patient_data[f"peopleinhome{identifier}"])
         self.age = patient_data[f"peopleinhome{identifier}_age"]
         self.relationship = transformers.HouseholdRelationship(
@@ -335,7 +335,7 @@ class Education:
             patient_data["recent_academicperformance"],
         ).name.lower()
         self.grades = transformers.EducationGrades(
-            descriptors.EducationGrades(patient_data["current_grades"])
+            descriptors.EducationGrades(patient_data["current_grades"]),
         ).transform()
         self.school_functioning = patient_data["school_func"]
 
@@ -359,7 +359,7 @@ class PsychiatricMedication:
                     initial_dosage=patient_data[f"startdose_{index}"],
                     current_dosage=patient_data[f"currentdose_{index}"],
                     reason_for_taking=patient_data[f"med{index}_reason"]
-                    if index != 2
+                    if index != 2  # noqa: PLR2004
                     else patient_data["med2_current_reason"],
                     date_started=patient_data[f"med{index}_start"],
                     response_to_medication=patient_data[f"med{index}_se"],
@@ -510,7 +510,7 @@ class PsychiatricHistory:
         self.violence_and_trauma: str | None = patient_data["violence_exp"]
         self.self_harm: str | None = patient_data["selfharm_exp"]
         self.family_psychiatric_history = FamilyPyshicatricHistory(
-            patient_data
+            patient_data,
         ).get_family_diagnoses(patient_data)
 
 
@@ -584,7 +584,7 @@ class TherapeuticInterventions:
             patient_data: The patient data.
             identifier: The id of the therapeutic history instance.
         """
-        logger.debug(f"Parsing therapeutic intervention {identifier}.")
+        logger.debug("Parsing therapeutic intervention %s.", identifier)
         faulty_identifier = 2
         if identifier != faulty_identifier:
             self.therapist = patient_data[f"txhx_{identifier}"]
@@ -615,7 +615,8 @@ class PrimaryCareInformation:
             descriptors.Glasses(patient_data["child_glasses"]),
         )
         self.glasses_hearing_device = transformers.GlassesHearingDevice(
-            glasses, hearing_device
+            glasses,
+            hearing_device,
         ).transform()
 
         diseases = [

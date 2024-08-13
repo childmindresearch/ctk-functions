@@ -57,7 +57,7 @@ class AzureLlm(utils.LlmAbstractBaseClass):
         }
         try:
             response = await self.client.chat.completions.create(
-                messages=[system_message, user_message],  # type: ignore
+                messages=[system_message, user_message],  # type: ignore[list-item]
                 model=AZURE_OPENAI_LLM_DEPLOYMENT.get_secret_value(),
             )
             message = response.choices[0].message.content

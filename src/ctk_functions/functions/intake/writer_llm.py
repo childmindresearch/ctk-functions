@@ -4,7 +4,7 @@ import dataclasses
 import enum
 import json
 import uuid
-from typing import Awaitable, Sequence
+from collections.abc import Awaitable, Sequence
 
 from ctk_functions.functions.intake.utils import string_utils
 from ctk_functions.microservices import llm
@@ -102,7 +102,10 @@ class WriterLlm:
         self.placeholders: list[LlmPlaceholder] = []
 
     def run_text_with_parent_input(
-        self, text: str, parent_input: str, additional_instruction: str = str()
+        self,
+        text: str,
+        parent_input: str,
+        additional_instruction: str = "",
     ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt with parent input.
 
@@ -120,15 +123,15 @@ class WriterLlm:
             Parent Input: {parent_input}.
         """
         additional_instruction = string_utils.remove_excess_whitespace(
-            additional_instruction
+            additional_instruction,
         )
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
-        system_prompt = "\n".join(
-            (Prompts.parent_input, self.child_info, additional_instruction)
+        system_prompt = (
+            f"{Prompts.parent_input}\n{self.child_info}\n{additional_instruction}"
         )
         return self._run(system_prompt, user_prompt)
 
-    def run_edit(self, text: str, additional_instruction: str = str()) -> str:
+    def run_edit(self, text: str, additional_instruction: str = "") -> str:
         """Creates a placeholder for an LLM edit of an excerpt.
 
         Args:
@@ -140,14 +143,16 @@ class WriterLlm:
             The placeholder for the LLM edit.
         """
         additional_instruction = string_utils.remove_excess_whitespace(
-            additional_instruction
+            additional_instruction,
         )
         user_prompt = string_utils.remove_excess_whitespace(text)
-        system_prompt = "\n".join((Prompts.edit, additional_instruction))
+        system_prompt = f"{Prompts.edit}\n{additional_instruction}"
         return self._run(system_prompt, user_prompt)
 
     def run_with_list_input(
-        self, items: Sequence[object], additional_instruction: str = str()
+        self,
+        items: Sequence[object],
+        additional_instruction: str = "",
     ) -> str:
         """Creates a placeholder for an LLM edit of a list of pydantic classes.
 
@@ -160,11 +165,11 @@ class WriterLlm:
             The placeholder for the LLM edit.
         """
         additional_instruction = string_utils.remove_excess_whitespace(
-            additional_instruction
+            additional_instruction,
         )
 
-        system_prompt = "\n".join(
-            (Prompts.list_input, self.child_info, additional_instruction)
+        system_prompt = (
+            f"{Prompts.list_input}\n{self.child_info}\n{additional_instruction}"
         )
         items_json = [
             json.dumps(item.__dict__, indent=4, ensure_ascii=False) for item in items
@@ -188,9 +193,9 @@ class WriterLlm:
             The placeholder for the LLM edit.
         """
         replacement = self.client.run(system_prompt, user_prompt)
-        id = str(uuid.uuid4())
-        self.placeholders.append(LlmPlaceholder(id, replacement))
-        return id
+        placeholder_uuid = str(uuid.uuid4())
+        self.placeholders.append(LlmPlaceholder(placeholder_uuid, replacement))
+        return placeholder_uuid
 
     @property
     def child_info(self) -> str:

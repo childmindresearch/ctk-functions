@@ -11,7 +11,6 @@ class LlmAbstractBaseClass(abc.ABC):
     @abc.abstractmethod
     def __init__(self, model: str) -> None:
         """Initialize the Language Model client."""
-        pass
 
     @abc.abstractmethod
     async def run(self, system_prompt: str, user_prompt: str) -> str:
@@ -21,4 +20,3 @@ class LlmAbstractBaseClass(abc.ABC):
             system_prompt: The system prompt.
             user_prompt: The user prompt.
         """
-        pass
