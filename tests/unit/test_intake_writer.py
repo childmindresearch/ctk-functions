@@ -58,11 +58,11 @@ def test_replace_patient_information() -> None:
     paragraph = document.add_paragraph("{{FULL_NAME}} is a {{PRONOUN_0}}.")
     paragraph.add_run(" {{PRONOUN_2}}")
     report_writer = writer.ReportWriter(intake, "gpt-4o")  # type: ignore[arg-type]
-    report_writer.report = document
+    report_writer.report.document = document
     expected = "Lea Avatar is a she. her"
 
     report_writer.replace_patient_information()
-    actual = report_writer.report.paragraphs[0].text
+    actual = report_writer.report.document.paragraphs[0].text
 
     assert actual == expected
 

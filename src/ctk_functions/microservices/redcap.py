@@ -37,7 +37,7 @@ def get_intake_data(mrn: str) -> dict[str, Any]:
         raise exceptions.RedcapError(msg)
 
     logger.debug("Getting intake data for MRN %s.", mrn)
-    project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())
+    project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore[attr-defined]
     redcap_fields = project.export_records(
         format_type="csv",
         fields=["firstname"],

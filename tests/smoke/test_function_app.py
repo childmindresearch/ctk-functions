@@ -20,7 +20,7 @@ def get_function_auth_level(
 ) -> str:
     """Gets the auth level of a function."""
     settings = json.loads(function._function.get_function_json())
-    return settings["bindings"][0]["authLevel"]
+    return settings["bindings"][0]["authLevel"]  # type: ignore[no-any-return]
 
 
 def test_function_auth_level() -> None:

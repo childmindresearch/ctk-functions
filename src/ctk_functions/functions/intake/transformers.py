@@ -9,7 +9,7 @@ For strings too complicated for the transformers, a large language model is used
 
 import abc
 import enum
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Generic, Protocol, TypeVar
 
 from ctk_functions import exceptions
 from ctk_functions.functions.intake import descriptors
@@ -38,7 +38,7 @@ class Transformer(Generic[T], abc.ABC):
     def __init__(
         self,
         value: T,
-        other: Any = None,  # noqa: ANN401
+        other: None | str = None,
     ) -> None:
         """Initializes the transformer.
 
@@ -452,39 +452,6 @@ class Glasses(Transformer[descriptors.Glasses]):
         raise exceptions.TransformerError(msg)
 
 
-class GlassesHearingDevice(Transformer[Transformer[descriptors.Glasses]]):
-    """Transformer for the glasses and hearing device information.
-
-    The phrasing of this changes when both are no, hence the need for a combined
-    transformer. The other paramaeter is set to the hearing device transformer.
-    """
-
-    def transform(self) -> str:
-        """Transforms the glasses and hearing device information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not isinstance(self.other, HearingDevice):
-            msg = "Invalid hearing device value."
-            raise exceptions.TransformerError(msg)
-        if (
-            self.base.base == descriptors.Glasses.no
-            and self.other.base == descriptors.HearingDevice.no
-        ):
-            string = f"""
-                {ReplacementTags.PREFERRED_NAME.value} does not wear prescription
-                glasses or use a hearing device
-              """
-        else:
-            string = f"""
-                {ReplacementTags.PREFERRED_NAME.value} {self.base.transform()}.
-                {ReplacementTags.PRONOUN_0.value} {self.other.transform()}
-            """
-
-        return string_utils.remove_excess_whitespace(string)
-
-
 class PriorDiseases(MultiTransformer[descriptors.PriorDisease]):
     """Transformer for the prior diseases information."""
 
@@ -557,7 +524,7 @@ class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
             str: The transformed object.
         """
         if not self.base:
-            return self.other
+            return self.other if self.other else ""
 
         no_past_diagnosis = [val for val in self.base if val.no_formal_diagnosis]
         past_diagnosis = [val for val in self.base if not val.no_formal_diagnosis]

@@ -53,6 +53,8 @@ testpaths = [
 
 [tool.mypy]
 ignore_missing_imports = true
+strict = true
+plugins = ["pydantic.mypy"]
 
 [tool.ruff]
 exclude = [

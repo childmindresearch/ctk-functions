@@ -67,7 +67,7 @@ class ReportWriter:
         )
         self.insert_before = next(
             paragraph
-            for paragraph in self.report.paragraphs
+            for paragraph in self.report.document.paragraphs
             if "MENTAL STATUS EXAMINATION AND TESTING BEHAVIORAL OBSERVATIONS"
             in paragraph.text
         )
@@ -1022,7 +1022,7 @@ class ReportWriter:
             for index in range(len(self.report.document.paragraphs))
             if self.report.document.paragraphs[index].text == self.insert_before.text
         )
-        return self.report.insert_paragraph_by_text(insertion_index, text, style.value)
+        return self.report.insert_paragraph_by_text(insertion_index, text, style.value)  # type: ignore[no-any-return] # mypy doesn't seem to recognize the returntype for an unknown reason.
 
     @staticmethod
     def _join_patient_languages(languages: list[parser.Language]) -> str:

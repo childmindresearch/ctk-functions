@@ -59,9 +59,9 @@ class Patient:
             patient_data["dob"],
         ).replace(tzinfo=pytz.timezone(timezone))
         self._gender_enum = descriptors.Gender(patient_data["childgender"]).name
-        self._gender_other = patient_data["childgender_other"]
+        self._gender_other = str(patient_data["childgender_other"])
         self._pronouns_enum = descriptors.Pronouns(patient_data["pronouns"]).name
-        self._pronouns_other = patient_data["pronouns_other"]
+        self._pronouns_other = str(patient_data["pronouns_other"])
         self.handedness = transformers.Handedness(
             descriptors.Handedness(patient_data["dominant_hand"]),
         )
@@ -614,10 +614,19 @@ class PrimaryCareInformation:
         glasses = transformers.Glasses(
             descriptors.Glasses(patient_data["child_glasses"]),
         )
-        self.glasses_hearing_device = transformers.GlassesHearingDevice(
-            glasses,
-            hearing_device,
-        ).transform()
+        if (
+            glasses.base == descriptors.Glasses.no
+            and hearing_device.base == descriptors.HearingDevice.no
+        ):
+            self.glasses_hearing_device = """
+                {{PREFERRED_NAME}} does not wear prescription
+                glasses or use a hearing device
+              """
+        else:
+            self.glasses_hearing_device = f"""
+                {{{{PREFERRED_NAME}}}} {glasses.transform()}.
+                {{{{PRONOUN_0}}}} {hearing_device.transform()}
+            """
 
         diseases = [
             descriptors.PriorDisease(

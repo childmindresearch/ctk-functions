@@ -61,9 +61,11 @@ class LanguageCorrecter:
             full_text: The full text to correct.
         """
         if len(correction.replacements) == 1:
+            # language_tool_python doesn't type hint replacements correctly.
+            replacement: str = correction.replacements[0]
             return (
                 full_text[: correction.offset]
-                + correction.replacements[0]
+                + replacement
                 + full_text[correction.offset + correction.errorLength :]
             )
 
@@ -102,6 +104,8 @@ class LanguageCorrecter:
         else:
             target_tense = verb_tense
 
+        # language_tool_python doesn't type hint replacements correctly.
+        replacement: str
         for replacement in correction.replacements:
             new_sentence = (
                 full_text[: correction.offset]
