@@ -17,12 +17,12 @@ def correcter() -> corrections.LanguageCorrecter:
             "UPPERCASE_SENTENCE_START",
             "NON3PRS_VERB",
             "COMMA_COMPOUND_SENTENCE_2",
-        ]
+        ],
     )
 
 
 @pytest.mark.parametrize(
-    "input_text, expected",
+    ("input_text", "expected"),
     [
         ("They is going to the store.", "They are going to the store."),
         ("they is going to the store.", "They are going to the store."),
@@ -47,7 +47,9 @@ def correcter() -> corrections.LanguageCorrecter:
     ],
 )
 def test_text_corrections(
-    correcter: corrections.LanguageCorrecter, input_text: str, expected: str
+    correcter: corrections.LanguageCorrecter,
+    input_text: str,
+    expected: str,
 ) -> None:
     """Tests the entrypoint of the TextCorrections class."""
     actual = correcter.run(input_text)

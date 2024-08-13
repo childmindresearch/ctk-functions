@@ -66,6 +66,6 @@ class DocumentCorrections:
         sentences = list(NLP(paragraph.text).sents)
         new_sentences = [self.correcter.run(sentence.text) for sentence in sentences]
         extended_pargraph = cmi_docx.ExtendParagraph(paragraph)
-        for old, new in zip(sentences, new_sentences):
+        for old, new in zip(sentences, new_sentences, strict=True):
             if old.text != new:
                 extended_pargraph.replace(old.text, new)

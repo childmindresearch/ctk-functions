@@ -1,5 +1,7 @@
 """Test logging in config.py."""
 
+import logging
+
 import pytest
 
 from ctk_functions import config
@@ -13,7 +15,7 @@ def test_get_logger(caplog: pytest.LogCaptureFixture) -> None:
     logger.info("Info message here.")
     logger.warning("Warning message here.")
 
-    assert logger.getEffectiveLevel() == 20
+    assert logger.getEffectiveLevel() == logging.INFO
     assert "Debug message here" not in caplog.text
     assert "Info message here." in caplog.text
     assert "Warning message here." in caplog.text

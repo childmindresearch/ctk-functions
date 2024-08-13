@@ -1,6 +1,6 @@
 """Module for syntax and grammatical correctionss of text."""
 
-from typing import Iterable
+from collections.abc import Iterable
 
 import language_tool_python
 import spacy
@@ -50,7 +50,9 @@ class LanguageCorrecter:
 
     @classmethod
     def _apply_correction(
-        cls, correction: language_tool_python.Match, full_text: str
+        cls,
+        correction: language_tool_python.Match,
+        full_text: str,
     ) -> str:
         """Applies a correction to a text.
 
@@ -59,16 +61,18 @@ class LanguageCorrecter:
             full_text: The full text to correct.
         """
         if len(correction.replacements) == 1:
+            # language_tool_python doesn't type hint replacements correctly.
+            replacement: str = correction.replacements[0]
             return (
                 full_text[: correction.offset]
-                + correction.replacements[0]
+                + replacement
                 + full_text[correction.offset + correction.errorLength :]
             )
 
         if correction.ruleId == "PERS_PRONOUN_AGREEMENT":
             return cls._resolve_pers_pronoun_agreement(correction, full_text)
-        else:
-            raise ValueError(f"Cannot resolve replacement {correction}.")
+        msg = f"Cannot resolve replacement {correction}."
+        raise ValueError(msg)
 
     @classmethod
     def _resolve_pers_pronoun_agreement(
@@ -89,9 +93,9 @@ class LanguageCorrecter:
         """
         verb_tense = cls._get_verb_tense(full_text, correction.offset)
 
-        # Example correction message: "Use a third-person plural verb with ‘they’.""
+        # Example correction message: "Use a third-person plural verb with ‘they’.""  # noqa: E501, RUF003
 
-        subject = correction.message.split("‘")[1].split("’")[0].lower()
+        subject = correction.message.split("‘")[1].split("’")[0].lower()  # noqa: RUF001
 
         if subject == "they":
             target_tense = "VBP" if verb_tense == "VBZ" else verb_tense
@@ -100,6 +104,8 @@ class LanguageCorrecter:
         else:
             target_tense = verb_tense
 
+        # language_tool_python doesn't type hint replacements correctly.
+        replacement: str
         for replacement in correction.replacements:
             new_sentence = (
                 full_text[: correction.offset]
@@ -110,7 +116,8 @@ class LanguageCorrecter:
             if new_verb_tense == target_tense:
                 return new_sentence
 
-        raise ValueError(f"Could not find a suitable replacement for {correction}.")
+        msg = f"Could not find a suitable replacement for {correction}."
+        raise ValueError(msg)
 
     @classmethod
     def _get_verb_tense(cls, sentence: str, verb_offset: int) -> str:

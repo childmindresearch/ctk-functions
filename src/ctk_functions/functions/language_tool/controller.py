@@ -3,7 +3,7 @@
 from ctk_functions.text import corrections
 
 
-def language_tool(text: str, rules: list[str] = []) -> str:
+def language_tool(text: str, rules: list[str] | None = None) -> str:
     """Corrects the grammar of the input text.
 
     Args:
@@ -13,5 +13,7 @@ def language_tool(text: str, rules: list[str] = []) -> str:
     Returns:
         The corrected text.
     """
+    if rules is None:
+        rules = []
     correcter = corrections.LanguageCorrecter(rules)
     return correcter.run(text)

@@ -13,12 +13,12 @@ def test_redcap_error(mocker: pytest_mock.MockFixture) -> None:
         "redcap.Project",
         return_value=mocker.MagicMock(
             export_records=mocker.MagicMock(
-                return_value="record_id,redcap_survey_identifier,data\n"
-            )
+                return_value="record_id,redcap_survey_identifier,data\n",
+            ),
         ),
     )
 
-    with pytest.raises(exceptions.RedcapException):
+    with pytest.raises(exceptions.RedcapError):
         redcap.get_intake_data("00000")
 
 
@@ -28,8 +28,8 @@ def test_redcap_success(mocker: pytest_mock.MockFixture) -> None:
         "redcap.Project",
         return_value=mocker.MagicMock(
             export_records=mocker.MagicMock(
-                return_value="record_id,redcap_survey_identifier,data\n0,00000,test_data\n"
-            )
+                return_value="record_id,redcap_survey_identifier,data\n0,00000,test_data\n",
+            ),
         ),
     )
     expected = {

@@ -64,7 +64,7 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
             messages=[{"role": "user", "content": user_prompt}],
         )
 
-        return message.content[0].text  # type: ignore
+        return message.content[0].text  # type: ignore[union-attr]
 
     async def run(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts asynchronously.

@@ -9,8 +9,9 @@ For strings too complicated for the transformers, a large language model is used
 
 import abc
 import enum
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Generic, Protocol, TypeVar
 
+from ctk_functions import exceptions
 from ctk_functions.functions.intake import descriptors
 from ctk_functions.functions.intake.utils import string_utils
 
@@ -37,7 +38,7 @@ class Transformer(Generic[T], abc.ABC):
     def __init__(
         self,
         value: T,
-        other: Any = None,  # noqa: ANN401
+        other: None | str = None,
     ) -> None:
         """Initializes the transformer.
 
@@ -257,24 +258,6 @@ class Adaptability(Transformer[descriptors.Adaptability]):
         return "an adaptable temperament"
 
 
-class GuardianMaritalStatus(Transformer[descriptors.GuardianMaritalStatus]):
-    """The transformer for guardian marital status."""
-
-    def transform(self) -> str:
-        """Transforms the guardian marital status information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if self.base == descriptors.GuardianMaritalStatus.domestic_partnership:
-            return "The parents/guardians are in a domestic partnership"
-        if self.base == descriptors.GuardianMaritalStatus.widowed:
-            return "The parent/guardian is widowed"
-        if self.base == descriptors.GuardianMaritalStatus.never_married:
-            return "The parents/guardians were never married"
-        return f"The parents/guardians are {self.base.name.replace('_', ' ')}"
-
-
 class ClassroomType(Transformer[descriptors.ClassroomType]):
     """The transformer for classroom type."""
 
@@ -305,7 +288,8 @@ class DevelopmentSkill(Transformer[str | int]):
             str: The transformed object.
         """
         if isinstance(self.base, int) or self.base.isnumeric():
-            if float(self.base) > 6:
+            month_threshold = 6
+            if float(self.base) > month_threshold:
                 return f"{self.other} at {self.base} months"
             return f"{self.other} at {self.base} years"
         if self.base.lower() == "not yet":
@@ -442,7 +426,9 @@ class HearingDevice(Transformer[descriptors.HearingDevice]):
             return "uses a hearing device at school"
         if self.base == descriptors.HearingDevice.at_home:
             return "uses a hearing device at home"
-        raise ValueError("Invalid hearing device value.")
+
+        msg = "Invalid hearing device value."
+        raise exceptions.TransformerError(msg)
 
 
 class Glasses(Transformer[descriptors.Glasses]):
@@ -462,39 +448,8 @@ class Glasses(Transformer[descriptors.Glasses]):
             return "wears prescription glasses at school"
         if self.base == descriptors.Glasses.at_home:
             return "wears prescription glasses at home"
-        raise ValueError("Invalid glasses value.")
-
-
-class GlassesHearingDevice(Transformer[Transformer[descriptors.Glasses]]):
-    """Transformer for the glasses and hearing device information.
-
-    The phrasing of this changes when both are no, hence the need for a combined
-    transformer. The other paramaeter is set to the hearing device transformer.
-    """
-
-    def transform(self) -> str:
-        """Transforms the glasses and hearing device information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not isinstance(self.other, HearingDevice):
-            raise ValueError("Invalid hearing device value.")
-        if (
-            self.base.base == descriptors.Glasses.no
-            and self.other.base == descriptors.HearingDevice.no
-        ):
-            string = f"""
-                {ReplacementTags.PREFERRED_NAME.value} does not wear prescription
-                glasses or use a hearing device
-              """
-        else:
-            string = f"""
-                {ReplacementTags.PREFERRED_NAME.value} {self.base.transform()}.
-                {ReplacementTags.PRONOUN_0.value} {self.other.transform()}
-            """
-
-        return string_utils.remove_excess_whitespace(string)
+        msg = "Invalid glasses value."
+        raise exceptions.TransformerError(msg)
 
 
 class PriorDiseases(MultiTransformer[descriptors.PriorDisease]):
@@ -569,7 +524,7 @@ class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
             str: The transformed object.
         """
         if not self.base:
-            return self.other
+            return self.other if self.other else ""
 
         no_past_diagnosis = [val for val in self.base if val.no_formal_diagnosis]
         past_diagnosis = [val for val in self.base if not val.no_formal_diagnosis]
@@ -580,7 +535,7 @@ class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
                 text += " "
             text += (
                 f"{ReplacementTags.PREFERRED_NAME.value}'s family history is "
-                + "significant for "
+                "significant for "
             )
             past_diagosis_texts = [
                 self._past_diagnosis_text(val) for val in past_diagnosis

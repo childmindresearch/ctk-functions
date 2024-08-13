@@ -31,7 +31,8 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
             self.client = aws.ClaudeLlm(model)  # type: ignore[arg-type] # mypy doesn't detect typing.get_args() as type narrowing.
         else:
             # As the model name can be supplied by the user, this case might be reached.
-            raise ValueError(f"Invalid LLM model: {model}")
+            msg = f"Invalid LLM model: {model}"
+            raise ValueError(msg)
 
     async def run(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts.

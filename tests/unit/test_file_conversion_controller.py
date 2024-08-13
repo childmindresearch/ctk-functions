@@ -39,17 +39,17 @@ def test_mark_warnings_as_red(tmp_path: pathlib.Path) -> None:
 
 def test_markdown2docx(tmp_path: pathlib.Path) -> None:
     """Tests the conversion of Markdown to docx."""
-    markdown = "\n\n".join(
+    markdown = "\n\n".join(  # noqa: FLY002
         [
             "# Header",
             "This is a paragraph.",
             "This is a {{!WARNING-TEXT}}.",
-        ]
+        ],
     )
 
     docx_bytes = controller.markdown2docx(markdown, formatting={"bold": True})
     filename = tmp_path / "test.docx"
-    with open(filename, "wb") as file:
+    with filename.open("wb") as file:
         file.write(docx_bytes)
     doc = docx.Document(str(filename))
 
@@ -63,11 +63,11 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
 
 def test_markdown2docx_lua(tmp_path: pathlib.Path) -> None:
     """Tests the custom lua filters."""
-    markdown = "\n\n".join(["++underlined++", "|ttabbed"])
+    markdown = "++underlined++\n\n|ttabbed"
 
     docx_bytes = controller.markdown2docx(markdown)
     filename = tmp_path / "test.docx"
-    with open(filename, "wb") as file:
+    with filename.open("wb") as file:
         file.write(docx_bytes)
     doc = docx.Document(str(filename))
 

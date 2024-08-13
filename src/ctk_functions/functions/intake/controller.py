@@ -1,6 +1,6 @@
 """Business logic for the intake endpoints."""
 
-import tempfile
+import io
 
 from ctk_functions.functions.intake import parser, writer
 from ctk_functions.microservices import llm, redcap
@@ -21,7 +21,6 @@ async def get_intake_report(survey_id: str, model: llm.VALID_LLM_MODELS) -> byte
     report = writer.ReportWriter(parsed_data, model=model)
     await report.transform()
 
-    with tempfile.NamedTemporaryFile(suffix=".docx") as temp_file:
-        report.report.save(temp_file.name)
-        temp_file.seek(0)
-        return temp_file.read()
+    out = io.BytesIO()
+    report.report.document.save(out)
+    return out.getvalue()

@@ -14,7 +14,7 @@ class Settings(pydantic_settings.BaseSettings):
     DATA_DIR: pydantic.DirectoryPath = pathlib.Path(__file__).parent / "data"
     REDCAP_API_TOKEN: pydantic.SecretStr
     REDCAP_ENDPOINT: pydantic.HttpUrl = pydantic.HttpUrl(
-        "https://redcap.healthybrainnetwork.org/redcap/api/"
+        "https://redcap.healthybrainnetwork.org/redcap/api/",
     )
 
     AWS_ACCESS_KEY_ID: pydantic.SecretStr
@@ -28,10 +28,10 @@ class Settings(pydantic_settings.BaseSettings):
     LOGGER_VERBOSITY: int = logging.INFO
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_settings() -> Settings:
     """Gets the app settings."""
-    return Settings()  # type: ignore
+    return Settings()
 
 
 def get_logger() -> logging.Logger:

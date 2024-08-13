@@ -1,7 +1,7 @@
 """Utilities for working with strings."""
 
 import re
-from typing import Sequence
+from collections.abc import Sequence
 
 
 class StringToInt:

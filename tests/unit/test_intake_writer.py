@@ -31,11 +31,16 @@ class MockPatient:
 
     full_name: str = "Lea Avatar"
     first_name: str = "Lea"
-    date_of_birth: datetime.datetime = datetime.datetime(2015, 1, 1)
+    date_of_birth: datetime.datetime = datetime.datetime(
+        2015,
+        1,
+        1,
+        tzinfo=datetime.UTC,
+    )
     guardian: MockGuardian = dataclasses.field(default_factory=MockGuardian)
     age_gender_label: str = "girl"
     pronouns: list[str] = dataclasses.field(
-        default_factory=lambda: ["she", "her", "her", "hers", "herself"]
+        default_factory=lambda: ["she", "her", "her", "hers", "herself"],
     )
 
 
@@ -53,11 +58,11 @@ def test_replace_patient_information() -> None:
     paragraph = document.add_paragraph("{{FULL_NAME}} is a {{PRONOUN_0}}.")
     paragraph.add_run(" {{PRONOUN_2}}")
     report_writer = writer.ReportWriter(intake, "gpt-4o")  # type: ignore[arg-type]
-    report_writer.report = document
+    report_writer.report.document = document
     expected = "Lea Avatar is a she. her"
 
     report_writer.replace_patient_information()
-    actual = report_writer.report.paragraphs[0].text
+    actual = report_writer.report.document.paragraphs[0].text
 
     assert actual == expected
 

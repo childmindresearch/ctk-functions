@@ -248,6 +248,7 @@ def test_development_skill_transformer(
 def test_past_diagnoses_transformer(
     base: list[descriptors.PastDiagnosis],
     expected: str,
+    *,
     short: bool,
 ) -> None:
     """Test that the PastDiagnoses transformer returns the expected strings."""
@@ -285,45 +286,6 @@ def test_household_relationship_transformer(
 ) -> None:
     """Test that the HouseholdRelationship transformer returns the expected strings."""
     transformer = transformers.HouseholdRelationship(base, other)
-
-    assert str(transformer) == expected
-
-
-@pytest.mark.parametrize(
-    ("base", "expected"),
-    [
-        (
-            descriptors.GuardianMaritalStatus.domestic_partnership,
-            "The parents/guardians are in a domestic partnership",
-        ),
-        (
-            descriptors.GuardianMaritalStatus.widowed,
-            "The parent/guardian is widowed",
-        ),
-        (
-            descriptors.GuardianMaritalStatus.never_married,
-            "The parents/guardians were never married",
-        ),
-        (
-            descriptors.GuardianMaritalStatus.married,
-            "The parents/guardians are married",
-        ),
-        (
-            descriptors.GuardianMaritalStatus.divorced,
-            "The parents/guardians are divorced",
-        ),
-        (
-            descriptors.GuardianMaritalStatus.separated,
-            "The parents/guardians are separated",
-        ),
-    ],
-)
-def test_guardian_marital_status_transformer(
-    base: descriptors.GuardianMaritalStatus,
-    expected: str,
-) -> None:
-    """Test that the GuardianMaritalStatus transformer returns the expected strings."""
-    transformer = transformers.GuardianMaritalStatus(base)
 
     assert str(transformer) == expected
 
@@ -402,7 +364,7 @@ def test_classroom_type_transformer(
 
 @pytest.mark.parametrize(
     ("base", "expected"),
-    (
+    [
         (descriptors.HearingDevice.no, "does not use a hearing device"),
         (
             descriptors.HearingDevice.at_school_and_home,
@@ -410,7 +372,7 @@ def test_classroom_type_transformer(
         ),
         (descriptors.HearingDevice.at_school, "uses a hearing device at school"),
         (descriptors.HearingDevice.at_home, "uses a hearing device at home"),
-    ),
+    ],
 )
 def test_hearing_device_transformer(
     base: descriptors.HearingDevice,
