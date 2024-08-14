@@ -14,6 +14,7 @@ from typing import Generic, Protocol, TypeVar
 from ctk_functions import exceptions
 from ctk_functions.functions.intake import descriptors
 from ctk_functions.functions.intake.utils import string_utils
+from ctk_functions.microservices import redcap
 
 T = TypeVar("T")
 
@@ -409,7 +410,7 @@ class HouseholdMembers(MultiTransformer[HouseholdMemberInterface]):
         return string
 
 
-class HearingDevice(Transformer[descriptors.HearingDevice]):
+class HearingDevice(Transformer[redcap.HearingDevice]):
     """Transformer for the hearing device information."""
 
     def transform(self) -> str:
@@ -418,20 +419,20 @@ class HearingDevice(Transformer[descriptors.HearingDevice]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.HearingDevice.no:
+        if self.base == redcap.HearingDevice.no:
             return "does not use a hearing device"
-        if self.base == descriptors.HearingDevice.at_school_and_home:
+        if self.base == redcap.HearingDevice.at_school_and_home:
             return "uses a hearing device at school and at home"
-        if self.base == descriptors.HearingDevice.at_school:
+        if self.base == redcap.HearingDevice.at_school:
             return "uses a hearing device at school"
-        if self.base == descriptors.HearingDevice.at_home:
+        if self.base == redcap.HearingDevice.at_home:
             return "uses a hearing device at home"
 
         msg = "Invalid hearing device value."
         raise exceptions.TransformerError(msg)
 
 
-class Glasses(Transformer[descriptors.Glasses]):
+class Glasses(Transformer[redcap.Glasses]):
     """Transformer for the glasses information."""
 
     def transform(self) -> str:
@@ -440,13 +441,13 @@ class Glasses(Transformer[descriptors.Glasses]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.Glasses.no:
+        if self.base == redcap.Glasses.no:
             return "does not wear prescription glasses"
-        if self.base == descriptors.Glasses.at_school_and_home:
+        if self.base == redcap.Glasses.at_school_and_home:
             return "wears prescription glasses at school and at home"
-        if self.base == descriptors.Glasses.at_school:
+        if self.base == redcap.Glasses.at_school:
             return "wears prescription glasses at school"
-        if self.base == descriptors.Glasses.at_home:
+        if self.base == redcap.Glasses.at_home:
             return "wears prescription glasses at home"
         msg = "Invalid glasses value."
         raise exceptions.TransformerError(msg)

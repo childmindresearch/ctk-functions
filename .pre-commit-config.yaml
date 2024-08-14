@@ -22,7 +22,6 @@ repos:
     - azure-functions
     - cmi-docx
     - openai
-    - polars
     - pycap
     - pydantic
     - pydantic_settings
