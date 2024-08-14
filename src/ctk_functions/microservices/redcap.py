@@ -132,6 +132,16 @@ class SoothingDifficulty(enum.Enum):
     difficult = "2"
 
 
+class EducationPerformance(enum.Enum):
+    """Subjective performance in education."""
+
+    excellent = "1"
+    good = "2"
+    satisfactory = "3"
+    poor = "4"
+    failing = "5"
+
+
 class BirthComplications(enum.Enum):
     """The birth complications experienced by the patient."""
 
@@ -271,7 +281,7 @@ class USState(enum.Enum):
     US_Virgin_Islands = "56"
 
 
-class Language(enum.Enum):
+class Language(str, enum.Enum):
     """The languages spoken by the patient."""
 
     English = "1"
@@ -313,19 +323,43 @@ class LanguageFluency(enum.Enum):
 class HearingDevice(enum.Enum):
     """Whether the child has a hearing device."""
 
-    no = 1
-    at_school_and_home = 2
-    at_home = 3
-    at_school = 4
+    no = "1"
+    at_school_and_home = "2"
+    at_home = "3"
+    at_school = "4"
 
 
 class Glasses(enum.Enum):
     """Whether the child has glasses."""
 
-    no = 1
-    at_school_and_home = 2
-    at_home = 3
-    at_school = 4
+    no = "1"
+    at_school_and_home = "2"
+    at_home = "3"
+    at_school = "4"
+
+
+class EducationGrades(enum.Enum):
+    """Grades in education."""
+
+    As = "1"
+    Bs = "2"
+    Cs = "3"
+    Ds = "4"
+    Fs = "5"
+    ONE = "6"
+    TWO = "7"
+    THREE = "8"
+    FOUR = "9"
+    not_graded = "10"
+
+
+class PriorDisease(pydantic.BaseModel):
+    """Class used for prior diseases in the Primary Care Information."""
+
+    name: str
+    was_positive: bool
+    age: str | None
+    treatment: str | None
 
 
 class FamilyPsychiatricHistory(pydantic.BaseModel):
@@ -538,11 +572,20 @@ family_psychiatric_diagnoses = [
 ]
 
 
+class PastDiagnosis(pydantic.BaseModel):
+    """The model for the patient's past diagnosis."""
+
+    diagnosis: str
+    clinician: str
+    age_at_diagnosis: str
+
+
 class RedCapData(pydantic.BaseModel):
     """Validation for the REDcap data.
 
     The RedCap data is a bit messy with regards to typing. This model is a best-effort
-    to type coerce the data or fail early for unexpected data types.
+    to type coerce and do some basic processing on the data or fail early for
+    unexpected data.
     """
 
     adhd_text: str | None
@@ -619,7 +662,7 @@ class RedCapData(pydantic.BaseModel):
     age_8: str | None
     age_9: str | None
     age_10: str | None
-    age: int
+    age: float
     agress_exp: str | None
     biohx_dad_other: bool
     biohx_mom_other: bool
@@ -628,17 +671,17 @@ class RedCapData(pydantic.BaseModel):
     child_glasses: Glasses
     child_hearing_aid: HearingDevice
     child_interests: str
-    child_language1: bool | None
+    child_language1: str | None
     child_language1_spoken: int | None
     child_language1_age: str | None
     child_language1_setting: str | None
     child_language1_fluency: LanguageFluency | None
-    child_language2: bool | None
+    child_language2: str | None
     child_language2_spoken: int | None
     child_language2_age: str | None
     child_language2_setting: str | None
     child_language2_fluency: LanguageFluency | None
-    child_language3: bool | None
+    child_language3: str | None
     child_language3_spoken: int | None
     child_language3_age: str | None
     child_language3_setting: str | None
@@ -658,7 +701,7 @@ class RedCapData(pydantic.BaseModel):
     cpse_services___5: bool
     cpse_services___6: bool
     csection_reason: str | None
-    current_grades: str
+    current_grades: EducationGrades
     currentdose_1: str | None
     currentdose_2: str | None
     currentdose_3: str | None
@@ -688,7 +731,7 @@ class RedCapData(pydantic.BaseModel):
     dx_name10: str | None
     encephalitis_age: str | None
     encephalitis_treatment: str | None
-    encephalitis: str
+    encephalitis: bool
     firstname: str
     grade: str
     guardian_first_name: str
@@ -708,8 +751,8 @@ class RedCapData(pydantic.BaseModel):
     guardian_relationship___12: bool
     home_func: str
     iep: IndividualizedEducationProgram
-    infanttemp_adapt: str
-    infanttemp1: str
+    infanttemp_adapt: Adaptability
+    infanttemp1: SoothingDifficulty
     language_other: str | None
     language_spoken_other: str | None
     language_spoken: Language
@@ -786,10 +829,10 @@ class RedCapData(pydantic.BaseModel):
     medname_5_past: str | None
     meningitis_age: str | None
     meningitis_treatment: str | None
-    meningitis: str
+    meningitis: bool
     migraines_age: str | None
     migraines_treatment: str | None
-    migraines: str
+    migraines: bool
     opt_delivery: BirthDelivery
     other_relation: str | None
     othername: str | None
@@ -804,6 +847,7 @@ class RedCapData(pydantic.BaseModel):
     pastdx_8: str | None
     pastdx_9: str | None
     pastdx_10: str | None
+    past_psychmed_num: int | None
     pastschool1: str | None
     pastschool2: str | None
     pastschool3: str | None
@@ -837,54 +881,64 @@ class RedCapData(pydantic.BaseModel):
     peer_relations: FriendshipQuality
     peopleinhome1: str | None
     peopleinhome1_age: str | None
-    peopleinhome1_relation: int | None
+    peopleinhome1_relation: HouseholdRelationship | None
     peopleinhome1_relation_other: str | None
-    peopleinhome1_relationship: int | None
+    peopleinhome1_relationship: RelationshipQuality | None
     peopleinhome2: str | None
     peopleinhome2_age: str | None
-    peopleinhome2_relation: int | None
+    peopleinhome2_relation: HouseholdRelationship | None
     peopleinhome2_relation_other: str | None
-    peopleinhome_relationship: int | None
+    peopleinhome_relationship: RelationshipQuality | None
     peopleinhome3: str | None
     peopleinhome3_age: str | None
-    peopleinhome3_relation: int | None
+    peopleinhome3_relation: HouseholdRelationship | None
     peopleinhome3_relation_other: str | None
-    peopleinhome3_relationship: int | None
+    peopleinhome3_relationship: RelationshipQuality | None
     peopleinhome4: str | None
     peopleinhome4_age: str | None
-    peopleinhome4_relation: int | None
+    peopleinhome4_relation: HouseholdRelationship | None
     peopleinhome4_relation_other: str | None
-    peopleinhome4_relationship: int | None
+    peopleinhome4_relationship: RelationshipQuality | None
     peopleinhome5: str | None
     peopleinhome5_age: str | None
-    peopleinhome5_relation: int | None
+    peopleinhome5_relation: HouseholdRelationship | None
     peopleinhome5_relation_other: str | None
-    peopleinhome5_relationship: int | None
+    peopleinhome5_relationship: RelationshipQuality | None
     peopleinhome6: str | None
     peopleinhome6_age: str | None
-    peopleinhome6_relation: int | None
+    peopleinhome6_relation: HouseholdRelationship | None
     peopleinhome6_relation_other: str | None
-    peopleinhome6_relationship: int | None
+    peopleinhome6_relationship: RelationshipQuality | None
     peopleinhome7: str | None
     peopleinhome7_age: str | None
-    peopleinhome7_relation: int | None
+    peopleinhome7_relation: HouseholdRelationship | None
     peopleinhome7_relation_other: str | None
-    peopleinhome7_relationship: int | None
+    peopleinhome7_relationship: RelationshipQuality | None
     peopleinhome8: str | None
     peopleinhome8_age: str | None
-    peopleinhome8_relation: int | None
+    peopleinhome8_relation: HouseholdRelationship | None
     peopleinhome8_relation_other: str | None
-    peopleinhome8_relationship: int | None
+    peopleinhome8_relationship: RelationshipQuality | None
     peopleinhome9: str | None
     peopleinhome9_age: str | None
-    peopleinhome9_relation: int | None
+    peopleinhome9_relation: HouseholdRelationship | None
     peopleinhome9_relation_other: str | None
-    peopleinhome9_relationship: int | None
+    peopleinhome9_relationship: RelationshipQuality | None
     peopleinhome10: str | None
     peopleinhome10_age: str | None
-    peopleinhome10_relation: int | None
+    peopleinhome10_relation: HouseholdRelationship | None
     peopleinhome10_relation_other: str | None
-    peopleinhome10_relationship: int | None
+    peopleinhome10_relationship: RelationshipQuality | None
+    peopleinhome1_gradeocc: str | None
+    peopleinhome2_gradeocc: str | None
+    peopleinhome3_gradeocc: str | None
+    peopleinhome4_gradeocc: str | None
+    peopleinhome5_gradeocc: str | None
+    peopleinhome6_gradeocc: str | None
+    peopleinhome7_gradeocc: str | None
+    peopleinhome8_gradeocc: str | None
+    peopleinhome9_gradeocc: str | None
+    peopleinhome10_gradeocc: str | None
     phone: str
     preg_symp___1: bool
     preg_symp___2: bool
@@ -911,14 +965,13 @@ class RedCapData(pydantic.BaseModel):
     premature: bool
     pronouns_other: str | None
     pronouns: Pronouns
-    psych_meds_past: bool
     psychmed_name_1: str | None
     psychmed_name_2: str | None
     psychmed_name_3: str | None
     psychmed_name_4: str | None
     psychmed_name_5: str | None
     psychmed_num: int | None
-    recent_academicperformance: str
+    recent_academicperformance: EducationPerformance
     referral2: str
     residing_number: int
     school_func: str
@@ -932,7 +985,7 @@ class RedCapData(pydantic.BaseModel):
     schooltype: SchoolType
     seizures_age: str | None
     seizures_treatment: str | None
-    seizures: str
+    seizures: bool
     selfharm_exp: str | None
     skill12: str
     skill13: str
@@ -1056,7 +1109,14 @@ class RedCapData(pydantic.BaseModel):
             + [f"preg_symp___{index}" for index in range(1, 21)]
             + [f"guardian_relationship___{index}" for index in range(1, 13)]
             + [f"language___{index}" for index in range(1, 26)]
-            + ["biohx_dad_other", "biohx_mom_other"]
+            + [
+                "biohx_dad_other",
+                "biohx_mom_other",
+                "seizures",
+                "migraines",
+                "meningitis",
+                "encephalitis",
+            ]
             + [
                 f"{diag.checkbox_abbreviation}___4"
                 for diag in family_psychiatric_diagnoses
@@ -1141,7 +1201,7 @@ class RedCapData(pydantic.BaseModel):
     def household_languages(self) -> list[Language]:
         """The languages spoken by the patient."""
         household_languages = [
-            Language(index)
+            Language(str(index))
             for index in range(1, 25)
             if getattr(self, f"language___{index}")
         ]
@@ -1161,7 +1221,7 @@ class RedCapData(pydantic.BaseModel):
     # Aliases
 
     @property
-    def peopleinhome2_relationship(self) -> int | None:
+    def peopleinhome2_relationship(self) -> RelationshipQuality | None:
         """The relationship of the second person in the home.
 
         Alias used to make the name conform to the other peopleinhome#_relationship

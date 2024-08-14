@@ -6,7 +6,7 @@ import pytz
 from dateutil import parser as dateutil_parser
 
 from ctk_functions import config
-from ctk_functions.functions.intake import transformers
+from ctk_functions.functions.intake import descriptors, transformers
 from ctk_functions.microservices import redcap
 
 logger = config.get_logger()
@@ -160,10 +160,13 @@ class Guardian:
         logger.debug("Parsing guardian information.")
         self.first_name = all_caps_to_title(patient_data.guardian_first_name)
         self.last_name = all_caps_to_title(patient_data.guardian_last_name)
-        self.relationship = patient_data.guardian_relationship.name.replace(
-            "_",
-            " ",
-        )
+        if patient_data.guardian_relationship == redcap.GuardianRelationship.other:
+            self.relationship = patient_data.other_relation or "NOT PROVIDED"
+        else:
+            self.relationship = patient_data.guardian_relationship.name.replace(
+                "_",
+                " ",
+            )
 
     @property
     def title_name(self) -> str:
@@ -274,21 +277,15 @@ class HouseholdMember:
         )
         self.age = getattr(patient_data, f"peopleinhome{identifier}_age")
         self.relationship = transformers.HouseholdRelationship(
-            descriptors.HouseholdRelationship(
-                getattr(patient_data, f"peopleinhome{identifier}_relation"),
-            ),
+            getattr(patient_data, f"peopleinhome{identifier}_relation"),
             getattr(patient_data, f"peopleinhome{identifier}_relation_other"),
         ).transform()
 
-        faulty_tag = 2  # Member 2's ID is missing in this field.
-        if identifier != faulty_tag:
-            self.relationship_quality = descriptors.RelationshipQuality(
-                getattr(patient_data, f"peopleinhome{identifier}_relationship"),
-            ).name
-        else:
-            self.relationship_quality = descriptors.RelationshipQuality(
-                patient_data.peopleinhome_relationship,
-            ).name
+        self.relationship_quality = getattr(
+            patient_data,
+            f"peopleinhome{identifier}_relationship",
+        )
+
         self.grade_occupation = getattr(
             patient_data,
             f"peopleinhome{identifier}_gradeocc",
@@ -310,12 +307,12 @@ class Education:
         self.grade = patient_data.grade
         self.individualized_educational_program = (
             transformers.IndividualizedEducationProgram(
-                descriptors.IndividualizedEducationProgram(patient_data.iep),
+                patient_data.iep,
             )
         )
-        self.school_type = descriptors.SchoolType(patient_data.schooltype)
+        self.school_type = patient_data.schooltype
         self.classroom_type = transformers.ClassroomType(
-            descriptors.ClassroomType(patient_data.classroomtype),
+            patient_data.classroomtype,
             other=patient_data.classroomtype_other,
         )
         self.past_schools = [
@@ -328,11 +325,9 @@ class Education:
             if getattr(patient_data, f"pastschool{identifier}")
         ]
 
-        self.performance = descriptors.EducationPerformance(
-            patient_data.recent_academicperformance,
-        ).name.lower()
+        self.performance = patient_data.recent_academicperformance
         self.grades = transformers.EducationGrades(
-            descriptors.EducationGrades(patient_data.current_grades),
+            patient_data.current_grades,
         ).transform()
         self.school_functioning = patient_data.school_func
 
@@ -367,7 +362,7 @@ class PsychiatricMedication:
         else:
             self.current_medication = None
 
-        if patient_data.psych_meds_past:
+        if patient_data.past_psychmed_num:
             self.past_medication: list[descriptors.PastPsychiatricMedication] | None = [
                 descriptors.PastPsychiatricMedication(
                     name=getattr(patient_data, f"medname{index}_past"),
@@ -398,11 +393,11 @@ class Development:
             patient_data.txt_duration_preg_num,
         )
         self.delivery = transformers.BirthDelivery(
-            descriptors.BirthDelivery(patient_data.opt_delivery),
+            patient_data.opt_delivery,
             other=patient_data.csection_reason,
         )
         self.delivery_location = transformers.DeliveryLocation(
-            descriptors.DeliveryLocation(patient_data.birth_location),
+            patient_data.birth_location,
             patient_data.birth_other,
         )
 
@@ -418,11 +413,9 @@ class Development:
         self.premature_birth = bool(patient_data.premature)
         self.premature_birth_specify = patient_data.premature_specify
         self.adaptability = transformers.Adaptability(
-            descriptors.Adaptability(patient_data.infanttemp_adapt),
+            patient_data.infanttemp_adapt,
         )
-        self.soothing_difficulty = descriptors.SoothingDifficulty(
-            patient_data.infanttemp1,
-        )
+        self.soothing_difficulty = patient_data.infanttemp1
 
         cpse_encodings = (
             ("speechlang", "speech and language therapy"),
@@ -484,7 +477,7 @@ class PsychiatricHistory:
         """
         logger.debug("Parsing psychiatric history.")
         past_diagnoses = [
-            descriptors.PastDiagnosis(
+            redcap.PastDiagnosis(
                 diagnosis=getattr(patient_data, f"pastdx_{index}"),
                 clinician=getattr(patient_data, f"dx_name{index}"),
                 age_at_diagnosis=str(getattr(patient_data, f"age_{index}")),
@@ -496,9 +489,7 @@ class PsychiatricHistory:
         self.therapeutic_interventions = [
             TherapeuticInterventions(patient_data, identifier)
             for identifier in range(1, 11)
-            if patient_data[
-                f"txhx_{identifier}" if identifier != 2 else f"txhx{identifier}"  # noqa: PLR2004
-            ]
+            if getattr(patient_data, f"txhx_{identifier}")
         ]
         self.medications = PsychiatricMedication(patient_data)
         self.is_follow_up_done = patient_data.clinician is not None
@@ -555,12 +546,12 @@ class FamilyPyshicatricHistory:
             history_known = ""
 
         family_diagnoses = [
-            descriptors.FamilyPsychiatricHistory(
+            redcap.FamilyPsychiatricHistory(
                 diagnosis=diagnosis.name,
-                no_formal_diagnosis=patient_data[
-                    f"{diagnosis.checkbox_abbreviation}___4"
-                ]
-                == "1",
+                no_formal_diagnosis=getattr(
+                    patient_data,
+                    f"{diagnosis.checkbox_abbreviation}___4",
+                ),
                 family_members=getattr(
                     patient_data,
                     f"{diagnosis.text_abbreviation}_text",
@@ -629,9 +620,9 @@ class PrimaryCareInformation:
             """
 
         diseases = [
-            descriptors.PriorDisease(
+            redcap.PriorDisease(
                 name=disease,
-                was_positive=patient_data[disease] == "1",
+                was_positive=getattr(patient_data, disease),
                 age=getattr(patient_data, f"{disease}_age"),
                 treatment=getattr(patient_data, f"{disease}_treatment"),
             )

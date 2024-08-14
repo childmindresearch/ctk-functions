@@ -11,12 +11,12 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions import config
-from ctk_functions.functions.intake import descriptors, parser, transformers, writer_llm
+from ctk_functions.functions.intake import parser, transformers, writer_llm
 from ctk_functions.functions.intake.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import llm
+from ctk_functions.microservices import llm, redcap
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -203,7 +203,7 @@ class ReportWriter:
             gestation with {delivery} at {delivery_location}.
         """
 
-        if delivery.base == descriptors.BirthDelivery.cesarean:
+        if delivery.base == redcap.BirthDelivery.cesarean:
             # Contains a quote by the parent.
             birth_sentence = self.llm.run_edit(birth_sentence)
 
