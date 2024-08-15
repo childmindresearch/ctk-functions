@@ -327,7 +327,7 @@ class Education:
             if getattr(patient_data, f"pastschool{identifier}")
         ]
 
-        self.performance = patient_data.recent_academicperformance
+        self.performance = patient_data.recent_academicperformance.name
         self.grades = transformers.EducationGrades(
             patient_data.current_grades,
         ).transform()
