@@ -675,7 +675,7 @@ class RedCapData(pydantic.BaseModel):
     preg_symp___7: bool
     preg_symp___8: bool
     preg_symp___9: bool
-    pregnancyhistory: str
+    pregnancyhistory: str | None
     premature_specify: str | None
     premature: bool
     schoolservices___1: bool
@@ -735,7 +735,7 @@ class RedCapData(pydantic.BaseModel):
     school_func: str
     school: str
     schooltype: SchoolType
-    yrs_school: int
+    yrs_school: str
 
     # Child languages
 
