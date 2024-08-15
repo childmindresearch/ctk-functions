@@ -350,9 +350,7 @@ class PsychiatricMedication:
                     name=getattr(patient_data, f"psychmed_name_{index}"),
                     initial_dosage=getattr(patient_data, f"startdose_{index}"),
                     current_dosage=getattr(patient_data, f"currentdose_{index}"),
-                    reason_for_taking=getattr(patient_data, f"med{index}_reason")
-                    if index != 2  # noqa: PLR2004
-                    else patient_data.med2_current_reason,
+                    reason_for_taking=getattr(patient_data, f"med{index}_reason"),
                     date_started=getattr(patient_data, f"med{index}_start"),
                     response_to_medication=getattr(patient_data, f"med{index}_se"),
                     prescribing_doctor=getattr(patient_data, f"med{index}_doc"),
