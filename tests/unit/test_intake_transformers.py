@@ -2,24 +2,25 @@
 
 import pytest
 
-from ctk_functions.functions.intake import descriptors, transformers
+from ctk_functions.functions.intake import transformers
+from ctk_functions.microservices import redcap
 
 
 @pytest.mark.parametrize(
     ("iep", "expected"),
     [
         (
-            descriptors.IndividualizedEducationProgram.yes,
+            redcap.IndividualizedEducationProgram.yes,
             "had an Individualized Education Program (IEP)",
         ),
         (
-            descriptors.IndividualizedEducationProgram.no,
+            redcap.IndividualizedEducationProgram.no,
             "did not have an Individualized Education Program (IEP)",
         ),
     ],
 )
 def test_individualized_education_program_transformer(
-    iep: descriptors.IndividualizedEducationProgram,
+    iep: redcap.IndividualizedEducationProgram,
     expected: str,
 ) -> None:
     """Test that the IEP transformer returns the expected strings."""
@@ -32,25 +33,25 @@ def test_individualized_education_program_transformer(
     ("value", "expected", "other"),
     [
         (
-            [descriptors.BirthComplications.none_of_the_above],
+            [redcap.BirthComplications.none_of_the_above],
             "no birth complications",
             None,
         ),
         (
-            [descriptors.BirthComplications.spotting_or_vaginal_bleeding],
+            [redcap.BirthComplications.spotting_or_vaginal_bleeding],
             "the following birth complication: spotting or vaginal bleeding",
             None,
         ),
         (
             [
-                descriptors.BirthComplications.emotional_problems,
-                descriptors.BirthComplications.diabetes,
+                redcap.BirthComplications.emotional_problems,
+                redcap.BirthComplications.diabetes,
             ],
             "the following birth complications: emotional problems and diabetes",
             None,
         ),
         (
-            [descriptors.BirthComplications.other_illnesses],
+            [redcap.BirthComplications.other_illnesses],
             "the following birth complication: tester",
             "tester",
         ),
@@ -71,29 +72,29 @@ def test_birth_complications_transformer(
     ("value", "expected", "other"),
     [
         (
-            descriptors.BirthDelivery.unknown,
+            redcap.BirthDelivery.unknown,
             "an unknown type of delivery",
             None,
         ),
         (
-            descriptors.BirthDelivery.vaginal,
+            redcap.BirthDelivery.vaginal,
             "a vaginal delivery",
             None,
         ),
         (
-            descriptors.BirthDelivery.cesarean,
+            redcap.BirthDelivery.cesarean,
             'a cesarean section due to "unspecified"',
             None,
         ),
         (
-            descriptors.BirthDelivery.cesarean,
+            redcap.BirthDelivery.cesarean,
             'a cesarean section due to "test reason"',
             "test reason",
         ),
     ],
 )
 def test_birth_delivery_transformer(
-    value: descriptors.BirthDelivery,
+    value: redcap.BirthDelivery,
     expected: str,
     other: str | None,
 ) -> None:
@@ -107,34 +108,34 @@ def test_birth_delivery_transformer(
     ("value", "expected", "other"),
     [
         (
-            descriptors.DeliveryLocation.other,
+            redcap.DeliveryLocation.other,
             "an unspecified location",
             None,
         ),
         (
-            descriptors.DeliveryLocation.other,
+            redcap.DeliveryLocation.other,
             "test location",
             "test location",
         ),
         (
-            descriptors.DeliveryLocation.hospital,
+            redcap.DeliveryLocation.hospital,
             "a hospital",
             None,
         ),
         (
-            descriptors.DeliveryLocation.home,
+            redcap.DeliveryLocation.home,
             "home",
             None,
         ),
         (
-            descriptors.DeliveryLocation.hospital,
+            redcap.DeliveryLocation.hospital,
             "a hospital",
             "should not appear",
         ),
     ],
 )
 def test_delivery_location_transformer(
-    value: descriptors.DeliveryLocation,
+    value: redcap.DeliveryLocation,
     other: str | None,
     expected: str,
 ) -> None:
@@ -148,17 +149,17 @@ def test_delivery_location_transformer(
     ("value", "expected"),
     [
         (
-            descriptors.Adaptability.difficult,
+            redcap.Adaptability.difficult,
             "a slow to warm up temperament",
         ),
         (
-            descriptors.Adaptability.easy,
+            redcap.Adaptability.easy,
             "an adaptable temperament",
         ),
     ],
 )
 def test_adaptability_transformer(
-    value: descriptors.Adaptability,
+    value: redcap.Adaptability,
     expected: str,
 ) -> None:
     """Test that the Adaptability transformer returns the expected strings."""
@@ -210,12 +211,12 @@ def test_development_skill_transformer(
         ([], "with no prior history of psychiatric diagnoses", False),
         (
             [
-                descriptors.PastDiagnosis(
+                redcap.PastDiagnosis(
                     diagnosis="Anxiety",
                     age_at_diagnosis="8",
                     clinician="Dr. Smith",
                 ),
-                descriptors.PastDiagnosis(
+                redcap.PastDiagnosis(
                     diagnosis="Depression",
                     age_at_diagnosis="9",
                     clinician="Dr. Johnson",
@@ -229,12 +230,12 @@ def test_development_skill_transformer(
         ),
         (
             [
-                descriptors.PastDiagnosis(
+                redcap.PastDiagnosis(
                     diagnosis="Anxiety",
                     age_at_diagnosis="2022-01-01",
                     clinician="Dr. Smith",
                 ),
-                descriptors.PastDiagnosis(
+                redcap.PastDiagnosis(
                     diagnosis="Depression",
                     age_at_diagnosis="2022-02-01",
                     clinician="Dr. Johnson",
@@ -246,7 +247,7 @@ def test_development_skill_transformer(
     ],
 )
 def test_past_diagnoses_transformer(
-    base: list[descriptors.PastDiagnosis],
+    base: list[redcap.PastDiagnosis],
     expected: str,
     *,
     short: bool,
@@ -263,24 +264,24 @@ def test_past_diagnoses_transformer(
     ("base", "expected", "other"),
     [
         (
-            descriptors.HouseholdRelationship.other_relative,
+            redcap.HouseholdRelationship.other_relative,
             "unspecified relationship",
             None,
         ),
         (
-            descriptors.HouseholdRelationship.other_relative,
+            redcap.HouseholdRelationship.other_relative,
             "test relationship",
             "test relationship",
         ),
         (
-            descriptors.HouseholdRelationship.brother,
+            redcap.HouseholdRelationship.brother,
             "brother",
             None,
         ),
     ],
 )
 def test_household_relationship_transformer(
-    base: descriptors.HouseholdRelationship,
+    base: redcap.HouseholdRelationship,
     expected: str,
     other: str | None,
 ) -> None:
@@ -311,13 +312,13 @@ def test_duration_of_pregnancy_transformer(duration: str, expected: str) -> None
 @pytest.mark.parametrize(
     ("handedness", "expected"),
     [
-        (descriptors.Handedness.left, "left-handed"),
-        (descriptors.Handedness.right, "right-handed"),
-        (descriptors.Handedness.unknown, ""),
+        (redcap.Handedness.left, "left-handed"),
+        (redcap.Handedness.right, "right-handed"),
+        (redcap.Handedness.unknown, ""),
     ],
 )
 def test_handedness_transformer(
-    handedness: descriptors.Handedness,
+    handedness: redcap.Handedness,
     expected: str,
 ) -> None:
     """Test that the Handedness transformer returns the expected strings."""
@@ -330,29 +331,29 @@ def test_handedness_transformer(
     ("base", "other", "expected"),
     [
         (
-            descriptors.ClassroomType.general_education,
+            redcap.ClassroomType.general_education,
             None,
             "general education",
         ),
         (
-            descriptors.ClassroomType._12COLON1COLON1,
+            redcap.ClassroomType._12COLON1COLON1,
             None,
             "12:1:1",
         ),
         (
-            descriptors.ClassroomType.other,
+            redcap.ClassroomType.other,
             "test classroom type",
             "test classroom type",
         ),
         (
-            descriptors.ClassroomType.other,
+            redcap.ClassroomType.other,
             None,
             "an unspecified classroom type",
         ),
     ],
 )
 def test_classroom_type_transformer(
-    base: descriptors.ClassroomType,
+    base: redcap.ClassroomType,
     other: str | None,
     expected: str,
 ) -> None:
@@ -365,17 +366,17 @@ def test_classroom_type_transformer(
 @pytest.mark.parametrize(
     ("base", "expected"),
     [
-        (descriptors.HearingDevice.no, "does not use a hearing device"),
+        (redcap.HearingDevice.no, "does not use a hearing device"),
         (
-            descriptors.HearingDevice.at_school_and_home,
+            redcap.HearingDevice.at_school_and_home,
             "uses a hearing device at school and at home",
         ),
-        (descriptors.HearingDevice.at_school, "uses a hearing device at school"),
-        (descriptors.HearingDevice.at_home, "uses a hearing device at home"),
+        (redcap.HearingDevice.at_school, "uses a hearing device at school"),
+        (redcap.HearingDevice.at_home, "uses a hearing device at home"),
     ],
 )
 def test_hearing_device_transformer(
-    base: descriptors.HearingDevice,
+    base: redcap.HearingDevice,
     expected: str,
 ) -> None:
     """Test that the HearingDevice transformer returns the expected strings."""
@@ -388,49 +389,49 @@ def test_hearing_device_transformer(
     ("base", "expected"),
     [
         (
-            descriptors.EducationGrades.As,
+            redcap.EducationGrades.As,
             "As",
         ),
         (
-            descriptors.EducationGrades.Bs,
+            redcap.EducationGrades.Bs,
             "Bs",
         ),
         (
-            descriptors.EducationGrades.Cs,
+            redcap.EducationGrades.Cs,
             "Cs",
         ),
         (
-            descriptors.EducationGrades.Ds,
+            redcap.EducationGrades.Ds,
             "Ds",
         ),
         (
-            descriptors.EducationGrades.Fs,
+            redcap.EducationGrades.Fs,
             "Fs",
         ),
         (
-            descriptors.EducationGrades.ONE,
+            redcap.EducationGrades.ONE,
             "1s",
         ),
         (
-            descriptors.EducationGrades.TWO,
+            redcap.EducationGrades.TWO,
             "2s",
         ),
         (
-            descriptors.EducationGrades.THREE,
+            redcap.EducationGrades.THREE,
             "3s",
         ),
         (
-            descriptors.EducationGrades.FOUR,
+            redcap.EducationGrades.FOUR,
             "4s",
         ),
         (
-            descriptors.EducationGrades.not_graded,
+            redcap.EducationGrades.not_graded,
             "not graded",
         ),
     ],
 )
 def test_education_grades_transformer(
-    base: descriptors.EducationGrades,
+    base: redcap.EducationGrades,
     expected: str,
 ) -> None:
     """Test that the EducationGrades transformer returns the expected strings."""

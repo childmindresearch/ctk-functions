@@ -6,7 +6,7 @@ import typing
 
 from azure import functions
 
-from ctk_functions import config, exceptions
+from ctk_functions import config
 from ctk_functions.functions.file_conversion import (
     controller as file_conversion_controller,
 )
@@ -102,19 +102,7 @@ async def get_intake_report(req: functions.HttpRequest) -> functions.HttpRespons
         survey_id,
         model,
     )
-    try:
-        docx_bytes = await intake_controller.get_intake_report(survey_id, model)
-    except exceptions.RedcapError as exc_info:
-        logger.exception("Error generating intake report.")
-        return functions.HttpResponse(
-            str(exc_info),
-            status_code=http.HTTPStatus.BAD_REQUEST,
-        )
-
-    return functions.HttpResponse(
-        body=docx_bytes,
-        status_code=http.HTTPStatus.OK,
-    )
+    return await intake_controller.get_intake_report(survey_id, model)
 
 
 @app.function_name(name="MarkdownToDocx")
