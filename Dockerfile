@@ -21,6 +21,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 COPY . /home/site/wwwroot
+RUN mkdir -p /home/site/wwwroot/src/ctk_functions/data/signatures
 COPY --from=unzipper /files/*.png /home/site/wwwroot/src/ctk_functions/data/signatures
 
 RUN cd /home/site/wwwroot && \
