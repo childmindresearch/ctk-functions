@@ -107,6 +107,7 @@ convention = "google"
   "SLF001",  # accessing private members in tests is fine
   "INP001"  # tests should not be a module
 ]
+"local/**/*" = ["ALL"]
 
 [tool.ruff.format]
 quote-style = "double"

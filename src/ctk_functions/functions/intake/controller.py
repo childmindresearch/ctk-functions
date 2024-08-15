@@ -6,9 +6,11 @@ import io
 import pydantic
 from azure import functions
 
-from ctk_functions import exceptions
+from ctk_functions import config, exceptions
 from ctk_functions.functions.intake import parser, writer
 from ctk_functions.microservices import llm, redcap
+
+logger = config.get_logger()
 
 
 async def get_intake_report(
@@ -24,6 +26,7 @@ async def get_intake_report(
     Returns:
         The .docx file bytes.
     """
+    logger.debug("Entererd controller of get_intake_report.")
     try:
         intake_data = redcap.get_intake_data(survey_id)
     except (pydantic.ValidationError, exceptions.RedcapError):
@@ -38,6 +41,7 @@ async def get_intake_report(
     report = writer.ReportWriter(parsed_data, model=model)
     await report.transform()
 
+    logger.debug("Successfully generated intake report.")
     out = io.BytesIO()
     report.report.document.save(out)
     return functions.HttpResponse(body=out.getvalue(), status_code=http.HTTPStatus.OK)
