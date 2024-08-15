@@ -3,6 +3,7 @@
 import asyncio
 import enum
 import itertools
+import threading
 
 import cmi_docx
 import docx
@@ -973,17 +974,26 @@ class ReportWriter:
 
     async def make_llm_edits(self) -> None:
         """Makes edits to the report using a large language model."""
+        lock = threading.Lock()
+
+        async def replace_placeholder(
+            placeholder: writer_llm.LlmPlaceholder,
+        ) -> None:
+            replacement = await placeholder.replacement
+            with lock:
+                self.report.replace(
+                    placeholder.id,
+                    replacement,
+                    cmi_docx.RunStyle(font_rgb=RGB.LLM.value),
+                )
+
         logger.debug("Making edits to the report using a large language model.")
-        replacements = await asyncio.gather(
-            *[placeholder.replacement for placeholder in self.llm.placeholders],
+        await asyncio.gather(
+            *[
+                replace_placeholder(placeholder)
+                for placeholder in self.llm.placeholders
+            ],
         )
-        ids = [placeholder.id for placeholder in self.llm.placeholders]
-        for placeholder_uuid, replacement in zip(ids, replacements, strict=False):
-            self.report.replace(
-                placeholder_uuid,
-                replacement.strip(),
-                cmi_docx.RunStyle(font_rgb=RGB.LLM.value),
-            )
 
     def add_footer(self) -> None:
         """Adds a footer to the report."""
