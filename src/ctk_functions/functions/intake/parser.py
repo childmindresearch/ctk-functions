@@ -576,11 +576,7 @@ class TherapeuticInterventions:
             identifier: The id of the therapeutic history instance.
         """
         logger.debug("Parsing therapeutic intervention %s.", identifier)
-        faulty_identifier = 2
-        if identifier != faulty_identifier:
-            self.therapist = getattr(patient_data, f"txhx_{identifier}")
-        else:
-            self.therapist = getattr(patient_data, f"txhx{identifier}")
+        self.therapist = getattr(patient_data, f"txhx_{identifier}")
         self.reason = getattr(patient_data, f"txhx{identifier}_reason")
         self.start = getattr(patient_data, f"txhx{identifier}_start")
         self.end = getattr(patient_data, f"txhx{identifier}_end")

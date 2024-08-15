@@ -588,12 +588,402 @@ class RedCapData(pydantic.BaseModel):
     unexpected data.
     """
 
+    # Basic child information
+
+    age: float
+    child_glasses: Glasses
+    child_hearing_aid: HearingDevice
+    child_interests: str
+    childgender_other: str | None
+    childgender: Gender
+    city: str
+    close_friends: int
+    concern_current: str
+    dob: str
+    dominant_hand: Handedness
+    firstname: str
+    language_spoken_other: str | None
+    language_spoken: Language
+    lastname: str
+    othername: str | None
+    outcome2: str
+    peer_relations: FriendshipQuality
+    phone: str
+    pronouns_other: str | None
+    pronouns: Pronouns
+    referral2: str
+    state: USState
+
+    # Guardian
+
+    guardian_first_name: str
+    guardian_last_name: str
+    guardian_maritalstatus: GuardianMaritalStatus
+    guardian_relationship___1: bool
+    guardian_relationship___10: bool
+    guardian_relationship___11: bool
+    guardian_relationship___12: bool
+    guardian_relationship___2: bool
+    guardian_relationship___3: bool
+    guardian_relationship___4: bool
+    guardian_relationship___5: bool
+    guardian_relationship___6: bool
+    guardian_relationship___7: bool
+    guardian_relationship___8: bool
+    guardian_relationship___9: bool
+    other_relation: str | None
+
+    # Development
+
+    aba_dates: str | None
+    aba_dur: str | None
+    birth_location: DeliveryLocation
+    birth_other: str | None
+    cpse_services___1: bool
+    cpse_services___2: bool
+    cpse_services___3: bool
+    cpse_services___4: bool
+    cpse_services___5: bool
+    cpse_services___6: bool
+    csection_reason: str | None
+    infanttemp_adapt: Adaptability
+    infanttemp1: SoothingDifficulty
+    occ_therapy_dates: str | None
+    occ_therapy_dur: str | None
+    opt_delivery: BirthDelivery
+    other_dates: str | None
+    other_dur: str | None
+    phy_therapy_dates: str | None
+    phy_therapy_dur: str | None
+    preg_symp___1: bool
+    preg_symp___10: bool
+    preg_symp___11: bool
+    preg_symp___12: bool
+    preg_symp___13: bool
+    preg_symp___14: bool
+    preg_symp___15: bool
+    preg_symp___16: bool
+    preg_symp___17: bool
+    preg_symp___18: bool
+    preg_symp___19: bool
+    preg_symp___2: bool
+    preg_symp___20: bool
+    preg_symp___3: bool
+    preg_symp___4: bool
+    preg_symp___5: bool
+    preg_symp___6: bool
+    preg_symp___7: bool
+    preg_symp___8: bool
+    preg_symp___9: bool
+    pregnancyhistory: str
+    premature_specify: str | None
+    premature: bool
+    schoolservices___1: bool
+    schoolservices___2: bool
+    schoolservices___3: bool
+    schoolservices___4: bool
+    schoolservices___5: bool
+    schoolservices___6: bool
+    seit_dates: str | None
+    seit_dur: str | None
+    skill12: str
+    skill13: str
+    skill16: str
+    skill6: str
+    speechlang_dates: str | None
+    speechlang_dur: str | None
+    txt_duration_preg_num: str
+
+    # Education
+
+    classroomtype_other: str | None
+    classroomtype: ClassroomType
+    current_grades: EducationGrades
+    grade: str
+    iep: IndividualizedEducationProgram
+    pastschool1_grades: str | None
+    pastschool1: str | None
+    pastschool10_grades: str | None
+    pastschool10: str | None
+    pastschool10comments: str | None
+    pastschool1comments: str | None
+    pastschool2_grades: str | None
+    pastschool2: str | None
+    pastschool2comments: str | None
+    pastschool3_grades: str | None
+    pastschool3: str | None
+    pastschool3comments: str | None
+    pastschool4_grades: str | None
+    pastschool4: str | None
+    pastschool4comments: str | None
+    pastschool5_grades: str | None
+    pastschool5: str | None
+    pastschool5comments: str | None
+    pastschool6_grades: str | None
+    pastschool6: str | None
+    pastschool6comments: str | None
+    pastschool7_grades: str | None
+    pastschool7: str | None
+    pastschool7comments: str | None
+    pastschool8_grades: str | None
+    pastschool8: str | None
+    pastschool8comments: str | None
+    pastschool9_grades: str | None
+    pastschool9: str | None
+    pastschool9comments: str | None
+    recent_academicperformance: EducationPerformance
+    school_func: str
+    school: str
+    schooltype: SchoolType
+    yrs_school: int
+
+    # Child languages
+
+    child_language1: str | None
+    child_language1_spoken: int | None
+    child_language1_age: str | None
+    child_language1_setting: str | None
+    child_language1_fluency: LanguageFluency | None
+    child_language2: str | None
+    child_language2_spoken: int | None
+    child_language2_age: str | None
+    child_language2_setting: str | None
+    child_language2_fluency: LanguageFluency | None
+    child_language3: str | None
+    child_language3_spoken: int | None
+    child_language3_age: str | None
+    child_language3_setting: str | None
+    child_language3_fluency: LanguageFluency | None
+
+    # Household
+
+    home_func: str
+    language___1: bool
+    language___10: bool
+    language___11: bool
+    language___12: bool
+    language___13: bool
+    language___14: bool
+    language___15: bool
+    language___16: bool
+    language___17: bool
+    language___18: bool
+    language___19: bool
+    language___2: bool
+    language___20: bool
+    language___21: bool
+    language___22: bool
+    language___23: bool
+    language___24: bool
+    language___25: bool
+    language___3: bool
+    language___4: bool
+    language___5: bool
+    language___6: bool
+    language___7: bool
+    language___8: bool
+    language___9: bool
+    language_other: str | None
+    peopleinhome_relationship: RelationshipQuality | None
+    peopleinhome1_age: str | None
+    peopleinhome1_gradeocc: str | None
+    peopleinhome1_relation_other: str | None
+    peopleinhome1_relation: HouseholdRelationship | None
+    peopleinhome1_relationship: RelationshipQuality | None
+    peopleinhome1: str | None
+    peopleinhome10_age: str | None
+    peopleinhome10_gradeocc: str | None
+    peopleinhome10_relation_other: str | None
+    peopleinhome10_relation: HouseholdRelationship | None
+    peopleinhome10_relationship: RelationshipQuality | None
+    peopleinhome10: str | None
+    peopleinhome2_age: str | None
+    peopleinhome2_gradeocc: str | None
+    peopleinhome2_relation_other: str | None
+    peopleinhome2_relation: HouseholdRelationship | None
+    peopleinhome2: str | None
+    peopleinhome3_age: str | None
+    peopleinhome3_gradeocc: str | None
+    peopleinhome3_relation_other: str | None
+    peopleinhome3_relation: HouseholdRelationship | None
+    peopleinhome3_relationship: RelationshipQuality | None
+    peopleinhome3: str | None
+    peopleinhome4_age: str | None
+    peopleinhome4_gradeocc: str | None
+    peopleinhome4_relation_other: str | None
+    peopleinhome4_relation: HouseholdRelationship | None
+    peopleinhome4_relationship: RelationshipQuality | None
+    peopleinhome4: str | None
+    peopleinhome5_age: str | None
+    peopleinhome5_gradeocc: str | None
+    peopleinhome5_relation_other: str | None
+    peopleinhome5_relation: HouseholdRelationship | None
+    peopleinhome5_relationship: RelationshipQuality | None
+    peopleinhome5: str | None
+    peopleinhome6_age: str | None
+    peopleinhome6_gradeocc: str | None
+    peopleinhome6_relation_other: str | None
+    peopleinhome6_relation: HouseholdRelationship | None
+    peopleinhome6_relationship: RelationshipQuality | None
+    peopleinhome6: str | None
+    peopleinhome7_age: str | None
+    peopleinhome7_gradeocc: str | None
+    peopleinhome7_relation_other: str | None
+    peopleinhome7_relation: HouseholdRelationship | None
+    peopleinhome7_relationship: RelationshipQuality | None
+    peopleinhome7: str | None
+    peopleinhome8_age: str | None
+    peopleinhome8_gradeocc: str | None
+    peopleinhome8_relation_other: str | None
+    peopleinhome8_relation: HouseholdRelationship | None
+    peopleinhome8_relationship: RelationshipQuality | None
+    peopleinhome8: str | None
+    peopleinhome9_age: str | None
+    peopleinhome9_gradeocc: str | None
+    peopleinhome9_relation_other: str | None
+    peopleinhome9_relation: HouseholdRelationship | None
+    peopleinhome9_relationship: RelationshipQuality | None
+    peopleinhome9: str | None
+    residing_number: int
+
+    # Child psychiatric history
+
+    acs_exp: str | None
+    agress_exp: str | None
+    clinician: str | None
+    age_1: str | None
+    age_2: str | None
+    age_3: str | None
+    age_4: str | None
+    age_5: str | None
+    age_6: str | None
+    age_7: str | None
+    age_8: str | None
+    age_9: str | None
+    age_10: str | None
+    dx_name1: str | None
+    dx_name2: str | None
+    dx_name3: str | None
+    dx_name4: str | None
+    dx_name5: str | None
+    dx_name6: str | None
+    dx_name7: str | None
+    dx_name8: str | None
+    dx_name9: str | None
+    dx_name10: str | None
+    pastdx_1: str | None
+    pastdx_2: str | None
+    pastdx_3: str | None
+    pastdx_4: str | None
+    pastdx_5: str | None
+    pastdx_6: str | None
+    pastdx_7: str | None
+    pastdx_8: str | None
+    pastdx_9: str | None
+    pastdx_10: str | None
+    violence_exp: str | None
+    selfharm_exp: str | None
+
+    # Child psychiatric medication
+
+    currentdose_1: str | None
+    currentdose_2: str | None
+    currentdose_3: str | None
+    currentdose_4: str | None
+    currentdose_5: str | None
+    dose1_max_past: str | None
+    dose1_start_past: str | None
+    dose2_max_past: str | None
+    dose2_start_past: str | None
+    dose3_max_past: str | None
+    dose3_start_past: str | None
+    dose4_max_past: str | None
+    dose_4_start_past: str | None
+    dose5_max_past: str | None
+    dose5_start_past: str | None
+    med1_doc: str | None
+    med1_past_date: str | None
+    med1_past_doc: str | None
+    med1_past_reason: str | None
+    med1_past_se: str | None
+    med1_reason: str | None
+    med1_se: str | None
+    med1_start: str | None
+    med2_current_reason: str | None
+    med2_doc: str | None
+    med2_past_date: str | None
+    med2_past_doc: str | None
+    med2_past_reason: str | None
+    med2_past_se: str | None
+    med2_se: str | None
+    med2_start: str | None
+    med3_doc: str | None
+    med3_past_date: str | None
+    med3_past_doc: str | None
+    med3_past_reason: str | None
+    med3_past_se: str | None
+    med3_reason: str | None
+    med3_se: str | None
+    med3_start: str | None
+    med4_date: str | None
+    med4_doc: str | None
+    med4_past_date: str | None
+    med4_past_doc: str | None
+    med4_past_reason: str | None
+    med4_past_se: str | None
+    med4_reason: str | None
+    med4_se: str | None
+    med5_date: str | None
+    med5_doc: str | None
+    med5_past_date: str | None
+    med5_past_doc: str | None
+    med5_past_reason: str | None
+    med5_past_se: str | None
+    med5_reason: str | None
+    med5_se: str | None
+    medname_5_past: str | None
+    medname1_past: str | None
+    medname2_past: str | None
+    medname3_past: str | None
+    medname4_past: str | None
+    past_psychmed_num: int | None
+    psychmed_name_1: str | None
+    psychmed_name_2: str | None
+    psychmed_name_3: str | None
+    psychmed_name_4: str | None
+    psychmed_name_5: str | None
+    psychmed_num: int | None
+    startdose_1: str | None
+    startdose_2: str | None
+    startdose_3: str | None
+    startdose_4: str | None
+    startdose_5: str | None
+
+    # Child diseases
+
+    migraines_age: str | None
+    migraines_treatment: str | None
+    migraines: bool
+    meningitis_age: str | None
+    meningitis_treatment: str | None
+    meningitis: bool
+    seizures_age: str | None
+    seizures_treatment: str | None
+    seizures: bool
+    encephalitis_age: str | None
+    encephalitis_treatment: str | None
+    encephalitis: bool
+
+    # Family psychiatric history
+
     adhd_text: str | None
     adhd___4: bool
     aa_text: str | None
     aa___4: bool
     autism_text: str | None
     autism___4: bool
+    biohx_dad_other: bool
+    biohx_mom_other: bool
     bipolar_text: str | None
     bipolar___4: bool
     conduct_text: str | None
@@ -651,352 +1041,8 @@ class RedCapData(pydantic.BaseModel):
     tt_text: str | None
     tic_tourette___4: bool
 
-    acs_exp: str | None
-    age_1: str | None
-    age_2: str | None
-    age_3: str | None
-    age_4: str | None
-    age_5: str | None
-    age_6: str | None
-    age_7: str | None
-    age_8: str | None
-    age_9: str | None
-    age_10: str | None
-    age: float
-    agress_exp: str | None
-    biohx_dad_other: bool
-    biohx_mom_other: bool
-    birth_location: DeliveryLocation
-    birth_other: str | None
-    child_glasses: Glasses
-    child_hearing_aid: HearingDevice
-    child_interests: str
-    child_language1: str | None
-    child_language1_spoken: int | None
-    child_language1_age: str | None
-    child_language1_setting: str | None
-    child_language1_fluency: LanguageFluency | None
-    child_language2: str | None
-    child_language2_spoken: int | None
-    child_language2_age: str | None
-    child_language2_setting: str | None
-    child_language2_fluency: LanguageFluency | None
-    child_language3: str | None
-    child_language3_spoken: int | None
-    child_language3_age: str | None
-    child_language3_setting: str | None
-    child_language3_fluency: LanguageFluency | None
-    childgender_other: str | None
-    childgender: Gender
-    city: str
-    classroomtype_other: str | None
-    classroomtype: ClassroomType
-    clinician: str | None
-    close_friends: int
-    concern_current: str
-    cpse_services___1: bool
-    cpse_services___2: bool
-    cpse_services___3: bool
-    cpse_services___4: bool
-    cpse_services___5: bool
-    cpse_services___6: bool
-    csection_reason: str | None
-    current_grades: EducationGrades
-    currentdose_1: str | None
-    currentdose_2: str | None
-    currentdose_3: str | None
-    currentdose_4: str | None
-    currentdose_5: str | None
-    dob: str
-    dominant_hand: Handedness
-    dose1_max_past: str | None
-    dose1_start_past: str | None
-    dose2_max_past: str | None
-    dose2_start_past: str | None
-    dose3_max_past: str | None
-    dose3_start_past: str | None
-    dose4_max_past: str | None
-    dose_4_start_past: str | None
-    dose5_max_past: str | None
-    dose5_start_past: str | None
-    dx_name1: str | None
-    dx_name2: str | None
-    dx_name3: str | None
-    dx_name4: str | None
-    dx_name5: str | None
-    dx_name6: str | None
-    dx_name7: str | None
-    dx_name8: str | None
-    dx_name9: str | None
-    dx_name10: str | None
-    encephalitis_age: str | None
-    encephalitis_treatment: str | None
-    encephalitis: bool
-    firstname: str
-    grade: str
-    guardian_first_name: str
-    guardian_last_name: str
-    guardian_maritalstatus: GuardianMaritalStatus
-    guardian_relationship___1: bool
-    guardian_relationship___2: bool
-    guardian_relationship___3: bool
-    guardian_relationship___4: bool
-    guardian_relationship___5: bool
-    guardian_relationship___6: bool
-    guardian_relationship___7: bool
-    guardian_relationship___8: bool
-    guardian_relationship___9: bool
-    guardian_relationship___10: bool
-    guardian_relationship___11: bool
-    guardian_relationship___12: bool
-    home_func: str
-    iep: IndividualizedEducationProgram
-    infanttemp_adapt: Adaptability
-    infanttemp1: SoothingDifficulty
-    language_other: str | None
-    language_spoken_other: str | None
-    language_spoken: Language
-    language___1: bool
-    language___2: bool
-    language___3: bool
-    language___4: bool
-    language___5: bool
-    language___6: bool
-    language___7: bool
-    language___8: bool
-    language___9: bool
-    language___10: bool
-    language___11: bool
-    language___12: bool
-    language___13: bool
-    language___14: bool
-    language___15: bool
-    language___16: bool
-    language___17: bool
-    language___18: bool
-    language___19: bool
-    language___20: bool
-    language___21: bool
-    language___22: bool
-    language___23: bool
-    language___24: bool
-    language___25: bool
-    lastname: str
-    med1_past_date: str | None
-    med1_past_doc: str | None
-    med1_past_reason: str | None
-    med1_past_se: str | None
-    med2_past_date: str | None
-    med2_past_doc: str | None
-    med2_past_reason: str | None
-    med2_past_se: str | None
-    med3_past_date: str | None
-    med3_past_doc: str | None
-    med3_past_reason: str | None
-    med3_past_se: str | None
-    med4_past_date: str | None
-    med4_past_doc: str | None
-    med4_past_reason: str | None
-    med4_past_se: str | None
-    med5_past_date: str | None
-    med5_past_doc: str | None
-    med5_past_reason: str | None
-    med5_past_se: str | None
-    med1_start: str | None
-    med1_reason: str | None
-    med1_se: str | None
-    med1_doc: str | None
-    med2_start: str | None
-    med2_current_reason: str | None
-    med2_se: str | None
-    med2_doc: str | None
-    med3_start: str | None
-    med3_reason: str | None
-    med3_se: str | None
-    med3_doc: str | None
-    med4_date: str | None
-    med4_reason: str | None
-    med4_se: str | None
-    med4_doc: str | None
-    med5_date: str | None
-    med5_reason: str | None
-    med5_se: str | None
-    med5_doc: str | None
-    medname1_past: str | None
-    medname2_past: str | None
-    medname3_past: str | None
-    medname4_past: str | None
-    medname_5_past: str | None
-    meningitis_age: str | None
-    meningitis_treatment: str | None
-    meningitis: bool
-    migraines_age: str | None
-    migraines_treatment: str | None
-    migraines: bool
-    opt_delivery: BirthDelivery
-    other_relation: str | None
-    othername: str | None
-    outcome2: str
-    pastdx_1: str | None
-    pastdx_2: str | None
-    pastdx_3: str | None
-    pastdx_4: str | None
-    pastdx_5: str | None
-    pastdx_6: str | None
-    pastdx_7: str | None
-    pastdx_8: str | None
-    pastdx_9: str | None
-    pastdx_10: str | None
-    past_psychmed_num: int | None
-    pastschool1: str | None
-    pastschool2: str | None
-    pastschool3: str | None
-    pastschool4: str | None
-    pastschool5: str | None
-    pastschool6: str | None
-    pastschool7: str | None
-    pastschool8: str | None
-    pastschool9: str | None
-    pastschool10: str | None
-    pastschool1comments: str | None
-    pastschool2comments: str | None
-    pastschool3comments: str | None
-    pastschool4comments: str | None
-    pastschool5comments: str | None
-    pastschool6comments: str | None
-    pastschool7comments: str | None
-    pastschool8comments: str | None
-    pastschool9comments: str | None
-    pastschool10comments: str | None
-    pastschool1_grades: str | None
-    pastschool2_grades: str | None
-    pastschool3_grades: str | None
-    pastschool4_grades: str | None
-    pastschool5_grades: str | None
-    pastschool6_grades: str | None
-    pastschool7_grades: str | None
-    pastschool8_grades: str | None
-    pastschool9_grades: str | None
-    pastschool10_grades: str | None
-    peer_relations: FriendshipQuality
-    peopleinhome1: str | None
-    peopleinhome1_age: str | None
-    peopleinhome1_relation: HouseholdRelationship | None
-    peopleinhome1_relation_other: str | None
-    peopleinhome1_relationship: RelationshipQuality | None
-    peopleinhome2: str | None
-    peopleinhome2_age: str | None
-    peopleinhome2_relation: HouseholdRelationship | None
-    peopleinhome2_relation_other: str | None
-    peopleinhome_relationship: RelationshipQuality | None
-    peopleinhome3: str | None
-    peopleinhome3_age: str | None
-    peopleinhome3_relation: HouseholdRelationship | None
-    peopleinhome3_relation_other: str | None
-    peopleinhome3_relationship: RelationshipQuality | None
-    peopleinhome4: str | None
-    peopleinhome4_age: str | None
-    peopleinhome4_relation: HouseholdRelationship | None
-    peopleinhome4_relation_other: str | None
-    peopleinhome4_relationship: RelationshipQuality | None
-    peopleinhome5: str | None
-    peopleinhome5_age: str | None
-    peopleinhome5_relation: HouseholdRelationship | None
-    peopleinhome5_relation_other: str | None
-    peopleinhome5_relationship: RelationshipQuality | None
-    peopleinhome6: str | None
-    peopleinhome6_age: str | None
-    peopleinhome6_relation: HouseholdRelationship | None
-    peopleinhome6_relation_other: str | None
-    peopleinhome6_relationship: RelationshipQuality | None
-    peopleinhome7: str | None
-    peopleinhome7_age: str | None
-    peopleinhome7_relation: HouseholdRelationship | None
-    peopleinhome7_relation_other: str | None
-    peopleinhome7_relationship: RelationshipQuality | None
-    peopleinhome8: str | None
-    peopleinhome8_age: str | None
-    peopleinhome8_relation: HouseholdRelationship | None
-    peopleinhome8_relation_other: str | None
-    peopleinhome8_relationship: RelationshipQuality | None
-    peopleinhome9: str | None
-    peopleinhome9_age: str | None
-    peopleinhome9_relation: HouseholdRelationship | None
-    peopleinhome9_relation_other: str | None
-    peopleinhome9_relationship: RelationshipQuality | None
-    peopleinhome10: str | None
-    peopleinhome10_age: str | None
-    peopleinhome10_relation: HouseholdRelationship | None
-    peopleinhome10_relation_other: str | None
-    peopleinhome10_relationship: RelationshipQuality | None
-    peopleinhome1_gradeocc: str | None
-    peopleinhome2_gradeocc: str | None
-    peopleinhome3_gradeocc: str | None
-    peopleinhome4_gradeocc: str | None
-    peopleinhome5_gradeocc: str | None
-    peopleinhome6_gradeocc: str | None
-    peopleinhome7_gradeocc: str | None
-    peopleinhome8_gradeocc: str | None
-    peopleinhome9_gradeocc: str | None
-    peopleinhome10_gradeocc: str | None
-    phone: str
-    preg_symp___1: bool
-    preg_symp___2: bool
-    preg_symp___3: bool
-    preg_symp___4: bool
-    preg_symp___5: bool
-    preg_symp___6: bool
-    preg_symp___7: bool
-    preg_symp___8: bool
-    preg_symp___9: bool
-    preg_symp___10: bool
-    preg_symp___11: bool
-    preg_symp___12: bool
-    preg_symp___13: bool
-    preg_symp___14: bool
-    preg_symp___15: bool
-    preg_symp___16: bool
-    preg_symp___17: bool
-    preg_symp___18: bool
-    preg_symp___19: bool
-    preg_symp___20: bool
-    pregnancyhistory: str
-    premature_specify: str | None
-    premature: bool
-    pronouns_other: str | None
-    pronouns: Pronouns
-    psychmed_name_1: str | None
-    psychmed_name_2: str | None
-    psychmed_name_3: str | None
-    psychmed_name_4: str | None
-    psychmed_name_5: str | None
-    psychmed_num: int | None
-    recent_academicperformance: EducationPerformance
-    referral2: str
-    residing_number: int
-    school_func: str
-    school: str
-    schoolservices___1: bool
-    schoolservices___2: bool
-    schoolservices___3: bool
-    schoolservices___4: bool
-    schoolservices___5: bool
-    schoolservices___6: bool
-    schooltype: SchoolType
-    seizures_age: str | None
-    seizures_treatment: str | None
-    seizures: bool
-    selfharm_exp: str | None
-    skill12: str
-    skill13: str
-    skill16: str
-    skill6: str
-    startdose_1: str | None
-    startdose_2: str | None
-    startdose_3: str | None
-    startdose_4: str | None
-    startdose_5: str | None
-    state: USState
+    # Therapeutric interventions
+
     txhx1_effectiveness: str | None
     txhx1_end: str | None
     txhx1_freq: str | None
@@ -1067,21 +1113,6 @@ class RedCapData(pydantic.BaseModel):
     txhx10_start: str | None
     txhx10_terminate: str | None
     txhx_10: str | None
-    txt_duration_preg_num: str
-    violence_exp: str | None
-    yrs_school: int
-    speechlang_dates: str | None
-    speechlang_dur: str | None
-    occ_therapy_dates: str | None
-    occ_therapy_dur: str | None
-    phy_therapy_dates: str | None
-    phy_therapy_dur: str | None
-    seit_dates: str | None
-    seit_dur: str | None
-    aba_dates: str | None
-    aba_dur: str | None
-    other_dates: str | None
-    other_dur: str | None
 
     @classmethod
     def from_csv(cls, csv_data: str) -> Self:
