@@ -1,6 +1,7 @@
 """This module coalesces all large language models from different microservices."""
 
 import typing
+from typing import TypeGuard
 
 from ctk_functions import config
 from ctk_functions.microservices import aws, azure, utils
@@ -25,10 +26,10 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         """
         self.client: azure.AzureLlm | aws.ClaudeLlm
         logger.info("Using LLM model: %s", model)
-        if model in typing.get_args(azure.GPT_MODELS):
-            self.client = azure.AzureLlm(model)  # type: ignore[arg-type] # mypy doesn't detect typing.get_args() as type narrowing.
-        elif model in typing.get_args(aws.ANTHROPIC_MODELS):
-            self.client = aws.ClaudeLlm(model)  # type: ignore[arg-type] # mypy doesn't detect typing.get_args() as type narrowing.
+        if self._is_azure_model(model):
+            self.client = azure.AzureLlm(model)
+        elif self._is_aws_model(model):
+            self.client = aws.ClaudeLlm(model)
         else:
             # As the model name can be supplied by the user, this case might be reached.
             msg = f"Invalid LLM model: {model}"
@@ -45,3 +46,11 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
             The output text.
         """
         return await self.client.run(system_prompt, user_prompt)
+
+    @staticmethod
+    def _is_azure_model(model: VALID_LLM_MODELS) -> TypeGuard[azure.GPT_MODELS]:
+        return model in typing.get_args(azure.GPT_MODELS)
+
+    @staticmethod
+    def _is_aws_model(model: VALID_LLM_MODELS) -> TypeGuard[aws.ANTHROPIC_MODELS]:
+        return model in typing.get_args(aws.ANTHROPIC_MODELS)
