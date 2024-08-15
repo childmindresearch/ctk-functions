@@ -12,6 +12,7 @@ import enum
 from typing import Generic, Protocol, TypeVar
 
 from ctk_functions import exceptions
+from ctk_functions.functions.intake import parser_models
 from ctk_functions.functions.intake.utils import string_utils
 from ctk_functions.microservices import redcap
 
@@ -514,7 +515,7 @@ class EducationGrades(Transformer[redcap.EducationGrades]):
         return self.base.name.replace("_", " ")
 
 
-class FamilyDiagnoses(MultiTransformer[redcap.FamilyPsychiatricHistory]):
+class FamilyDiagnoses(MultiTransformer[parser_models.FamilyPsychiatricHistory]):
     """The transformer for family diagnoses."""
 
     def transform(self) -> str:
@@ -558,7 +559,7 @@ class FamilyDiagnoses(MultiTransformer[redcap.FamilyPsychiatricHistory]):
         return text
 
     @staticmethod
-    def _past_diagnosis_text(diagnosis: redcap.FamilyPsychiatricHistory) -> str:
+    def _past_diagnosis_text(diagnosis: parser_models.FamilyPsychiatricHistory) -> str:
         """Transforms a family diagnosis to a string.
 
         Args:

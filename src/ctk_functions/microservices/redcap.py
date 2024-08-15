@@ -4,7 +4,7 @@ import csv
 import enum
 import io
 import re
-from typing import Any, Literal, Self
+from typing import Any, Self
 
 import pydantic
 import redcap
@@ -362,23 +362,6 @@ class PriorDisease(pydantic.BaseModel):
     treatment: str | None
 
 
-class FamilyPsychiatricHistory(pydantic.BaseModel):
-    """The model for the patient's family psychiatric history."""
-
-    diagnosis: str
-    no_formal_diagnosis: bool
-    family_members: list[str]
-
-    @pydantic.field_validator("family_members", mode="before")
-    def split_comma_separated_values(cls, value: str | list[str] | None) -> list[str]:  # noqa: N805
-        """Splits comma separated values."""
-        if isinstance(value, list):
-            return [string.lower() for string in value]
-        if value is None:
-            return []
-        return value.lower().split(",")
-
-
 class Intervention(pydantic.BaseModel):
     """Information about Early Intervention and CPSE services."""
 
@@ -394,15 +377,6 @@ interventions = {
     "5": Intervention(code="aba", name="applied behavior analysis"),
     "6": Intervention(code="other", name="other"),
 }
-
-
-class EiCpseTherapy(pydantic.BaseModel):
-    """Therapies from Committee on Preschool Special Education services."""
-
-    type: Literal["early intervention", "cpse"]
-    name: str
-    duration: str
-    dates: str
 
 
 class FamilyDiagnosis(pydantic.BaseModel):
@@ -1178,49 +1152,7 @@ class RedCapData(pydantic.BaseModel):
         msg = f"Expected 0 or 1, got {v}."
         raise ValueError(msg)
 
-    # Interpret family diagnoses
-
-    @property
-    def family_diagnoses(self) -> list[FamilyPsychiatricHistory]:
-        """The family psychiatric diagnoses."""
-        return [
-            FamilyPsychiatricHistory(
-                diagnosis=diag.name,
-                no_formal_diagnosis=getattr(self, f"{diag.checkbox_abbreviation}___4"),
-                family_members=getattr(self, f"{diag.text_abbreviation}_text"),
-            )
-            for diag in family_psychiatric_diagnoses
-        ]
-
     # Interpret multi-column booleans
-
-    @property
-    def cpse_services(self) -> list[EiCpseTherapy]:
-        """The CPSE services."""
-        return [
-            EiCpseTherapy(
-                name=service.name,
-                type="cpse",
-                dates=getattr(self, f"{service.code}_dates"),
-                duration=getattr(self, f"{service.code}_dur"),
-            )
-            for index, service in enumerate(interventions.values())
-            if getattr(self, f"cpse_services___{index+1}")
-        ]
-
-    @property
-    def early_intervention(self) -> list[EiCpseTherapy]:
-        """The early intervention therapies."""
-        return [
-            EiCpseTherapy(
-                name=service.name,
-                type="early intervention",
-                dates=getattr(self, f"{service.code}_dates"),
-                duration=getattr(self, f"{service.code}_dur"),
-            )
-            for index, service in enumerate(interventions.values())
-            if getattr(self, f"schoolservices___{index+1}")
-        ]
 
     @property
     def guardian_relationship(self) -> GuardianRelationship:

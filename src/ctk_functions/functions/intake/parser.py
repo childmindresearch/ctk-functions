@@ -6,7 +6,7 @@ import pytz
 from dateutil import parser as dateutil_parser
 
 from ctk_functions import config
-from ctk_functions.functions.intake import descriptors, transformers
+from ctk_functions.functions.intake import parser_models, transformers
 from ctk_functions.microservices import redcap
 
 logger = config.get_logger()
@@ -318,7 +318,7 @@ class Education:
             other=patient_data.classroomtype_other,
         )
         self.past_schools = [
-            descriptors.PastSchool(
+            parser_models.PastSchool(
                 name=getattr(patient_data, f"pastschool{identifier}"),
                 grades=getattr(patient_data, f"pastschool{identifier}_grades"),
                 experience=getattr(patient_data, f"pastschool{identifier}comments"),
@@ -346,9 +346,9 @@ class PsychiatricMedication:
         logger.debug("Parsing psychiatric medication.")
         if patient_data.psychmed_num:
             self.current_medication: (
-                list[descriptors.CurrentPsychiatricMedication] | None
+                list[parser_models.CurrentPsychiatricMedication] | None
             ) = [
-                descriptors.CurrentPsychiatricMedication(
+                parser_models.CurrentPsychiatricMedication(
                     name=getattr(patient_data, f"psychmed_name_{index}"),
                     initial_dosage=getattr(patient_data, f"startdose_{index}"),
                     current_dosage=getattr(patient_data, f"currentdose_{index}"),
@@ -363,8 +363,10 @@ class PsychiatricMedication:
             self.current_medication = None
 
         if patient_data.past_psychmed_num:
-            self.past_medication: list[descriptors.PastPsychiatricMedication] | None = [
-                descriptors.PastPsychiatricMedication(
+            self.past_medication: (
+                list[parser_models.PastPsychiatricMedication] | None
+            ) = [
+                parser_models.PastPsychiatricMedication(
                     name=getattr(patient_data, f"medname{index}_past"),
                     initial_dosage=getattr(patient_data, f"dose{index}_start_past"),
                     maximum_dosage=getattr(patient_data, f"dose{index}_max_past"),
@@ -403,7 +405,7 @@ class Development:
 
         pregnancy_symptoms = [
             index
-            for index in range(1, len(descriptors.BirthComplications) + 1)
+            for index in range(1, len(redcap.BirthComplications) + 1)
             if getattr(patient_data, f"preg_symp___{index}") == "1"
         ]
         self.birth_complications = transformers.BirthComplications(
@@ -427,7 +429,7 @@ class Development:
         )
 
         self.early_intervention = [
-            descriptors.EiCpseTherapy(
+            parser_models.EiCpseTherapy(
                 name=service[1],
                 type="early intervention",
                 dates=getattr(patient_data, f"{service[0]}_dates"),
@@ -438,7 +440,7 @@ class Development:
         ]
 
         self.cpse_services = [
-            descriptors.EiCpseTherapy(
+            parser_models.EiCpseTherapy(
                 name=service[1],
                 type="cpse",
                 dates=getattr(patient_data, f"cpse_{service[0]}_dates"),
@@ -511,8 +513,8 @@ class FamilyPyshicatricHistory:
         Args:
             patient_data: The patient dataframe.
         """
-        self.is_father_history_known = bool(patient_data.biohx_dad_other)
-        self.is_mother_history_known = bool(patient_data.biohx_mom_other)
+        self.is_father_history_known = patient_data.biohx_dad_other
+        self.is_mother_history_known = patient_data.biohx_mom_other
         self.family_diagnoses = self.get_family_diagnoses(patient_data)
 
     def get_family_diagnoses(
@@ -546,7 +548,7 @@ class FamilyPyshicatricHistory:
             history_known = ""
 
         family_diagnoses = [
-            redcap.FamilyPsychiatricHistory(
+            parser_models.FamilyPsychiatricHistory(
                 diagnosis=diagnosis.name,
                 no_formal_diagnosis=getattr(
                     patient_data,
@@ -557,7 +559,7 @@ class FamilyPyshicatricHistory:
                     f"{diagnosis.text_abbreviation}_text",
                 ),
             )
-            for diagnosis in descriptors.family_psychiatric_diagnoses
+            for diagnosis in redcap.family_psychiatric_diagnoses
         ]
         return transformers.FamilyDiagnoses(
             family_diagnoses,
