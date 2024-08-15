@@ -12,8 +12,9 @@ import enum
 from typing import Generic, Protocol, TypeVar
 
 from ctk_functions import exceptions
-from ctk_functions.functions.intake import descriptors
+from ctk_functions.functions.intake import parser_models
 from ctk_functions.functions.intake.utils import string_utils
+from ctk_functions.microservices import redcap
 
 T = TypeVar("T")
 
@@ -101,7 +102,7 @@ class MultiTransformer(Transformer[list[T]]):
         ...
 
 
-class Handedness(Transformer[descriptors.Handedness]):
+class Handedness(Transformer[redcap.Handedness]):
     """The transformer for handedness."""
 
     def transform(self) -> str:
@@ -110,13 +111,13 @@ class Handedness(Transformer[descriptors.Handedness]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.Handedness.unknown:
+        if self.base == redcap.Handedness.unknown:
             return ""
         return f"{self.base.name}-handed"
 
 
 class IndividualizedEducationProgram(
-    Transformer[descriptors.IndividualizedEducationProgram],
+    Transformer[redcap.IndividualizedEducationProgram],
 ):
     """The transformer for individualized education programs."""
 
@@ -126,13 +127,13 @@ class IndividualizedEducationProgram(
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.IndividualizedEducationProgram.no:
+        if self.base == redcap.IndividualizedEducationProgram.no:
             return "did not have an Individualized Education Program (IEP)"
         return "had an Individualized Education Program (IEP)"
 
 
 class BirthComplications(
-    MultiTransformer[descriptors.BirthComplications],
+    MultiTransformer[redcap.BirthComplications],
 ):
     """The transformer for birth complications."""
 
@@ -144,7 +145,7 @@ class BirthComplications(
             other: Specifier for a freeform value.
 
         """
-        super().__init__([descriptors.BirthComplications(val) for val in value], other)
+        super().__init__([redcap.BirthComplications(val) for val in value], other)
 
     def transform(self) -> str:
         """Transforms the birth complications information to a string.
@@ -153,17 +154,17 @@ class BirthComplications(
             str: The transformed object.
         """
         if (
-            descriptors.BirthComplications.none_of_the_above in self.base
+            redcap.BirthComplications.none_of_the_above in self.base
             and len(self.base) > 1
         ):
             return """MANUAL INTERVENTION REQUIRED: 'None of the above' should not
             be selected with other birth complications."""
-        if descriptors.BirthComplications.none_of_the_above in self.base:
+        if redcap.BirthComplications.none_of_the_above in self.base:
             return "no birth complications"
 
         names = []
         for val in self.base:
-            if val == descriptors.BirthComplications.other_illnesses:
+            if val == redcap.BirthComplications.other_illnesses:
                 if self.other is None:
                     names.append("an unspecified illness")
                 else:
@@ -180,7 +181,7 @@ class BirthComplications(
         )
 
 
-class DurationOfPregnancy(Transformer[str]):
+class DurationOfPregnancy(Transformer[str | None]):
     """The transfomer for time of pregnancy."""
 
     def transform(self) -> str:
@@ -207,7 +208,7 @@ class DurationOfPregnancy(Transformer[str]):
         return f"{duration_of_pregnancy:g} weeks"
 
 
-class BirthDelivery(Transformer[descriptors.BirthDelivery]):
+class BirthDelivery(Transformer[redcap.BirthDelivery]):
     """The transformer for birth delivery."""
 
     def transform(self) -> str:
@@ -216,16 +217,16 @@ class BirthDelivery(Transformer[descriptors.BirthDelivery]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.BirthDelivery.unknown:
+        if self.base == redcap.BirthDelivery.unknown:
             return "an unknown type of delivery"
-        if self.base == descriptors.BirthDelivery.vaginal:
+        if self.base == redcap.BirthDelivery.vaginal:
             return "a vaginal delivery"
 
         other = self.other if self.other else "unspecified"
         return f'a cesarean section due to "{other}"'
 
 
-class DeliveryLocation(Transformer[descriptors.DeliveryLocation]):
+class DeliveryLocation(Transformer[redcap.DeliveryLocation]):
     """The transformer for birth location."""
 
     def transform(self) -> str:
@@ -234,17 +235,17 @@ class DeliveryLocation(Transformer[descriptors.DeliveryLocation]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.DeliveryLocation.other:
+        if self.base == redcap.DeliveryLocation.other:
             if self.other is None:
                 return "an unspecified location"
             return self.other
 
-        if self.base == descriptors.DeliveryLocation.hospital:
+        if self.base == redcap.DeliveryLocation.hospital:
             return "a hospital"
         return "home"
 
 
-class Adaptability(Transformer[descriptors.Adaptability]):
+class Adaptability(Transformer[redcap.Adaptability]):
     """The transformer for infant adaptability."""
 
     def transform(self) -> str:
@@ -253,12 +254,12 @@ class Adaptability(Transformer[descriptors.Adaptability]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.Adaptability.difficult:
+        if self.base == redcap.Adaptability.difficult:
             return "a slow to warm up temperament"
         return "an adaptable temperament"
 
 
-class ClassroomType(Transformer[descriptors.ClassroomType]):
+class ClassroomType(Transformer[redcap.ClassroomType]):
     """The transformer for classroom type."""
 
     def transform(self) -> str:
@@ -267,7 +268,7 @@ class ClassroomType(Transformer[descriptors.ClassroomType]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.ClassroomType.other:
+        if self.base == redcap.ClassroomType.other:
             if self.other is None:
                 return "an unspecified classroom type"
             return self.other
@@ -301,7 +302,7 @@ class DevelopmentSkill(Transformer[str | int]):
         return f"{self.other} at {self.base}"
 
 
-class PastDiagnoses(MultiTransformer[descriptors.PastDiagnosis]):
+class PastDiagnoses(MultiTransformer[redcap.PastDiagnosis]):
     """The transformer for past diagnoses."""
 
     def transform(self, *, short: bool = True) -> str:
@@ -332,7 +333,7 @@ class PastDiagnoses(MultiTransformer[descriptors.PastDiagnosis]):
         )
 
 
-class HouseholdRelationship(Transformer[descriptors.HouseholdRelationship]):
+class HouseholdRelationship(Transformer[redcap.HouseholdRelationship]):
     """The transformer for household members."""
 
     def transform(self) -> str:
@@ -341,7 +342,7 @@ class HouseholdRelationship(Transformer[descriptors.HouseholdRelationship]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.HouseholdRelationship.other_relative:
+        if self.base == redcap.HouseholdRelationship.other_relative:
             return self.other if self.other else "unspecified relationship"
         return self.base.name.replace("_", " ")
 
@@ -355,7 +356,7 @@ class HouseholdMemberInterface(Protocol):
     name: str
     age: str
     relationship: str
-    relationship_quality: str
+    relationship_quality: redcap.RelationshipQuality
     grade_occupation: str
 
 
@@ -398,7 +399,7 @@ class HouseholdMembers(MultiTransformer[HouseholdMemberInterface]):
             string += f" {member.name}"
         member_properties = [
             str(member.age),
-            member.relationship_quality + " relationship",
+            member.relationship_quality.name + " relationship",
         ]
 
         age = string_utils.StringToInt().parse(member.age)
@@ -409,7 +410,7 @@ class HouseholdMembers(MultiTransformer[HouseholdMemberInterface]):
         return string
 
 
-class HearingDevice(Transformer[descriptors.HearingDevice]):
+class HearingDevice(Transformer[redcap.HearingDevice]):
     """Transformer for the hearing device information."""
 
     def transform(self) -> str:
@@ -418,20 +419,20 @@ class HearingDevice(Transformer[descriptors.HearingDevice]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.HearingDevice.no:
+        if self.base == redcap.HearingDevice.no:
             return "does not use a hearing device"
-        if self.base == descriptors.HearingDevice.at_school_and_home:
+        if self.base == redcap.HearingDevice.at_school_and_home:
             return "uses a hearing device at school and at home"
-        if self.base == descriptors.HearingDevice.at_school:
+        if self.base == redcap.HearingDevice.at_school:
             return "uses a hearing device at school"
-        if self.base == descriptors.HearingDevice.at_home:
+        if self.base == redcap.HearingDevice.at_home:
             return "uses a hearing device at home"
 
         msg = "Invalid hearing device value."
         raise exceptions.TransformerError(msg)
 
 
-class Glasses(Transformer[descriptors.Glasses]):
+class Glasses(Transformer[redcap.Glasses]):
     """Transformer for the glasses information."""
 
     def transform(self) -> str:
@@ -440,19 +441,19 @@ class Glasses(Transformer[descriptors.Glasses]):
         Returns:
             str: The transformed object.
         """
-        if self.base == descriptors.Glasses.no:
+        if self.base == redcap.Glasses.no:
             return "does not wear prescription glasses"
-        if self.base == descriptors.Glasses.at_school_and_home:
+        if self.base == redcap.Glasses.at_school_and_home:
             return "wears prescription glasses at school and at home"
-        if self.base == descriptors.Glasses.at_school:
+        if self.base == redcap.Glasses.at_school:
             return "wears prescription glasses at school"
-        if self.base == descriptors.Glasses.at_home:
+        if self.base == redcap.Glasses.at_home:
             return "wears prescription glasses at home"
         msg = "Invalid glasses value."
         raise exceptions.TransformerError(msg)
 
 
-class PriorDiseases(MultiTransformer[descriptors.PriorDisease]):
+class PriorDiseases(MultiTransformer[redcap.PriorDisease]):
     """Transformer for the prior diseases information."""
 
     def transform(self) -> str:
@@ -494,7 +495,7 @@ class PriorDiseases(MultiTransformer[descriptors.PriorDisease]):
         return string_utils.remove_excess_whitespace(string)
 
 
-class EducationGrades(Transformer[descriptors.EducationGrades]):
+class EducationGrades(Transformer[redcap.EducationGrades]):
     """Transformer for the education grades information."""
 
     def transform(self) -> str:
@@ -514,7 +515,7 @@ class EducationGrades(Transformer[descriptors.EducationGrades]):
         return self.base.name.replace("_", " ")
 
 
-class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
+class FamilyDiagnoses(MultiTransformer[parser_models.FamilyPsychiatricHistory]):
     """The transformer for family diagnoses."""
 
     def transform(self) -> str:
@@ -558,7 +559,7 @@ class FamilyDiagnoses(MultiTransformer[descriptors.FamilyPsychiatricHistory]):
         return text
 
     @staticmethod
-    def _past_diagnosis_text(diagnosis: descriptors.FamilyPsychiatricHistory) -> str:
+    def _past_diagnosis_text(diagnosis: parser_models.FamilyPsychiatricHistory) -> str:
         """Transforms a family diagnosis to a string.
 
         Args:

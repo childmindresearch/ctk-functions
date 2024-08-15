@@ -7,21 +7,22 @@ for easy-to-make mistakes.
 
 import re
 from collections.abc import Coroutine
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import pytest
 import pytest_mock
 from docx import document
 
 from ctk_functions.functions.intake import parser, writer
+from ctk_functions.microservices import redcap
 
 T = TypeVar("T")
 
 
-@pytest.fixture()
+@pytest.fixture
 async def intake_document(
     mocker: pytest_mock.MockFixture,
-    test_redcap_data: dict[str, Any],
+    test_redcap_data: redcap.RedCapData,
 ) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
     mocker.patch(
@@ -34,7 +35,7 @@ async def intake_document(
     return intake_writer.report.document  # type: ignore[no-any-return]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_no_printed_objects(
     intake_document: Coroutine[document.Document, None, None],
 ) -> None:
@@ -60,10 +61,10 @@ async def test_no_printed_objects(
     assert re.match(regex_scientific_notation, text) is None
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_expected_strings_in_document(
     intake_document: Coroutine[document.Document, None, None],
-    test_redcap_data: dict[str, Any],
+    test_redcap_data: redcap.RedCapData,
 ) -> None:
     """Tests that the document contains some expected strings."""
     text = "\n".join([p.text for p in (await intake_document).paragraphs])  # type: ignore[attr-defined, func-returns-value]
@@ -78,5 +79,5 @@ async def test_expected_strings_in_document(
 
     assert all(header in text for header in headers)
     assert "Director, Center for the Developing Brain" in text
-    assert test_redcap_data["firstname"] in text
-    assert test_redcap_data["lastname"] in text
+    assert test_redcap_data.firstname in text
+    assert test_redcap_data.lastname in text

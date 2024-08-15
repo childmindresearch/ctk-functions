@@ -65,11 +65,12 @@ def get_settings() -> Settings:
 
 def get_logger() -> logging.Logger:
     """Gets the ctk-functions logger."""
-    if logging.getLogger("ctk-functions").hasHandlers():
-        return logging.getLogger("ctk-functions")
     logger = logging.getLogger("ctk-functions")
+    if logger.hasHandlers():
+        return logger
 
     logger.setLevel(get_settings().LOGGER_VERBOSITY)
+    logger.propagate = False
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)s - %(funcName)s - %(message)s",  # noqa: E501
@@ -78,4 +79,5 @@ def get_logger() -> logging.Logger:
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
     return logger

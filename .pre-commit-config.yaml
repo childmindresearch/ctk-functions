@@ -7,7 +7,7 @@ repos:
   - id: poetry-check
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.5.4
+  rev: v0.6.0
   hooks:
   - id: ruff
   - id: ruff-format
@@ -22,7 +22,6 @@ repos:
     - azure-functions
     - cmi-docx
     - openai
-    - polars
     - pycap
     - pydantic
     - pydantic_settings

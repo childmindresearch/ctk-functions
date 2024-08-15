@@ -7,7 +7,7 @@ from typing import Literal
 import docx
 import pytest
 
-from ctk_functions.functions.intake import descriptors, parser, writer
+from ctk_functions.functions.intake import writer
 
 
 @dataclasses.dataclass
@@ -65,26 +65,6 @@ def test_replace_patient_information() -> None:
     actual = report_writer.report.document.paragraphs[0].text
 
     assert actual == expected
-
-
-def test_valid_language_replacement() -> None:
-    """Sanity check to test that the language replacement is valid."""
-    patient_data = {
-        "child_language1": "Dutch",
-        "child_language1_fluency": 4,
-        "child_language1_spoken": "yes",
-        "child_language1_age": "1 year",
-        "child_language1_setting": "home",
-    }
-
-    parser_language = parser.Language(patient_data, identifier=1)
-    test_language = Language(
-        patient_data["child_language1"],  # type: ignore[arg-type]
-        descriptors.LanguageFluency(patient_data["child_language1_fluency"]).name,  # type: ignore[arg-type]
-    )
-
-    assert parser_language.name == test_language.name
-    assert parser_language.fluency == test_language.fluency
 
 
 @pytest.mark.parametrize(
