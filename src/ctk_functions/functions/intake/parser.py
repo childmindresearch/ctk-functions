@@ -58,7 +58,9 @@ class Patient:
         self.date_of_birth = dateutil_parser.parse(
             patient_data.dob,
         ).replace(tzinfo=pytz.timezone(timezone))
-        self._gender = patient_data.childgender.name
+        self._gender = (
+            patient_data.childgender.name if patient_data.childgender else "other"
+        )
         self._gender_other = patient_data.childgender_other
         self._pronouns = patient_data.pronouns.name
         self._pronouns_other = patient_data.pronouns_other

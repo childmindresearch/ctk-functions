@@ -595,9 +595,9 @@ class RedCapData(pydantic.BaseModel):
     child_hearing_aid: HearingDevice
     child_interests: str
     childgender_other: str | None
-    childgender: Gender
+    childgender: Gender | None
     city: str
-    close_friends: int
+    close_friends: str
     concern_current: str
     dob: str
     dominant_hand: Handedness
@@ -692,7 +692,7 @@ class RedCapData(pydantic.BaseModel):
     skill6: str
     speechlang_dates: str | None
     speechlang_dur: str | None
-    txt_duration_preg_num: str
+    txt_duration_preg_num: str | None
 
     # Education
 
@@ -732,7 +732,7 @@ class RedCapData(pydantic.BaseModel):
     pastschool9: str | None
     pastschool9comments: str | None
     recent_academicperformance: EducationPerformance
-    school_func: str
+    school_func: str | None
     school: str
     schooltype: SchoolType
     yrs_school: str
@@ -757,7 +757,7 @@ class RedCapData(pydantic.BaseModel):
 
     # Household
 
-    home_func: str
+    home_func: str | None
     language___1: bool
     language___10: bool
     language___11: bool
@@ -1119,6 +1119,9 @@ class RedCapData(pydantic.BaseModel):
         """Creates a RedCapData object from a CSV string."""
         reader = csv.DictReader(io.StringIO(csv_data))
         data = next(reader)
+        if data["parent_intake_timestamp"] == "[not completed]":
+            msg = "Intake form not completed."
+            raise exceptions.RedcapError(msg)
         return cls(**data)
 
     @pydantic.model_validator(mode="before")

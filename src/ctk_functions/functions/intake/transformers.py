@@ -180,7 +180,7 @@ class BirthComplications(
         )
 
 
-class DurationOfPregnancy(Transformer[str]):
+class DurationOfPregnancy(Transformer[str | None]):
     """The transfomer for time of pregnancy."""
 
     def transform(self) -> str:
