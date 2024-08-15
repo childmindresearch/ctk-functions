@@ -19,7 +19,7 @@ from ctk_functions.microservices import redcap
 T = TypeVar("T")
 
 
-@pytest.fixture()
+@pytest.fixture
 async def intake_document(
     mocker: pytest_mock.MockFixture,
     test_redcap_data: redcap.RedCapData,
@@ -35,7 +35,7 @@ async def intake_document(
     return intake_writer.report.document  # type: ignore[no-any-return]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_no_printed_objects(
     intake_document: Coroutine[document.Document, None, None],
 ) -> None:
@@ -61,7 +61,7 @@ async def test_no_printed_objects(
     assert re.match(regex_scientific_notation, text) is None
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_expected_strings_in_document(
     intake_document: Coroutine[document.Document, None, None],
     test_redcap_data: redcap.RedCapData,
