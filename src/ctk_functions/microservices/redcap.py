@@ -1179,7 +1179,7 @@ class RedCapData(pydantic.BaseModel):
     def preg_symp(self) -> list[BirthComplications]:
         """The pregnancy symptoms."""
         return [
-            BirthComplications(index)
+            BirthComplications(str(index))
             for index in range(1, 21)
             if getattr(self, f"preg_symp___{index}")
         ]

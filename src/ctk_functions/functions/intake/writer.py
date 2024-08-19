@@ -21,7 +21,6 @@ from ctk_functions.microservices import llm, redcap
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
-AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
 PLACEHOLDER = "______"
 
 

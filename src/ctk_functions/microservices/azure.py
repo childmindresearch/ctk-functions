@@ -10,7 +10,6 @@ from ctk_functions.microservices import utils
 logger = config.get_logger()
 
 settings = config.get_settings()
-AZURE_BLOB_CONNECTION_STRING = settings.AZURE_BLOB_CONNECTION_STRING
 AZURE_OPENAI_API_KEY = settings.AZURE_OPENAI_API_KEY
 AZURE_OPENAI_LLM_DEPLOYMENT = settings.AZURE_OPENAI_LLM_DEPLOYMENT
 AZURE_OPENAI_ENDPOINT = settings.AZURE_OPENAI_ENDPOINT
