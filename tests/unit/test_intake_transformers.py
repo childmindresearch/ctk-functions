@@ -58,7 +58,7 @@ def test_individualized_education_program_transformer(
     ],
 )
 def test_birth_complications_transformer(
-    value: list[int],
+    value: list[redcap.BirthComplications],
     expected: str,
     other: str | None,
 ) -> None:
