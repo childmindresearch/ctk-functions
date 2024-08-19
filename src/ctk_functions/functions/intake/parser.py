@@ -403,13 +403,8 @@ class Development:
             patient_data.birth_other,
         )
 
-        pregnancy_symptoms = [
-            index
-            for index in range(1, len(redcap.BirthComplications) + 1)
-            if getattr(patient_data, f"preg_symp___{index}") == "1"
-        ]
         self.birth_complications = transformers.BirthComplications(
-            pregnancy_symptoms,
+            patient_data.preg_symp,
             other=patient_data.pregnancyhistory,
         )
         self.premature_birth = bool(patient_data.premature)

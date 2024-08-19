@@ -137,16 +137,6 @@ class BirthComplications(
 ):
     """The transformer for birth complications."""
 
-    def __init__(self, value: list[int], other: str | None = None) -> None:
-        """Initializes the pregnancy symptoms transformer.
-
-        Args:
-            value: The birth complication enum values.
-            other: Specifier for a freeform value.
-
-        """
-        super().__init__([redcap.BirthComplications(val) for val in value], other)
-
     def transform(self) -> str:
         """Transforms the birth complications information to a string.
 
