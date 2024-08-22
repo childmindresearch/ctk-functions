@@ -1,9 +1,11 @@
 """Large language model functionality for the intake module."""
 
 import dataclasses
-import json
 import uuid
 from collections.abc import Awaitable, Sequence
+from typing import Any
+
+import jsonpickle
 
 from ctk_functions import config
 from ctk_functions.functions.intake.utils import string_utils
@@ -63,11 +65,11 @@ medical professional. Report dates in the format "Month YYYY" (e.g., 15 June 202
 Do not include any headers like "Excerpt" or "Here is the editted text". Format
 your response as plaintext.
 """
-    list_input = """
-You will receive a list of items. Your task is to write a text that includes the
-clinically relevant information from the list. You should return the text in
-full with the necessary edits. Make sure that the text flows naturally, i.e.,
-DO NOT MAKE A BULLET LIST. Format the text as plaintext.
+    object_input = """
+You will a JSON containing information about the patient. Your task is to write
+a text that includes the clinically relevant information from the JSON. You
+should return the text in full with the necessary edits. Make sure that the text
+flows naturally, i.e., DO NOT MAKE A BULLET LIST. Format the text as plaintext.
 
 This text will be inserted into a clinical report. Ensure that the tone is
 appropriate for a clinical report written by a doctor, i.e. professional and
@@ -180,15 +182,15 @@ class WriterLlm:
             system_prompt = f"{system_prompt} {instruction} {context}\n\n"
         return self._run(system_prompt, user_prompt)
 
-    def run_with_list_input(
+    def run_with_object_input(
         self,
-        items: Sequence[object],
+        items: Any,  # noqa: ANN401
         additional_instruction: str = "",
     ) -> str:
-        """Creates a placeholder for an LLM edit of a list of pydantic classes.
+        """Creates a placeholder for an LLM edit of a list of classes.
 
         Args:
-            items: The list items to include in the text.
+            items: An object which will be converted to JSON.
             additional_instruction: Additional instructions to include in the system
                 prompt.
 
@@ -200,12 +202,9 @@ class WriterLlm:
         )
 
         system_prompt = (
-            f"{Prompts.list_input}\n{self.child_info}\n{additional_instruction}"
+            f"{Prompts.object_input}\n{self.child_info}\n{additional_instruction}"
         )
-        items_json = [
-            json.dumps(item.__dict__, indent=4, ensure_ascii=False) for item in items
-        ]
-        user_prompt = "\n<NEXT ITEM>\n".join(items_json)
+        user_prompt = jsonpickle.encode(items, unpicklable=False, make_refs=False)
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
         if not user_prompt:
             user_prompt = "No items provided."

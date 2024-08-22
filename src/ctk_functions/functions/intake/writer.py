@@ -262,7 +262,7 @@ class ReportWriter:
         cpse = development.cpse_services
 
         if early_intervention + cpse:
-            text = self.llm.run_with_list_input(
+            text = self.llm.run_with_object_input(
                 items=early_intervention + cpse,
                 additional_instruction=f"""
                     You will receive a list of all CPSE and early intervention services
@@ -385,7 +385,7 @@ class ReportWriter:
         logger.debug("Writing the educational history to the report.")
         patient = self.intake.patient
 
-        placeholder_id = self.llm.run_with_list_input(
+        placeholder_id = self.llm.run_with_object_input(
             patient.education.past_schools,
             additional_instruction="""
                 Try to keep the text as concise as possible. THE TEXT SHOULD BE A
@@ -465,31 +465,50 @@ class ReportWriter:
         logger.debug("Writing the home and adaptive functioning to the report.")
         patient = self.intake.patient
         household = patient.household
-        language_fluencies = self._join_patient_languages(self.intake.patient.languages)
 
-        text_home_base = f"""
-            {patient.first_name} lives in {household.city},
-            {household.state}, with {household.members}.
-            The {patient.guardian.parent_or_guardian}s are
-            {household.guardian_marital_status}.
-        """
-        text_home_languages = f"""
-            {string_utils.join_with_oxford_comma(household.languages)} {"are" if
-            len(household.languages) > 1 else "is"} spoken at home.
-            {patient.language_spoken_best} is reportedly
-            {patient.first_name}'s preferred language.
-            {patient.first_name} {language_fluencies}."""
-        languages_tag = self.llm.run_edit(
-            text_home_languages,
-            additional_instruction="""
-                Ensure that the text flows naturally. What follows is an example:
-                "The family maintains a bilingual household, speaking English and
-                French. English is reportedly John's preferred language. His level
-                of proficiency in French is intermediate.
+        text_home = self.llm.run_with_object_input(
+            {
+                "household_members": household.members,
+                "household_languages": household.languages,
+                "patients_languages": patient.languages,
+            },
+            additional_instruction=f"""
+                You will receive a list of items, either descriptions of household
+                members or the languages spoken by the patient, including details
+                of where they speak them and their fluency.
+
+                Your task is to write a paragraph for the home functioning of
+                this patient. Do not include headers. Only the occupations of
+                adults in the household should be included, do not
+                include grades for children. Summarize the relationship with the
+                family as shortly as possible even if they are different. For example
+                you may merge 'fair' and 'excellent' relationships as 'positive'.
+
+                Languages spoken in the household are as follows:
+                {string_utils.join_with_oxford_comma([language.name for language in
+                                                       household.languages])}.
+
+                What follows is an example output:
+
+                "{patient.first_name} lives in {household.city}, {household.state},
+                with {patient.pronouns[2]} biological parents,
+                brother (age 10) and sister (age 15). The family is intact.
+                CHILDNAME's mother, MOTHER FIRST AND LAST NAME (age), is a
+                teacher, and {patient.pronouns[2]} father, FATHER FIRST
+                AND LAST NAME (age), is a fireman. {patient.first_name} has
+                mixed relationships with {patient.pronouns[2]} family members.
+
+                The family maintains a bilingual household, speaking English and French.
+                {patient.language_spoken_best} is reportedly
+                {patient.first_name}'s preferred language.
+                {patient.pronouns[2].capitalize()} level of proficiency in French is
+                intermediate."
+
+                Stick to the provided format wherein the children's ages are
+                mentioned in the first sentence, but adults' ages are mentioned
+                with their introduction.
             """,
-            context=text_home_base,
         )
-        text_home = f"{text_home_base} {languages_tag}"
 
         if not household.home_functioning:
             text_adaptive = f"""
@@ -505,7 +524,6 @@ class ReportWriter:
                 parent_input=f"""
                     Details on home functioning: {household.home_functioning}
                 """,
-                context=text_home_base,
             )
 
         text_home = string_utils.remove_excess_whitespace(text_home)
@@ -580,7 +598,7 @@ class ReportWriter:
                 diagnoses: "
             """
 
-            text = self.llm.run_with_list_input(
+            text = self.llm.run_with_object_input(
                 items=past_diagnoses,
                 additional_instruction=instructions,
             )
@@ -726,7 +744,7 @@ class ReportWriter:
                 """
             text = string_utils.remove_excess_whitespace(text)
         else:
-            text = self.llm.run_with_list_input(
+            text = self.llm.run_with_object_input(
                 items=interventions,
                 additional_instruction=f"""
                     An example structure for this paragraph follows:
@@ -767,7 +785,7 @@ class ReportWriter:
             else:
                 all_medication = medications.current_medication  # type: ignore[assignment]
 
-            text = self.llm.run_with_list_input(
+            text = self.llm.run_with_object_input(
                 items=all_medication,
                 additional_instruction="""
                     You will receive a list of both past and current

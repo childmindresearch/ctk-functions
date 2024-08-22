@@ -55,7 +55,7 @@ def test_household_parser(
     assert household.city == test_redcap_data.city
     assert household.state == test_redcap_data.state.name
     assert household.guardian_marital_status == expected_marital_status
-    assert len(household.members.base) == n_household_members
+    assert len(household.members) == n_household_members
     assert len(household.languages) == n_languages
 
 

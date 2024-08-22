@@ -219,9 +219,9 @@ class Household:
         """
         logger.debug("Parsing household information.")
         n_members = patient_data.residing_number
-        self.members = transformers.HouseholdMembers(
-            [HouseholdMember(patient_data, i) for i in range(1, n_members + 1)],
-        )
+        self.members = [
+            HouseholdMember(patient_data, i) for i in range(1, n_members + 1)
+        ]
         self.guardian_marital_status = patient_data.guardian_maritalstatus.name.replace(
             "_",
             " ",
@@ -286,7 +286,7 @@ class HouseholdMember:
         self.relationship_quality = getattr(
             patient_data,
             f"peopleinhome{identifier}_relationship",
-        )
+        ).name
 
         self.grade_occupation = getattr(
             patient_data,
