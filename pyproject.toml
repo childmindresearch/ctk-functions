@@ -32,20 +32,20 @@ jsonpickle = "^3.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
-mypy = "^1.10.1"
+mypy = "^1.11.2"
 pre-commit = "^3.7.1"
 pytest-cov = "^5.0.0"
-ruff = "^0.6.0"
-types-python-dateutil = "^2.9.0.20240316"
+ruff = "^0.6.3"
+types-python-dateutil = "^2.9.0.20240821"
 types-pytz = "^2024.1.0.20240417"
 pytest-dotenv = "^0.5.2"
 pytest-mock = "^3.14.0"
 types-requests = "^2.32.0.20240622"
 types-aiofiles = "^24.1.0.20240626"
-pytest-asyncio = "^0.23.7"
+pytest-asyncio = "^0.24.0"
 
 [tool.poetry.group.docs.dependencies]
-pdoc = "^14.5.1"
+pdoc = "^14.6.1"
 
 [tool.pytest.ini_options]
 pythonpath = [
