@@ -25,16 +25,15 @@ def test_mark_warnings_as_red(tmp_path: pathlib.Path) -> None:
     doc.add_paragraph(sentences[1])
     doc.save(str(filename))
 
-    controller.mark_warnings_as_red(filename)
-    modified_doc = docx.Document(str(filename))
+    controller.mark_warnings_as_red(doc)
 
-    assert modified_doc.paragraphs[0].text == sentences[0]
-    assert modified_doc.paragraphs[1].text == sentences[1]
-    assert modified_doc.paragraphs[0].runs[1].text == "{{!WARNING-TEXT}}"
-    assert modified_doc.paragraphs[1].runs[1].text == "{{!WARNING-TEXT-2}}"
-    assert not is_run_font_color_red(modified_doc.paragraphs[0].runs[0])
-    assert is_run_font_color_red(modified_doc.paragraphs[0].runs[1])
-    assert is_run_font_color_red(modified_doc.paragraphs[1].runs[1])
+    assert doc.paragraphs[0].text == sentences[0]
+    assert doc.paragraphs[1].text == sentences[1]
+    assert doc.paragraphs[0].runs[1].text == "{{!WARNING-TEXT}}"
+    assert doc.paragraphs[1].runs[1].text == "{{!WARNING-TEXT-2}}"
+    assert not is_run_font_color_red(doc.paragraphs[0].runs[0])
+    assert is_run_font_color_red(doc.paragraphs[0].runs[1])
+    assert is_run_font_color_red(doc.paragraphs[1].runs[1])
 
 
 def test_markdown2docx(tmp_path: pathlib.Path) -> None:
