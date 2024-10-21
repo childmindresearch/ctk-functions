@@ -29,6 +29,7 @@ spacy = "^3.7.5"
 openai = "^1.37.1"
 anthropic = {extras = ["bedrock"], version = "^0.32.0"}
 jsonpickle = "^3.2.2"
+instructor = "^1.6.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
