@@ -40,6 +40,9 @@ dev-dependencies = [
   "types-requests>=2.32.0.20241016"
 ]
 
+[tool.uv.sources]
+ctk_functions = {path = "./src/ctk_functions"}
+
 [tool.pytest.ini_options]
 pythonpath = [
   "src"
