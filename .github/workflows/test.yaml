@@ -36,7 +36,7 @@ jobs:
     - name: Run tests
       id: run-tests
       run: >
-        poetry run pytest . \
+        uv run pytest . \
           --junitxml=pytest.xml \
           --cov-report=term-missing:skip-covered \
           --cov-report=xml:coverage.xml \
