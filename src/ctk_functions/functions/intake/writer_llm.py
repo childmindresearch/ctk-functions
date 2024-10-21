@@ -61,12 +61,12 @@ quotations; make sure the response is integrated into the text. Do not alter the
 content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE. Make sure
 that the response is clear, uses correct grammar, avoids abbreviations and
 repetition, and is consistent with the tone of a clinical report written by a
-medical professional. Report dates in the format "Month YYYY" (e.g., 15 June 2022).
+medical professional. Report dates in the format "Month YYYY" (e.g., June 2022).
 Do not include any headers like "Excerpt" or "Here is the editted text". Format
 your response as plaintext.
 """
     object_input = """
-You will a JSON containing information about the patient. Your task is to write
+You will receive a JSON containing information about the patient. Your task is to write
 a text that includes the clinically relevant information from the JSON. You
 should return the text in full with the necessary edits. Make sure that the text
 flows naturally, i.e., DO NOT MAKE A BULLET LIST. Format the text as plaintext.
@@ -76,7 +76,7 @@ appropriate for a clinical report written by a doctor, i.e. professional and
 objective. Do not use quotations; make sure the response is integrated into the
 text. Your response should be in plain text i.e., do not use Markdown. Do not
 include an introduction, summary, or conclusion. Report dates in the format "Month YYYY"
-(e.g., 15 June 2022).
+(e.g., June 2022).
 """
 
 
@@ -139,6 +139,8 @@ class WriterLlm:
         additional_instruction = string_utils.remove_excess_whitespace(
             additional_instruction,
         )
+        context = string_utils.remove_excess_whitespace(context)
+
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
         system_prompt = (
             f"{Prompts.parent_input}\n\n{self.child_info}\n\n{additional_instruction}"
@@ -157,6 +159,8 @@ class WriterLlm:
         text: str,
         additional_instruction: str = "",
         context: str = "",
+        *,
+        verify: bool = False,
     ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt.
 
@@ -165,6 +169,7 @@ class WriterLlm:
             additional_instruction: Additional instructions to include in the system
                 prompt.
             context: The context in which the excerpt will be placed.
+            verify: If true, run verification prompts on the LLM output.
 
         Returns:
             The placeholder for the LLM edit.
@@ -172,7 +177,9 @@ class WriterLlm:
         additional_instruction = string_utils.remove_excess_whitespace(
             additional_instruction,
         )
+        context = string_utils.remove_excess_whitespace(context)
         user_prompt = string_utils.remove_excess_whitespace(text)
+
         system_prompt = f"{Prompts.edit}\n{additional_instruction}"
         if context:
             instruction = (
@@ -180,12 +187,14 @@ class WriterLlm:
                 "placed, do not include this context in your response:"
             )
             system_prompt = f"{system_prompt} {instruction} {context}\n\n"
-        return self._run(system_prompt, user_prompt)
+        return self._run(system_prompt, user_prompt, verify=verify)
 
     def run_with_object_input(
         self,
         items: Any,  # noqa: ANN401
         additional_instruction: str = "",
+        *,
+        verify: bool = False,
     ) -> str:
         """Creates a placeholder for an LLM edit of a list of classes.
 
@@ -193,6 +202,7 @@ class WriterLlm:
             items: An object which will be converted to JSON.
             additional_instruction: Additional instructions to include in the system
                 prompt.
+            verify: If true, run verification prompts on the LLM output.
 
         Returns:
             The placeholder for the LLM edit.
@@ -208,9 +218,15 @@ class WriterLlm:
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
         if not user_prompt:
             user_prompt = "No items provided."
-        return self._run(system_prompt, user_prompt)
+        return self._run(system_prompt, user_prompt, verify=verify)
 
-    def _run(self, system_prompt: str, user_prompt: str) -> str:
+    def _run(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        verify: bool = False,
+    ) -> str:
         """Creates a placeholder for an LLM edit.
 
         Convenience function to run the common parts of all run commands.
@@ -218,6 +234,7 @@ class WriterLlm:
         Args:
             system_prompt: The system prompt for the LLM.
             user_prompt: The user prompt for the LLM.
+            verify: If True, runs with self-assessment. Defaults to False.
 
         Returns:
             The placeholder for the LLM edit.
@@ -233,7 +250,14 @@ class WriterLlm:
             user_prompt,
         )
 
-        replacement = self.client.run(system_prompt, user_prompt)
+        if verify:
+            replacement = self.client.chain_of_verification(
+                system_prompt,
+                user_prompt,
+                create_new_questions=True,
+            )
+        else:
+            replacement = self.client.run(system_prompt, user_prompt)
         placeholder_uuid = str(uuid.uuid4())
         self.placeholders.append(LlmPlaceholder(placeholder_uuid, replacement))
         return placeholder_uuid
