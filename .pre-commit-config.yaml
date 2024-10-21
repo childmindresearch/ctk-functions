@@ -21,6 +21,7 @@ repos:
     - anthropic
     - azure-functions
     - cmi-docx
+    - instructor
     - openai
     - pycap
     - pydantic
