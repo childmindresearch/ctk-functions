@@ -1,8 +1,6 @@
 """This module coalesces all large language models from different microservices."""
 
 import asyncio
-import inspect
-import json
 import typing
 from collections.abc import Iterable
 from typing import Literal, TypeGuard, overload
@@ -19,44 +17,48 @@ VALID_LLM_MODELS = typing.Literal[aws.ANTHROPIC_MODELS, azure.GPT_MODELS]
 logger = config.get_logger()
 
 
-class GeneratedQuestion(pydantic.BaseModel):
-    """A class for a question to be asked about the correctness of an LLM result."""
+class GeneratedStatement(pydantic.BaseModel):
+    """A class for a statement about the correctness of an LLM result."""
 
-    question: str = pydantic.Field(
+    statement: str = pydantic.Field(
         ...,
-        description="A True or False question about the text.",
+        description="A True or False statement about the text.",
     )
 
-    @pydantic.field_validator("question")
+    @pydantic.field_validator("statement")
     @classmethod
-    def question_ends_in_question_mark(cls, value: str) -> str:
-        """Check whether the phrase is actually a question."""
-        if not value.endswith("?"):
-            msg = "Questions must end with a question mark."
+    def statement_validation(cls, value: str) -> str:
+        """Check whether the phrase is actually a statement."""
+        if value[0].isnumeric():
+            msg = "statements should not be numbered."
             raise ValueError(msg)
         return value
 
 
-class VerificationQuestion(pydantic.BaseModel):
-    """A class for a question verifying the correctness of an LLM result."""
+class VerificationStatement(pydantic.BaseModel):
+    """A class for a statement verifying the correctness of an LLM result."""
 
-    question: str = pydantic.Field(
+    statement: GeneratedStatement = pydantic.Field(
         ...,
-        description="A True or False question about the text.",
+        description="A True or False statement about the text.",
     )
     correct: bool = pydantic.Field(
         ...,
-        description="True if the answer to the question is true, False otherwise.",
+        description="True if the answer to the statement is true, False otherwise.",
     )
 
-    @pydantic.field_validator("question")
-    @classmethod
-    def question_ends_in_question_mark(cls, value: str) -> str:
-        """Check whether the phrase is actually a question."""
-        if not value.endswith("?"):
-            msg = "Questions must end with a question mark."
-            raise ValueError(msg)
-        return value
+
+class RewrittenText(pydantic.BaseModel):
+    """Class for rewriting text based on verification statements."""
+
+    text: str = pydantic.Field(..., description="The editted text.")
+    statements: tuple[VerificationStatement] = pydantic.Field(
+        ...,
+        description=(
+            "The statements along with whether they are True or False about the "
+            "editted text."
+        ),
+    )
 
 
 class LargeLanguageModel(utils.LlmAbstractBaseClass):
@@ -73,9 +75,6 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
             model: The model to use for the language model.
         """
         self.client: azure.AzureLlm | aws.ClaudeLlm
-        self.instructor: (
-            instructor.client.Instructor | instructor.client.AsyncInstructor
-        )
         self.model = model
         logger.info("Using LLM model: %s", self.model)
         if self._is_azure_model(self.model):
@@ -106,10 +105,10 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         self,
         system_prompt: str,
         user_prompt: str,
-        questions: list[str] = ...,
+        statements: list[str] = ...,
         max_verifications: int = ...,
         *,
-        create_new_questions: bool,
+        create_new_statements: bool,
     ) -> str:
         pass
 
@@ -118,10 +117,10 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         self,
         system_prompt: str,
         user_prompt: str,
-        questions: None = None,
+        statements: None = None,
         max_verifications: int = ...,
         *,
-        create_new_questions: Literal[True],
+        create_new_statements: Literal[True],
     ) -> str:
         pass
 
@@ -129,136 +128,117 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         self,
         system_prompt: str,
         user_prompt: str,
-        questions: list[str] | None = None,
+        statements: list[str] | None = None,
         max_verifications: int = 3,
         *,
-        create_new_questions: bool = False,
+        create_new_statements: bool = False,
     ) -> str:
         """Runs an LLM prompt that is self-assessed by the LLM.
 
         Args:
             system_prompt: The system prompt for the initial prompt.
             user_prompt: The user prompt for the initial prompt.
-            questions: Questions to verify the results. Defaults to None.
+            statements: Statements to verify the results. Defaults to None.
             max_verifications: The maximum number of times to verify the results.
                 Defaults to 3.
-            create_new_questions: If True, generate new questions from the system
+            create_new_statements: If True, generate new statements from the system
                 prompt. Defaults to False.
 
         Returns:
             The editted text result.
         """
-        if questions is None and not create_new_questions:
+        if statements is None and not create_new_statements:
             msg = (
-                "Either questions must be provided, or new questions need to be "
+                "Either statements must be provided, or new statements need to be "
                 "generated, or both."
             )
             raise ValueError(msg)
-        questions = questions or []
+        statements = statements or []
 
-        text_promise = self.client.run(system_prompt, user_prompt)
-        if create_new_questions:
-            questions_promise = self._create_questions(system_prompt)
-            text, new_questions = await asyncio.gather(text_promise, questions_promise)
-            questions += new_questions
+        text_promise = self.run(system_prompt, user_prompt)
+        if create_new_statements:
+            statements_promise = self._create_statements(system_prompt)
+            text, new_statements = await asyncio.gather(
+                text_promise,
+                statements_promise,
+            )
+            statements += [statement.statement for statement in new_statements]
         else:
             text = await text_promise
 
         logger.log(
             LOGGER_PHI_LOGGING_LEVEL,
-            "Running with questions: %s",
-            questions,
+            "Running with statements: %s",
+            statements,
         )
         for _ in range(max_verifications):
             logger.log(LOGGER_PHI_LOGGING_LEVEL, text)
-            verified_questions = await self._verify_questions(
+            rewrite = await self._verify(
                 text,
-                questions,
+                statements,
+                user_prompt,
             )
-            if all(question.correct for question in verified_questions):
+            if all(statement.correct for statement in rewrite.statements):
                 break
             logger.log(
                 LOGGER_PHI_LOGGING_LEVEL,
-                [q for q in verified_questions if not q.correct],
+                [q for q in rewrite.statements if not q.correct],
             )
-            text = await self._rewrite(text, verified_questions, user_prompt)
+            text = rewrite.text
         else:
             logger.warning("Reached verification limit.")
 
         return text
 
-    async def _create_questions(self, instructions: str) -> list[str]:
-        """Creates questions for prompt result validation.
+    async def _create_statements(self, instructions: str) -> list[GeneratedStatement]:
+        """Creates statements for prompt result validation.
 
         Args:
             instructions: The instructions provided to the model, commonly
                 the system prompt.
 
         Returns:
-            List of verification questions as strings.
+            List of verification statements as strings.
         """
         system_message = (
-            "Based on the following instructions, write a set questions that can be "
-            "answered with True or False to determine whether a piece of text adheres "
-            "to these instructions."
+            "Based on the following instructions, write a set of statements that can "
+            "be answered with True or False to determine whether a piece of text "
+            "adheres to these instructions."
         )
-        messages = [
-            {
-                "role": "user",
-                "content": instructions,
-            },
-        ]
 
-        response = self.instructor.chat.completions.create(
-            list[str],
-            messages,  # type: ignore[arg-type]
+        return await self.instructor.chat.completions.create(
+            list[GeneratedStatement],
+            messages=[
+                {
+                    "role": "user",
+                    "content": instructions,
+                },
+            ],
             system=system_message,
             model=self.model,
             max_tokens=4096,
         )
 
-        if inspect.isawaitable(response):
-            response = await response
-
-        return response
-
-    async def _verify_questions(
+    async def _verify(
         self,
         text: str,
-        questions: Iterable[str],
-    ) -> list[VerificationQuestion]:
+        statements: Iterable[str],
+        source: str,
+    ) -> RewrittenText:
+        statement_string = "\n".join(statements)
         system_prompt = (
-            "Assess whether all of the following questions about the text "
-            "are True or False: {}"
-        ).format("\n".join(questions))
-        response = self.instructor.chat.completions.create(
-            response_model=list[VerificationQuestion],
+            "Based on the following statements, edit the text to comply"
+            f"with all statements. The statements are as follows: "
+            f"{statement_string}. Furthermore, ensure that all edits are reflective "
+            f"of the source material: {source}"
+        )
+        return await self.instructor.chat.completions.create(
+            response_model=RewrittenText,
             system=system_prompt,
             messages=[{"role": "user", "content": text}],
             model=self.model,
             max_tokens=4096,
         )
-
-        if inspect.isawaitable(response):
-            response = await response
-
-        return response
-
-    async def _rewrite(
-        self,
-        text: str,
-        questions: Iterable[VerificationQuestion],
-        source: str,
-    ) -> str:
-        system_prompt = (
-            "Based on the responses to the following questions, "
-            "rewrite the text to ensure that all questions are True: "
-            "\n".join(json.dumps(question.model_dump()) for question in questions)
-            + "Ensure that everything stated in the text is accurate with respect to "
-            f"the source material. The source material is as follows: \n\n {source}"
-        )
-
-        return await self.client.run(system_prompt, text)
 
     @staticmethod
     def _is_azure_model(model: VALID_LLM_MODELS) -> TypeGuard[azure.GPT_MODELS]:

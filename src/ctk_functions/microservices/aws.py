@@ -1,6 +1,5 @@
 """This module contains interactions with AWS microservices."""
 
-import asyncio
 from typing import Literal
 
 import anthropic
@@ -37,14 +36,14 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
         elif model == "anthropic.claude-3-5-sonnet-20240620-v1:0":
             region = "us-east-1"
 
-        self.client = anthropic.AnthropicBedrock(
+        self.client = anthropic.AsyncAnthropicBedrock(
             aws_access_key=AWS_ACCESS_KEY_ID.get_secret_value(),
             aws_secret_key=AWS_SECRET_ACCESS_KEY.get_secret_value(),
             aws_region=region,
         )
         self.model = model
 
-    def _run(self, system_prompt: str, user_prompt: str) -> str:
+    async def run(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts.
 
         The messages flips the user/assistant role because the Claude model
@@ -57,7 +56,7 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
         Returns:
             The output text.
         """
-        message = self.client.messages.create(
+        message = await self.client.messages.create(
             model=self.model,
             max_tokens=5000,
             system=system_prompt,
@@ -65,15 +64,3 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
         )
 
         return message.content[0].text  # type: ignore[union-attr]
-
-    async def run(self, system_prompt: str, user_prompt: str) -> str:
-        """Runs the model with the given prompts asynchronously.
-
-        Args:
-            system_prompt: The system prompt.
-            user_prompt: The user prompt.
-
-        Returns:
-            The output text.
-        """
-        return await asyncio.to_thread(self._run, system_prompt, user_prompt)

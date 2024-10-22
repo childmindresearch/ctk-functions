@@ -9,6 +9,26 @@ from typing import Literal
 import pydantic
 
 
+class InfantDifficulties(pydantic.BaseModel):
+    """Difficulties during infancy."""
+
+    colic: str | None
+    eating_difficulties: str | None
+    sleeping_difficulties: str | None
+    did_not_enjoy_body_contact: str | None
+    overly_sensitive_to_sound: str | None
+    limp_or_stiff: str | None
+    problems_with_social_relatedness: str | None
+
+    def any(self) -> bool:
+        """True if any of the properties are truthy.
+
+        Returns:
+            True if any of the properties are truthy, otherwise False.
+        """
+        return any(value for value in self.model_dump().values())
+
+
 class PastSchool(pydantic.BaseModel):
     """The model for past schools."""
 

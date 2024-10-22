@@ -31,11 +31,26 @@ class LlmPlaceholder:
     replacement: Awaitable[str]
 
 
+BASE_PROMPT = """
+This text will be inserted into a clinical report. It must adhere to the following
+requirements:
+- Ensure that the tone is appropriate for a clinical report written by a doctor, i.e. professional and objective.
+- Do not use quotations; make sure the response can be integrated into the text.
+- Your response should be in plain text i.e., do not use Markdown.
+- Do not include an introduction, summary, or conclusion.
+- Report dates in the format "Month YYYY" (e.g., June 2022), unless referring to the child's age of development stage (e.g. during adolesence).
+- Do not include an initial message in the response like "Based on the parent input provided here is a suggested completion" or a header like "Excerpt:" or "Parent Input"
+- Do not extrapolate from the source material; i.e. only include information that is stated in the source material.
+- If acronyms are used, maintain the acronyms; do not guess at the meaning of the acronym.
+- Do not make subjective judgements on whether something was e.g. easy or challenging unless these are explicitly mentioned in the source material.
+"""  # noqa: E501
+
+
 @dataclasses.dataclass
 class Prompts:
     """Prompts for the large language model."""
 
-    parent_input = """
+    parent_input = f"""
 You will receive an excerpt of a clinical report with part of the text replaced
 by a placeholder, a response by a parent, and the name and pronouns of the
 child. Your task is to insert the parent's response into the excerpt. You should
@@ -44,39 +59,24 @@ response. Do not use quotations; make sure the response is
 integrated into the text. If the response is not provided, please write that the
 response was not provided. If the response is not applicable, please write that
 the information is not applicable. Parents' responses may be terse,
-grammatically incorrect, or incomplete. Make sure that the response is clear,
-uses correct grammar, avoids abbreviations and repetition, and is consistent
-with the tone of a clinical report written by a medical professional.  Report
-dates in the format "Month YYYY" (e.g., June 2022). Do not include an initial
-message in the response like "Based on the parent input provided here is a
-suggested completion" or a header like "Excerpt:" or "Parent Input"; INCLUDE
-ONLY THE EXCERPT ITSELF.
+grammatically incorrect, or incomplete.
+{BASE_PROMPT}
 """
-    edit = """
+    edit = f"""
 You will receive an excerpt of a clinical report. Your task is to edit the text
 to improve its clarity, grammar, and style. You should return the excerpt in
 full with the necessary edits. Ensure that the tone is appropriate for a
 clinical report written by a doctor, i.e. professional and objective. Do not use
 quotations; make sure the response is integrated into the text. Do not alter the
-content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE. Make sure
-that the response is clear, uses correct grammar, avoids abbreviations and
-repetition, and is consistent with the tone of a clinical report written by a
-medical professional. Report dates in the format "Month YYYY" (e.g., June 2022).
-Do not include any headers like "Excerpt" or "Here is the editted text". Format
-your response as plaintext.
+content of the text; ONLY EDIT THE TEXT FOR CLARITY, GRAMMAR, AND STYLE.
+{BASE_PROMPT}
 """
-    object_input = """
+    object_input = f"""
 You will receive a JSON containing information about the patient. Your task is to write
 a text that includes the clinically relevant information from the JSON. You
 should return the text in full with the necessary edits. Make sure that the text
-flows naturally, i.e., DO NOT MAKE A BULLET LIST. Format the text as plaintext.
-
-This text will be inserted into a clinical report. Ensure that the tone is
-appropriate for a clinical report written by a doctor, i.e. professional and
-objective. Do not use quotations; make sure the response is integrated into the
-text. Your response should be in plain text i.e., do not use Markdown. Do not
-include an introduction, summary, or conclusion. Report dates in the format "Month YYYY"
-(e.g., June 2022).
+flows naturally, i.e., DO NOT MAKE A LIST.
+{BASE_PROMPT}
 """
 
 
@@ -193,6 +193,7 @@ class WriterLlm:
         self,
         items: Any,  # noqa: ANN401
         additional_instruction: str = "",
+        context: str = "",
         *,
         verify: bool = False,
     ) -> str:
@@ -203,6 +204,7 @@ class WriterLlm:
             additional_instruction: Additional instructions to include in the system
                 prompt.
             verify: If true, run verification prompts on the LLM output.
+            context: The context in which the excerpt will be placed.
 
         Returns:
             The placeholder for the LLM edit.
@@ -210,10 +212,18 @@ class WriterLlm:
         additional_instruction = string_utils.remove_excess_whitespace(
             additional_instruction,
         )
+        context = string_utils.remove_excess_whitespace(context)
 
         system_prompt = (
             f"{Prompts.object_input}\n{self.child_info}\n{additional_instruction}"
         )
+        if context:
+            instruction = (
+                "The following is the context preceding where the excerpt will be "
+                "placed, do not include this context in your response:"
+            )
+            system_prompt = f"{system_prompt} {instruction} {context}\n\n"
+
         user_prompt = jsonpickle.encode(items, unpicklable=False, make_refs=False)
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
         if not user_prompt:
@@ -254,7 +264,7 @@ class WriterLlm:
             replacement = self.client.chain_of_verification(
                 system_prompt,
                 user_prompt,
-                create_new_questions=True,
+                create_new_statements=True,
             )
         else:
             replacement = self.client.run(system_prompt, user_prompt)
