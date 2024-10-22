@@ -227,7 +227,7 @@ class ReportWriter:
                 verify=True,
                 context=text,
             )
-        text += f" {placeholder}"
+            text += f" {placeholder}"
 
         self._insert("Prenatal and Birth History", StyleName.HEADING_2)
         self._insert(text)
