@@ -214,6 +214,20 @@ class ReportWriter:
             soothe.
         """
         text = string_utils.remove_excess_whitespace(text)
+        if development.infant_difficulties.any():
+            placeholder = self.llm.run_with_object_input(
+                items=[development.infant_difficulties],
+                additional_instruction="""
+                    You will receive a JSON of difficulties the child had during
+                    infancy. Write text on this that can be appended to the paragraph
+                    provided. Include existing issues i.e. do not include issues that
+                    were reported as not existing. Do not include a phrase stating
+                    that no other issues were reported or similar.
+                """,
+                verify=True,
+                context=text,
+            )
+            text += f" {placeholder}"
 
         self._insert("Prenatal and Birth History", StyleName.HEADING_2)
         self._insert(text)

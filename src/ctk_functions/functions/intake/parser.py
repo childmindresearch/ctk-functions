@@ -412,6 +412,15 @@ class Development:
         self.adaptability = transformers.Adaptability(
             patient_data.infanttemp_adapt,
         )
+        self.infant_difficulties = parser_models.InfantDifficulties(
+            colic=patient_data.colic,
+            eating_difficulties=patient_data.eating_difficulties,
+            sleeping_difficulties=patient_data.sleeping_difficulties,
+            did_not_enjoy_body_contact=patient_data.no_bodycontact,
+            limp_or_stiff=patient_data.limp,
+            problems_with_social_relatedness=patient_data.social_relatedness,
+            overly_sensitive_to_sound=patient_data.sound_sensitivity,
+        )
         self.soothing_difficulty = patient_data.infanttemp1
 
         cpse_encodings = (
