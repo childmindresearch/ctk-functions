@@ -171,6 +171,8 @@ files = [
 
 [package.dependencies]
 anyio = ">=3.5.0,<5"
+boto3 = {version = ">=1.28.57", optional = true, markers = "extra == \"bedrock\""}
+botocore = {version = ">=1.31.57", optional = true, markers = "extra == \"bedrock\""}
 distro = ">=1.7.0,<2"
 httpx = ">=0.23.0,<1"
 jiter = ">=0.4.0,<1"
@@ -308,17 +310,17 @@ numpy = ">=2.0.0,<3.0.0"
 
 [[package]]
 name = "boto3"
-version = "1.35.45"
+version = "1.35.46"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.35.45-py3-none-any.whl", hash = "sha256:f16c7edfcbbeb0a0c22d67d6ebbfcb332fa78d3ea88275e082260ba04fe65347"},
-    {file = "boto3-1.35.45.tar.gz", hash = "sha256:9f4a081e1940846171b51d903000a04322f1356d53225ce1028fc1760a155a70"},
+    {file = "boto3-1.35.46-py3-none-any.whl", hash = "sha256:a839ce09a844d92e0039f95851e88da9df80c89ebb4c7818b3e78247fd97a8a7"},
+    {file = "boto3-1.35.46.tar.gz", hash = "sha256:c9bab807b372d5b076d6aeb1d6513131fa0b74e32d8895128f8568b6521296ea"},
 ]
 
 [package.dependencies]
-botocore = ">=1.35.45,<1.36.0"
+botocore = ">=1.35.46,<1.36.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -327,13 +329,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.35.45"
+version = "1.35.46"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.35.45-py3-none-any.whl", hash = "sha256:e07e170975721c94ec1e3bf71a484552ad63e2499f769dd14f9f37375b4993fd"},
-    {file = "botocore-1.35.45.tar.gz", hash = "sha256:9a898bfdd6b0027fee2018711192c15c2716bf6a7096b1168bd8a896df3664a1"},
+    {file = "botocore-1.35.46-py3-none-any.whl", hash = "sha256:8bbc9a55cae65a8db7f2e33ff087f4dbfc13fce868e8e3c5273ce9af367a555a"},
+    {file = "botocore-1.35.46.tar.gz", hash = "sha256:8c0ff5fdd611a28f5752189d171c69690dbc484fa06d74376890bb0543ec3dc1"},
 ]
 
 [package.dependencies]
@@ -1165,6 +1167,7 @@ files = [
 
 [package.dependencies]
 aiohttp = ">=3.9.1,<4.0.0"
+anthropic = {version = ">=0.36.2,<0.37.0", optional = true, markers = "extra == \"anthropic\" or extra == \"test-docs\""}
 docstring-parser = ">=0.16,<0.17"
 jinja2 = ">=3.1.4,<4.0.0"
 jiter = ">=0.5.0,<0.6.0"
@@ -1174,6 +1177,7 @@ pydantic-core = ">=2.18.0,<3.0.0"
 rich = ">=13.7.0,<14.0.0"
 tenacity = ">=9.0.0,<10.0.0"
 typer = ">=0.9.0,<1.0.0"
+xmltodict = {version = ">=0.13.0,<0.14.0", optional = true, markers = "extra == \"anthropic\""}
 
 [package.extras]
 anthropic = ["anthropic (>=0.36.2,<0.37.0)", "xmltodict (>=0.13.0,<0.14.0)"]
@@ -3879,6 +3883,17 @@ files = [
 ]
 
 [[package]]
+name = "xmltodict"
+version = "0.13.0"
+description = "Makes working with XML feel like you are working with JSON"
+optional = false
+python-versions = ">=3.4"
+files = [
+    {file = "xmltodict-0.13.0-py2.py3-none-any.whl", hash = "sha256:aa89e8fd76320154a40d19a0df04a4695fb9dc5ba977cbb68ab3e4eb225e7852"},
+    {file = "xmltodict-0.13.0.tar.gz", hash = "sha256:341595a488e3e01a85a9d8911d8912fd922ede5fecc4dce437eb4b6c8d037e56"},
+]
+
+[[package]]
 name = "yarl"
 version = "1.16.0"
 description = "Yet another URL library"
@@ -3977,4 +3992,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "c5c14c0444ba50e9f43bbef6f121ed070802ccaa667484db05883e6ba4c33d51"
+content-hash = "3ae97513d4f7c8d237a2ae690b09fb4d8427c624da65801379775b9e390276f4"

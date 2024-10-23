@@ -27,10 +27,9 @@ en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/down
 language-tool-python = "^2.8.1"
 spacy = "^3.8.2"
 openai = "^1.52.0"
-anthropic = "^0.36.2"
 jsonpickle = "^3.3.0"
-instructor = "^1.6.3"
-boto3 = "^1.35.45"
+anthropic = {version = "<0.37", extras = ["bedrock"]}
+instructor = {extras = ["anthropic"], version = "^1.6.3"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
