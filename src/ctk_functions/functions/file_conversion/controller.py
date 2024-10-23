@@ -43,6 +43,7 @@ def markdown2docx(
         document = docx.Document(docx_file.name)
         mark_warnings_as_red(document)
         set_list_indentations(document)
+        remove_warning_brackets(document)
 
         if formatting is not None:
             if isinstance(formatting, dict):
@@ -97,3 +98,15 @@ def set_list_indentations(doc: document.Document) -> None:
         level = int(indentation_level.get(ns.qn("w:val"))) + 1
         paragraph.paragraph_format.left_indent = shared.Inches(0.25) * level
         paragraph.paragraph_format.first_line_indent = shared.Inches(-0.25)
+
+
+def remove_warning_brackets(doc: document.Document) -> None:
+    """Removes {{! and }} substrings.
+
+    Args:
+        doc: The document object.
+    """
+    for paragraph in doc.paragraphs:
+        extended_paragraph = cmi_docx.ExtendParagraph(paragraph)
+        extended_paragraph.replace("{{!", "")
+        extended_paragraph.replace("}}", "")
