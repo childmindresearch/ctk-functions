@@ -11,7 +11,10 @@ from ctk_functions.microservices import redcap
     [
         (
             redcap.IndividualizedEducationProgram.yes,
-            "had an Individualized Education Program (IEP)",
+            (
+                "had an Individualized Education Program (IEP) with an educational "
+                'classification of "Autism"'
+            ),
         ),
         (
             redcap.IndividualizedEducationProgram.no,
@@ -24,7 +27,7 @@ def test_individualized_education_program_transformer(
     expected: str,
 ) -> None:
     """Test that the IEP transformer returns the expected strings."""
-    transformer = transformers.IndividualizedEducationProgram(iep)
+    transformer = transformers.IndividualizedEducationProgram(iep, other="Autism")
 
     assert str(transformer) == expected
 

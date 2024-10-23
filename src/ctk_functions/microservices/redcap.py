@@ -102,6 +102,25 @@ class IndividualizedEducationProgram(enum.Enum):
     yes = "1"
 
 
+class IepClassification(enum.Enum):
+    """Types of IEP classifications."""
+
+    Autism = "1"
+    Deaf_Blindness = "2"
+    Deafness = "3"
+    Emotional_Disturbance = "4"
+    Hearing_Impairment = "5"
+    Intellectual_Disability = "6"
+    Learning_Disability = "7"
+    Multiple_Disabilities = "8"
+    Orthopedic_Impairment = "9"
+    Other_Health_Impairment = "10"
+    Speech_or_Language_Impairment = "11"
+    Traumatic_Brain_Injury = "12"
+    Visual = "13"
+    Other = "14"
+
+
 class BirthDelivery(enum.Enum):
     """The type of delivery the patient had."""
 
@@ -562,6 +581,8 @@ class RedCapData(pydantic.BaseModel):
     unexpected data.
     """
 
+    model_config = pydantic.ConfigDict(frozen=True)
+
     # Basic child information
 
     age: float
@@ -682,6 +703,21 @@ class RedCapData(pydantic.BaseModel):
     current_grades: EducationGrades
     grade: str
     iep: IndividualizedEducationProgram
+    iep_classification___1: bool
+    iep_classification___2: bool
+    iep_classification___3: bool
+    iep_classification___4: bool
+    iep_classification___5: bool
+    iep_classification___6: bool
+    iep_classification___7: bool
+    iep_classification___8: bool
+    iep_classification___9: bool
+    iep_classification___10: bool
+    iep_classification___11: bool
+    iep_classification___12: bool
+    iep_classification___13: bool
+    iep_classification___14: bool
+    iep_classification_other: str | None
     pastschool1_grades: str | None
     pastschool1: str | None
     pastschool10_grades: str | None
@@ -1121,6 +1157,7 @@ class RedCapData(pydantic.BaseModel):
         *(
             [f"schoolservices___{index}" for index in range(1, 7)]
             + [f"cpse_services___{index}" for index in range(1, 7)]
+            + [f"iep_classification___{index}" for index in range(1, 15)]
             + [f"preg_symp___{index}" for index in range(1, 21)]
             + [f"guardian_relationship___{index}" for index in range(1, 13)]
             + [f"language___{index}" for index in range(1, 26)]
@@ -1190,6 +1227,22 @@ class RedCapData(pydantic.BaseModel):
             for index in range(1, 21)
             if getattr(self, f"preg_symp___{index}")
         ]
+
+    @property
+    def iep_classifications(self) -> list[str]:
+        """Generates a list of IEP classifications."""
+        classifications = []
+        for index in range(1, 15):
+            if getattr(self, f"iep_classification___{index}"):
+                iep_class = IepClassification(str(index))
+                if iep_class == IepClassification.Other:
+                    classifications.append(self.iep_classification_other or "Other")
+                elif iep_class == IepClassification.Deaf_Blindness:
+                    classifications.append("Deaf-Blindness")
+                else:
+                    classifications.append(iep_class.name.replace("_", " "))
+
+        return classifications
 
     # Aliases
 

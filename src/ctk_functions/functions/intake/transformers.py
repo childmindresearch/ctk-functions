@@ -129,7 +129,10 @@ class IndividualizedEducationProgram(
         """
         if self.base == redcap.IndividualizedEducationProgram.no:
             return "did not have an Individualized Education Program (IEP)"
-        return "had an Individualized Education Program (IEP)"
+        return (
+            "had an Individualized Education Program (IEP) with an educational "
+            f'classification of "{self.other}"'
+        )
 
 
 class BirthComplications(
