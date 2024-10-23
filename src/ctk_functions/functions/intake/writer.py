@@ -34,6 +34,7 @@ class RGB(enum.Enum):
     LLM = (0, 0, 255)
     TESTING = (155, 187, 89)
     UNRELIABLE = (247, 150, 70)
+    ERROR = (255, 0, 0)
 
 
 class StyleName(enum.Enum):
@@ -125,12 +126,9 @@ class ReportWriter:
         """Writes the reason for visit to the end of the report."""
         logger.debug("Writing the reason for visit to the report.")
         patient = self.intake.patient
-        handedness = patient.handedness
-        iep = patient.education.individualized_educational_program
         past_diagnoses = patient.psychiatric_history.past_diagnoses.transform(
             short=True,
         )
-        classroom = patient.education.classroom_type
         age_determinant = "an" if patient.age in (8, 18) else "a"
 
         if patient.education.grade.isnumeric():
@@ -141,13 +139,15 @@ class ReportWriter:
             grade_superscript = ""
 
         text = f"""
-                At the time of enrollment, {patient.first_name} was {age_determinant}
-                {patient.age}-year-old, {handedness} {patient.age_gender_label}
-                {past_diagnoses}. {patient.first_name} was placed in a {classroom}
-                {patient.education.grade}{grade_superscript}
-                grade classroom at {patient.education.school_name}.
-                {patient.first_name} {iep}. {patient.first_name} and
-                {patient.pronouns[2]} {patient.guardian.relationship}
+                At the time of enrollment, {patient.first_name} was
+                {age_determinant} {patient.age}-year-old, {patient.handedness}
+                {patient.age_gender_label} {past_diagnoses}.
+                {patient.first_name} was placed in a {patient.education.classroom_type}
+                {patient.education.grade}{grade_superscript} grade classroom at
+                {patient.education.school_name}. {patient.first_name}
+                {patient.education.individualized_educational_program}.
+                {patient.first_name} and {patient.pronouns[2]}
+                {patient.guardian.relationship}
         """
 
         placeholder_id = self.llm.run_text_with_parent_input(
@@ -176,8 +176,17 @@ class ReportWriter:
         text = string_utils.remove_excess_whitespace(text)
 
         self._insert("REASON FOR VISIT", StyleName.HEADING_1)
-        self._insert(text)
+        paragraph = self._insert(text)
         self._insert("")
+
+        # Due to a known error in the intake form multiple classifications may appear.
+        # Mark these in red as this should not be possible.
+        if len(patient.education.iep_classifications) > 1:
+            cmi_docx.ExtendParagraph(paragraph).replace(
+                "/".join(patient.education.iep_classifications),
+                "/".join(patient.education.iep_classifications),
+                cmi_docx.RunStyle(font_rgb=RGB.ERROR.value),
+            )
 
     def write_developmental_history(self) -> None:
         """Writes the developmental history to the end of the report."""
@@ -1032,7 +1041,9 @@ class ReportWriter:
         footer = cmi_docx.ExtendParagraph(
             self.report.document.sections[0].footer.paragraphs[0],
         )
-        footer.paragraph.text = "Font Colors: Template, Testing, Large Language Model"
+        footer.paragraph.text = (
+            "Font Colors: Template, Testing, Large Language Model, Known Error"
+        )
         footer.replace(
             "Template",
             "Template",
@@ -1047,6 +1058,11 @@ class ReportWriter:
             "Large Language Model",
             "Large Language Model",
             cmi_docx.RunStyle(font_rgb=RGB.LLM.value),
+        )
+        footer.replace(
+            "Known Error",
+            "Known Error",
+            cmi_docx.RunStyle(font_rgb=RGB.ERROR.value),
         )
 
     def add_page_break(self) -> None:

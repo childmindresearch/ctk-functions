@@ -307,9 +307,11 @@ class Education:
         self.years_of_education = patient_data.yrs_school
         self.school_name = all_caps_to_title(patient_data.school)
         self.grade = patient_data.grade
+        self.iep_classifications = patient_data.iep_classifications
         self.individualized_educational_program = (
             transformers.IndividualizedEducationProgram(
                 patient_data.iep,
+                other="/".join(self.iep_classifications),
             )
         )
         self.school_type = patient_data.schooltype

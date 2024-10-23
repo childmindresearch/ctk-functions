@@ -27,9 +27,13 @@ def test_guardian_parser_other_relationship(
     test_redcap_data: redcap.RedCapData,
 ) -> None:
     """Tests the Guardian intake form parser with an 'other' relationship."""
-    test_redcap_data.guardian_relationship___1 = False
-    test_redcap_data.guardian_relationship___12 = True
-    test_redcap_data.other_relation = "xkcd"
+    test_redcap_data = test_redcap_data.model_copy(
+        update={
+            "guardian_relationship___1": False,
+            "guardian_relationship___12": True,
+            "other_relation": "xkcd",
+        },
+    )
 
     guardian = parser.Guardian(test_redcap_data)
 
