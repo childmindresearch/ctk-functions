@@ -54,7 +54,7 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
 
     assert doc.paragraphs[0].text == "Header"
     assert doc.paragraphs[1].text == "This is a paragraph."
-    assert doc.paragraphs[2].runs[1].text == "{{!WARNING-TEXT}}"
+    assert doc.paragraphs[2].runs[1].text == "WARNING-TEXT"
     assert not is_run_font_color_red(doc.paragraphs[2].runs[0])
     assert is_run_font_color_red(doc.paragraphs[2].runs[1])
     assert doc.paragraphs[0].runs[0].font.bold
@@ -72,3 +72,14 @@ def test_markdown2docx_lua(tmp_path: pathlib.Path) -> None:
 
     assert doc.paragraphs[0].runs[0].underline
     assert doc.paragraphs[1].text[0] == "\t"
+
+
+def test_remove_warning_brackets() -> None:
+    """Tests that warning brackets are correctly removed."""
+    doc = docx.Document()
+    paragraph = doc.add_paragraph()
+    paragraph.text = "Hello {{!REMOVE-THESE}} there."
+
+    controller.remove_warning_brackets(doc)
+
+    assert paragraph.text == "Hello REMOVE-THESE there."
