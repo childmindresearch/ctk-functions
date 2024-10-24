@@ -490,7 +490,7 @@ class ReportWriter:
         household = patient.household
 
         text_home = self.llm.run_with_object_input(
-            {
+            items={
                 "household_members": household.members,
                 "household_languages": household.languages,
                 "patients_languages": patient.languages,
@@ -527,10 +527,14 @@ class ReportWriter:
                 {patient.pronouns[2].capitalize()} level of proficiency in French is
                 intermediate."
 
+                If only one language is spoken at home, the final paragraph may be
+                simplified to e.g. "English is the only language spoken in the home".
+
                 Stick to the provided format wherein the children's ages are
                 mentioned in the first sentence, but adults' ages are mentioned
                 with their introduction.
             """,
+            verify=True,
         )
 
         if not household.home_functioning:

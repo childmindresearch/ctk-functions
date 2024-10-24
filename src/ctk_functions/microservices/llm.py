@@ -3,7 +3,7 @@
 import asyncio
 import typing
 from collections.abc import Iterable
-from typing import Literal, TypeGuard, overload
+from typing import Any, Literal, TypeGuard, TypeVar, overload
 
 import instructor
 import pydantic
@@ -15,6 +15,8 @@ settings = config.get_settings()
 LOGGER_PHI_LOGGING_LEVEL = settings.LOGGER_PHI_LOGGING_LEVEL
 VALID_LLM_MODELS = typing.Literal[aws.ANTHROPIC_MODELS, azure.GPT_MODELS]
 logger = config.get_logger()
+
+T = TypeVar("T")
 
 
 class GeneratedStatement(pydantic.BaseModel):
@@ -61,28 +63,32 @@ class RewrittenText(pydantic.BaseModel):
     )
 
 
-class LargeLanguageModel(utils.LlmAbstractBaseClass):
+class LargeLanguageModel(pydantic.BaseModel, utils.LlmAbstractBaseClass):
     """Llm class that provides access to all available LLMs.
 
     Attributes:
         client: The client for the large language model.
     """
 
-    def __init__(self, model: VALID_LLM_MODELS) -> None:
+    model: VALID_LLM_MODELS
+    _client: azure.AzureLlm | aws.ClaudeLlm = pydantic.PrivateAttr()
+    _instructor_client: instructor.client.AsyncInstructor = pydantic.PrivateAttr()
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
+    def model_post_init(self, __context: Any) -> None:  # noqa: ANN401
         """Initializes the language model.
 
         Args:
             model: The model to use for the language model.
         """
-        self.client: azure.AzureLlm | aws.ClaudeLlm
-        self.model = model
         logger.info("Using LLM model: %s", self.model)
         if self._is_azure_model(self.model):
-            self.client = azure.AzureLlm(self.model)
-            self.instructor = instructor.from_openai(self.client.client)
+            self._client = azure.AzureLlm(self.model)
+            self._instructor_client = instructor.from_openai(self._client.client)
         elif self._is_aws_model(self.model):
-            self.client = aws.ClaudeLlm(self.model)
-            self.instructor = instructor.from_anthropic(self.client.client)
+            self._client = aws.ClaudeLlm(self.model)
+            self._instructor_client = instructor.from_anthropic(self._client.client)
         else:
             # As the model name can be supplied by the user, this case might be reached.
             msg = f"Invalid LLM model: {self.model}"
@@ -98,7 +104,7 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         Returns:
             The output text.
         """
-        return await self.client.run(system_prompt, user_prompt)
+        return await self._client.run(system_prompt, user_prompt)
 
     @overload
     async def chain_of_verification(
@@ -200,24 +206,59 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         Returns:
             List of verification statements as strings.
         """
-        system_message = (
-            "Based on the following instructions, write a set of statements that can "
-            "be answered with True or False to determine whether a piece of text "
-            "adheres to these instructions."
-        )
+        system_prompt = """
+Based on the following instructions, write a set of statements that can be
+answered with True or False to determine whether a piece of text adheres to
+these instructions. True should denote adherence to the structure whereas
+False should denote a lack of adherence.
+            """
 
-        return await self.instructor.chat.completions.create(
+        return await self._call_instructor(
             list[GeneratedStatement],
-            messages=[
-                {
-                    "role": "user",
-                    "content": instructions,
-                },
-            ],
-            system=system_message,
-            model=self.model,
+            system_prompt=system_prompt,
+            user_prompt=instructions,
             max_tokens=4096,
         )
+
+    async def _call_instructor(
+        self,
+        response_model: type[T],
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int,
+    ) -> T:
+        """Generic interface for Anthropic/OpenAI instructor."""
+        if self._is_aws_model(self.model):
+            return await self._instructor_client.chat.completions.create(  # type: ignore[type-var]
+                response_model=response_model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": user_prompt,
+                    },
+                ],
+                system=system_prompt,
+                model=self.model,
+                max_tokens=max_tokens,
+            )
+        if self._is_azure_model(self.model):
+            return await self._instructor_client.chat.completions.create(  # type: ignore[type-var]
+                response_model=response_model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": user_prompt,
+                    },
+                    {
+                        "role": "user",
+                        "content": user_prompt,
+                    },
+                ],
+                model=self.model,
+                max_tokens=max_tokens,
+            )
+        msg = "Invalid model."
+        raise ValueError(msg)
 
     async def _verify(
         self,
@@ -232,11 +273,10 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
             f"{statement_string}. Furthermore, ensure that all edits are reflective "
             f"of the source material: {source}"
         )
-        return await self.instructor.chat.completions.create(
+        return await self._call_instructor(
             response_model=RewrittenText,
-            system=system_prompt,
-            messages=[{"role": "user", "content": text}],
-            model=self.model,
+            system_prompt=system_prompt,
+            user_prompt=text,
             max_tokens=4096,
         )
 

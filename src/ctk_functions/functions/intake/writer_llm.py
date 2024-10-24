@@ -108,7 +108,7 @@ class WriterLlm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = llm.LargeLanguageModel(model)
+        self.client = llm.LargeLanguageModel(model=model)
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []

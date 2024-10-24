@@ -21,4 +21,4 @@ async def run_llm(
     Returns:
         The output text.
     """
-    return await llm.LargeLanguageModel(model).run(system_prompt, user_prompt)
+    return await llm.LargeLanguageModel(model=model).run(system_prompt, user_prompt)
