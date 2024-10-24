@@ -200,11 +200,12 @@ class LargeLanguageModel(utils.LlmAbstractBaseClass):
         Returns:
             List of verification statements as strings.
         """
-        system_message = (
-            "Based on the following instructions, write a set of statements that can "
-            "be answered with True or False to determine whether a piece of text "
-            "adheres to these instructions."
-        )
+        system_message = """
+Based on the following instructions, write a set of statements that can be
+answered with True or False to determine whether a piece of text adheres to
+these instructions. True should denote adherence to the structure whereas
+False should denote a lack of adherence.
+            """
 
         return await self.instructor.chat.completions.create(
             list[GeneratedStatement],
