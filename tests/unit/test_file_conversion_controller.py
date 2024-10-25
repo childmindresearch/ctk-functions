@@ -31,9 +31,11 @@ def test_mark_warnings_as_red(tmp_path: pathlib.Path) -> None:
     assert doc.paragraphs[1].text == sentences[1]
     assert doc.paragraphs[0].runs[1].text == "{{!WARNING-TEXT}}"
     assert doc.paragraphs[1].runs[1].text == "{{!WARNING-TEXT-2}}"
+    assert doc.paragraphs[1].runs[3].text == "{{!WARNING-TEXT}}"
     assert not is_run_font_color_red(doc.paragraphs[0].runs[0])
     assert is_run_font_color_red(doc.paragraphs[0].runs[1])
     assert is_run_font_color_red(doc.paragraphs[1].runs[1])
+    assert is_run_font_color_red(doc.paragraphs[1].runs[3])
 
 
 def test_markdown2docx(tmp_path: pathlib.Path) -> None:
@@ -78,8 +80,8 @@ def test_remove_warning_brackets() -> None:
     """Tests that warning brackets are correctly removed."""
     doc = docx.Document()
     paragraph = doc.add_paragraph()
-    paragraph.text = "Hello {{!REMOVE-THESE}} there."
+    paragraph.text = "Hello {{!REMOVE-THESE}} there. {{REMOVE-THESE}}"
 
-    controller.remove_warning_brackets(doc)
+    controller.remove_curly_brackets(doc)
 
-    assert paragraph.text == "Hello REMOVE-THESE there."
+    assert paragraph.text == "Hello REMOVE-THESE there. REMOVE-THESE"
