@@ -14,6 +14,7 @@ AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
 ANTHROPIC_MODELS = Literal[
     "anthropic.claude-3-opus-20240229-v1:0",
     "anthropic.claude-3-5-sonnet-20240620-v1:0",
+    "anthropic.claude-3-5-sonnet-20241022-v2:0",
 ]
 
 
@@ -31,10 +32,16 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
         model: ANTHROPIC_MODELS,
     ) -> None:
         """Initializes the BedRock client."""
-        if model == "anthropic.claude-3-opus-20240229-v1:0":
+        if model in (
+            "anthropic.claude-3-opus-20240229-v1:0",
+            "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        ):
             region = "us-west-2"
         elif model == "anthropic.claude-3-5-sonnet-20240620-v1:0":
             region = "us-east-1"
+        else:
+            msg = "Unknown model."
+            raise ValueError(msg)
 
         self.client = anthropic.AsyncAnthropicBedrock(
             aws_access_key=AWS_ACCESS_KEY_ID.get_secret_value(),
