@@ -753,7 +753,7 @@ class ReportWriter:
                 transformers.ReplacementTags.PREFERRED_NAME.value,
                 self.intake.patient.first_name,
             )
-            text = self.llm.run_edit(llm_text, instructions)
+            text = self.llm.run_edit(llm_text, instructions, verify=True)
         self._insert(text)
         self._insert("")
 
