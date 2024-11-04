@@ -491,8 +491,7 @@ class ReportWriter:
 
         text_home = self.llm.run_with_object_input(
             items={
-                "household_members": household.members,
-                "household_languages": household.languages,
+                "household": household,
                 "patients_languages": patient.languages,
             },
             additional_instruction=f"""
@@ -532,7 +531,8 @@ class ReportWriter:
 
                 Stick to the provided format wherein the children's ages are
                 mentioned in the first sentence, but adults' ages are mentioned
-                with their introduction.
+                with their introduction. Ensure that both the city ({household.city})
+                and the state ({household.state}) are included.
             """,
             verify=True,
         )
