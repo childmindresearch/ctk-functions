@@ -14,6 +14,7 @@ from ctk_functions import config, exceptions
 settings = config.get_settings()
 REDCAP_ENDPOINT = settings.REDCAP_ENDPOINT
 REDCAP_API_TOKEN = settings.REDCAP_API_TOKEN
+DATA_DIR = settings.DATA_DIR
 
 logger = config.get_logger()
 
@@ -1315,16 +1316,20 @@ def get_intake_data(mrn: str) -> RedCapData:
 
 
     Args:
-        mrn: The patient's MRN (unique identifier).
+        mrn: The patient's MRN (unique identifier). If the mrn starts with 'mock'
+            returns the mock data instead.
 
     Returns:
         The intake data for the survey.
     """
+    logger.debug("Getting intake data for MRN %s.", mrn)
+    if mrn.lower().startswith("mock"):
+        return RedCapData.from_csv((DATA_DIR / "mock_redcap_data.csv").read_text())
+
     if not re.match(r"^\d{5}$", mrn):
-        msg = "MRN must be five consecutive numbers."
+        msg = "MRN must be five consecutive numbers or start with 'mock'."
         raise exceptions.RedcapError(msg)
 
-    logger.debug("Getting intake data for MRN %s.", mrn)
     project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore[attr-defined]
     redcap_fields = project.export_records(
         format_type="csv",
