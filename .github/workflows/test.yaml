@@ -49,7 +49,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: chartboost/ruff-action@v1
+    - uses: actions/setup-python@v5
+      with:
+        python-version-file: pyproject.toml
+        cache: poetry
+    - name: Install dependencies
+      run: |
+        poetry install
+        poetry run ruff check .
 
   mypy:
     runs-on: ubuntu-latest
