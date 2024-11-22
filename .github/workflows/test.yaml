@@ -53,6 +53,8 @@ jobs:
       with:
         python-version-file: pyproject.toml
         cache: poetry
+    - name: Install poetry
+      run: pipx install poetry
     - name: Install dependencies
       run: |
         poetry install
