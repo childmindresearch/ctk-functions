@@ -610,6 +610,8 @@ class RedCapData(pydantic.BaseModel):
     referral2: str
     state: USState
 
+    date: str | None
+
     # Guardian
 
     guardian_first_name: str

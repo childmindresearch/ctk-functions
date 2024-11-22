@@ -30,6 +30,7 @@ class IntakeInformation:
         logger.info("Parsing intake information.")
         self.patient = Patient(patient_data, timezone=timezone)
         self.phone = patient_data.phone
+        self.date_of_intake = patient_data.date
 
 
 class Patient:
