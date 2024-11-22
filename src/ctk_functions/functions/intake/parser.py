@@ -1,6 +1,7 @@
 """Utilities for the file conversion router."""
 
 import math
+from datetime import datetime
 
 import pytz
 from dateutil import parser as dateutil_parser
@@ -30,6 +31,13 @@ class IntakeInformation:
         logger.info("Parsing intake information.")
         self.patient = Patient(patient_data, timezone=timezone)
         self.phone = patient_data.phone
+        if patient_data.date:
+            self.date_of_intake: str | None = datetime.strptime(  # noqa: DTZ007
+                patient_data.date,
+                "%Y-%m-%d",
+            ).strftime("%m/%d/%Y")
+        else:
+            self.date_of_intake = None
 
 
 class Patient:

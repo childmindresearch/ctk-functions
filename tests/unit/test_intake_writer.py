@@ -49,6 +49,7 @@ class MockIntake:
     """Basic replacement for parser.IntakeInformation."""
 
     patient: MockPatient = dataclasses.field(default_factory=MockPatient)
+    date_of_intake: str = "03/03/2023"
 
 
 def test_replace_patient_information() -> None:

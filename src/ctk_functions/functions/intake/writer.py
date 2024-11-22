@@ -7,6 +7,7 @@ import threading
 
 import cmi_docx
 import docx
+from cmi_docx import styles
 from docx.enum import table as enum_table
 from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
@@ -105,22 +106,42 @@ class ReportWriter:
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
         logger.debug("Replacing patient information in the report.")
+
+        basic_style = styles.RunStyle(font_rgb=RGB.BASIC.value)
         replacements = {
-            "full_name": self.intake.patient.full_name,
-            "preferred_name": self.intake.patient.first_name,
-            "date_of_birth": self.intake.patient.date_of_birth.strftime("%m/%d/%Y"),
-            "reporting_guardian": self.intake.patient.guardian.title_name,
-            "aged_gender": self.intake.patient.age_gender_label,
-            "pronoun_0": self.intake.patient.pronouns[0],
-            "pronoun_1": self.intake.patient.pronouns[1],
-            "pronoun_2": self.intake.patient.pronouns[2],
-            "pronoun_4": self.intake.patient.pronouns[4],
-            "placeholder": PLACEHOLDER,
+            "full_name": (self.intake.patient.full_name, basic_style),
+            "date_of_intake": (
+                self.intake.date_of_intake or "XX/XX/XXXX",
+                (
+                    basic_style
+                    if self.intake.date_of_intake
+                    else styles.RunStyle(font_rgb=RGB.UNRELIABLE.value)
+                ),
+            ),
+            "preferred_name": (self.intake.patient.first_name, basic_style),
+            "date_of_birth": (
+                self.intake.patient.date_of_birth.strftime("%m/%d/%Y"),
+                basic_style,
+            ),
+            "reporting_guardian": (
+                self.intake.patient.guardian.title_name,
+                basic_style,
+            ),
+            "aged_gender": (self.intake.patient.age_gender_label, basic_style),
+            "pronoun_0": (self.intake.patient.pronouns[0], basic_style),
+            "pronoun_1": (self.intake.patient.pronouns[1], basic_style),
+            "pronoun_2": (self.intake.patient.pronouns[2], basic_style),
+            "pronoun_4": (self.intake.patient.pronouns[4], basic_style),
+            "placeholder": (PLACEHOLDER, basic_style),
         }
 
         for template, replacement in replacements.items():
             template_formatted = "{{" + template.upper() + "}}"
-            self.report.replace(template_formatted, replacement)
+            self.report.replace(
+                template_formatted,
+                replacement[0],
+                style=replacement[1],
+            )
 
     def write_reason_for_visit(self) -> None:
         """Writes the reason for visit to the end of the report."""
