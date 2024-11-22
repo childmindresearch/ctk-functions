@@ -33,6 +33,10 @@ async def intake_document(
         "ctk_functions.microservices.llm.LargeLanguageModel.chain_of_verification",
         return_value="",
     )
+    mocker.patch(
+        "ctk_functions.microservices.llm.LargeLanguageModel.call_instructor",
+        return_value="",
+    )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info, "gpt-4o")
     await intake_writer.transform()
