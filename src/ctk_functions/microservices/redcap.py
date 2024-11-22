@@ -1132,6 +1132,11 @@ class RedCapData(pydantic.BaseModel):
     txhx10_terminate: str | None
     txhx_10: str | None
 
+    # Social Functioning
+
+    child_talents: str
+    social_concerns: str
+
     @classmethod
     def from_csv(cls, csv_data: str) -> Self:
         """Creates a RedCapData object from a CSV string."""
