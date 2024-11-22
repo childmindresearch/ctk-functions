@@ -568,23 +568,36 @@ class ReportWriter:
         patient = self.intake.patient
         social_functioning = patient.social_functioning
 
+        adjectives = self.llm.run_for_adjectives(social_functioning.talents)
         text = f"""
             {patient.guardian.title_name} was pleased to describe
-            {patient.first_name} as a (insert adjective e.g., affectionate)
+            {patient.first_name} as a {adjectives.lower()}
             {patient.age_gender_label}.
         """
-        hobbies_id = self.llm.run_edit(
+
+        placeholder = self.llm.run_edit(
             text=f"""
                 {patient.guardian.title_name} reported that
                 {patient.pronouns[0]} has {social_functioning.n_friends} friends
-                in {patient.pronouns[2]} peer group. {patient.first_name}'s
-                hobbies include {social_functioning.hobbies}.
-                """,
-            additional_instruction="""Keep the text concise and to the point. It should
-                be only one or two sentences.""",
+                in {patient.pronouns[2]} peer group.
+                {patient.guardian.title_full_name} was concerned about:
+                '{social_functioning.social_concerns}.
+                {patient.first_name}'s
+                hobbies include {social_functioning.hobbies}.'
+            """,
+            additional_instruction="""If no concerns were reported,
+                state that the parent reported no concerns. Maintain the
+                overall structure of:
+                    1. Brief description of child and friends
+                    2. Reported concerns.
+                    3. Hobbies
+                The parent may sometimes provide hobbies in their concerns or
+                concerns in the hobbies. Adjust the text accordingly.
+            """,
+            verify=True,
             context=text,
         )
-        text += f" {hobbies_id}"
+        text += f" {placeholder}"
         text = string_utils.remove_excess_whitespace(text)
 
         self._insert("Social Functioning", StyleName.HEADING_2)

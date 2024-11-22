@@ -2,10 +2,11 @@
 
 import dataclasses
 import uuid
-from collections.abc import Awaitable, Sequence
+from collections.abc import Awaitable, Coroutine, Sequence
 from typing import Any
 
 import jsonpickle
+import pydantic
 
 from ctk_functions import config
 from ctk_functions.functions.intake.utils import string_utils
@@ -77,6 +78,11 @@ a text that includes the clinically relevant information from the JSON. You
 should return the text in full with the necessary edits. Make sure that the text
 flows naturally, i.e., DO NOT MAKE A LIST.
 {BASE_PROMPT}
+"""
+    adjectives = """
+You will receive a description of a child. Your task is to describe this child
+with one or two adjectives. Return only the adjectives. Ensure that these
+adjectives are positive i.e., they give a good impression of the child.
 """
 
 
@@ -230,6 +236,35 @@ class WriterLlm:
             user_prompt = "No items provided."
         return self._run(system_prompt, user_prompt, verify=verify)
 
+    def run_for_adjectives(self, description: str) -> str:
+        """Extraces adjectives based on a description of a child.
+
+        Args:
+            description: The description of the child's strengths.
+
+        Returns:
+            The adjectives.
+        """
+        logger.log(
+            LOGGER_PHI_LOGGING_LEVEL,
+            "Running LLM-Instructor with description: %s",
+            description,
+        )
+
+        class Model(pydantic.BaseModel):
+            adjectives: tuple[str] | tuple[str, str]
+
+            def __str__(self) -> str:
+                return ", ".join(self.adjectives)
+
+        result = self.client.call_instructor(
+            Model,
+            system_prompt=Prompts.adjectives,
+            user_prompt=description,
+            max_tokens=1000,
+        )
+        return self._add_to_placeholders(result)
+
     def _run(
         self,
         system_prompt: str,
@@ -268,9 +303,7 @@ class WriterLlm:
             )
         else:
             replacement = self.client.run(system_prompt, user_prompt)
-        placeholder_uuid = str(uuid.uuid4())
-        self.placeholders.append(LlmPlaceholder(placeholder_uuid, replacement))
-        return placeholder_uuid
+        return self._add_to_placeholders(replacement)
 
     @property
     def child_info(self) -> str:
@@ -281,3 +314,26 @@ class WriterLlm:
             Child name: {self.child_name}.
             Child pronouns: {string_utils.join_with_oxford_comma(self.child_pronouns)}.
         """)
+
+    def _add_to_placeholders(
+        self,
+        promise: Coroutine[Any, Any, Any],
+    ) -> str:
+        """Adds the given promise to the placeholders.
+
+        Args:
+            promise: The promise to add. If it is not a string, it will be converted to
+                one.
+
+        Returns:
+            A UUID to reference the promise.
+        """
+        placeholder_uuid = str(uuid.uuid4())
+
+        async def stringify(
+            promise: Coroutine[Any, Any, Any],
+        ) -> str:
+            return str(await promise)
+
+        self.placeholders.append(LlmPlaceholder(placeholder_uuid, stringify(promise)))
+        return placeholder_uuid

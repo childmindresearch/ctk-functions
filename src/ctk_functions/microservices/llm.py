@@ -213,14 +213,14 @@ these instructions. True should denote adherence to the structure whereas
 False should denote a lack of adherence.
             """
 
-        return await self._call_instructor(
+        return await self.call_instructor(
             list[GeneratedStatement],
             system_prompt=system_prompt,
             user_prompt=instructions,
             max_tokens=4096,
         )
 
-    async def _call_instructor(
+    async def call_instructor(
         self,
         response_model: type[T],
         system_prompt: str,
@@ -273,7 +273,7 @@ False should denote a lack of adherence.
             f"{statement_string}. Furthermore, ensure that all edits are reflective "
             f"of the source material: {source}"
         )
-        return await self._call_instructor(
+        return await self.call_instructor(
             response_model=RewrittenText,
             system_prompt=system_prompt,
             user_prompt=text,

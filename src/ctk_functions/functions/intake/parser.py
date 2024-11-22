@@ -648,6 +648,8 @@ class SocialFunctioning:
         self.hobbies = patient_data.child_interests
         self.n_friends = patient_data.close_friends
         self.friendship_quality = patient_data.peer_relations.name
+        self.talents = patient_data.child_talents
+        self.social_concerns = patient_data.social_concerns
 
 
 def all_caps_to_title(name: str) -> str:
