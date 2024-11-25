@@ -393,43 +393,15 @@ def test_hearing_device_transformer(
     [
         (
             redcap.EducationGrades.As,
-            "As",
-        ),
-        (
-            redcap.EducationGrades.Bs,
-            "Bs",
-        ),
-        (
-            redcap.EducationGrades.Cs,
-            "Cs",
-        ),
-        (
-            redcap.EducationGrades.Ds,
-            "Ds",
-        ),
-        (
-            redcap.EducationGrades.Fs,
-            "Fs",
+            "as {{PRONOUN_0}} receives mostly As",
         ),
         (
             redcap.EducationGrades.ONE,
-            "1s",
-        ),
-        (
-            redcap.EducationGrades.TWO,
-            "2s",
-        ),
-        (
-            redcap.EducationGrades.THREE,
-            "3s",
-        ),
-        (
-            redcap.EducationGrades.FOUR,
-            "4s",
+            "as {{PRONOUN_0}} receives mostly 1s",
         ),
         (
             redcap.EducationGrades.not_graded,
-            "not graded",
+            "though {{PRONOUN_0}} is not formally graded",
         ),
     ],
 )

@@ -458,6 +458,13 @@ class ReportWriter:
         else:
             grade_superscript = ""
 
+        if education.iep_classifications:
+            iep_text = (
+                f"maintains an IEP allowing accomodations for/including {PLACEHOLDER}."
+            )
+        else:
+            iep_text = "does not have an IEP."
+
         texts = [
             f"""
                 {patient.first_name} is currently in the
@@ -465,13 +472,12 @@ class ReportWriter:
                 {education.school_name}.""",
             f"""
                 {patient.first_name} does/does not receive special
-                education services and maintains/does not have an IEP
-                allowing accommodations for/including {PLACEHOLDER}.
+                education services and {iep_text}.
             """,
             f"""
                 {patient.first_name}'s current academic performance was
                 described as "{education.performance}" by
-                {patient.guardian.title_name}, as they receive mostly
+                {patient.guardian.title_name},
                 {education.grades}.
             """,
         ]

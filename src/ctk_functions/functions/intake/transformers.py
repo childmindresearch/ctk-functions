@@ -434,15 +434,17 @@ class EducationGrades(Transformer[redcap.EducationGrades]):
         Returns:
             str: The transformed object.
         """
+        if self.base == redcap.EducationGrades.not_graded:
+            return f"though {ReplacementTags.PRONOUN_0.value} is not formally graded"
+
         word_to_number = {
             "ONE": "1s",
             "TWO": "2s",
             "THREE": "3s",
             "FOUR": "4s",
         }
-        if self.base.name in word_to_number:
-            return word_to_number[self.base.name]
-        return self.base.name.replace("_", " ")
+        grades = word_to_number.get(self.base.name, self.base.name)
+        return f"as {ReplacementTags.PRONOUN_0.value} receives mostly {grades}"
 
 
 class FamilyDiagnoses(MultiTransformer[parser_models.FamilyPsychiatricHistory]):
