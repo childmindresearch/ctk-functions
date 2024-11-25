@@ -26,8 +26,8 @@ en_core_web_sm = {url = "https://github.com/explosion/spacy-models/releases/down
 language-tool-python = "^2.8.1"
 spacy = "^3.8.2"
 openai = "^1.52.2"
-jsonpickle = "^3.3.0"
-anthropic = {version = "<0.37", extras = ["bedrock"]}
+jsonpickle = "^4.0.0"
+anthropic = {version = "<0.38", extras = ["bedrock"]}
 instructor = {extras = ["anthropic"], version = "^1.6.3"}
 cmi-docx = "^0.3.4"
 
