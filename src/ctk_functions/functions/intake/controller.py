@@ -16,12 +16,14 @@ logger = config.get_logger()
 async def get_intake_report(
     survey_id: str,
     model: llm.VALID_LLM_MODELS,
+    enabled_tasks: writer.EnabledTasks | None = None,
 ) -> functions.HttpResponse:
     """Generates an intake report for a survey.
 
     Args:
         survey_id: The survey ID.
         model: The model to use for the language model.
+        enabled_tasks: Developer testing setting to reduce the amount of processing.
 
     Returns:
         The .docx file bytes.
@@ -38,7 +40,7 @@ async def get_intake_report(
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
     parsed_data = parser.IntakeInformation(intake_data)
-    report = writer.ReportWriter(parsed_data, model=model)
+    report = writer.ReportWriter(parsed_data, model, enabled_tasks)
     await report.transform()
 
     logger.debug("Successfully generated intake report.")
