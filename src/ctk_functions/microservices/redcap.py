@@ -638,12 +638,24 @@ class RedCapData(pydantic.BaseModel):
     birth_location: DeliveryLocation
     birth_other: str | None
     colic: str | None
+    cpse_aba_dates: str | None
+    cpse_aba_dur: str | None
+    cpse_occ_therapy_dates: str | None
+    cpse_occ_therapy_dur: str | None
+    cpse_other_dates: str | None
+    cpse_other_dur: str | None
+    cpse_phy_therapy_dates: str | None
+    cpse_phy_therapy_dur: str | None
+    cpse_seit_dates: str | None
+    cpse_seit_dur: str | None
     cpse_services___1: bool
     cpse_services___2: bool
     cpse_services___3: bool
     cpse_services___4: bool
     cpse_services___5: bool
     cpse_services___6: bool
+    cpse_speechlang_dates: str | None
+    cpse_speechlang_dur: str | None
     csection_reason: str | None
     eating_difficulties: str | None
     infanttemp_adapt: Adaptability
@@ -694,9 +706,9 @@ class RedCapData(pydantic.BaseModel):
     skill6: str
     sleeping_difficulties: str | None
     social_relatedness: str | None
+    sound_sensitivity: str | None
     speechlang_dates: str | None
     speechlang_dur: str | None
-    sound_sensitivity: str | None
     txt_duration_preg_num: str | None
 
     # Education
@@ -756,6 +768,7 @@ class RedCapData(pydantic.BaseModel):
     school: str
     schooltype: SchoolType
     yrs_school: str
+    subject_weaknesses_det: str | None
 
     # Child languages
 

@@ -342,6 +342,7 @@ class Education:
             patient_data.current_grades,
         ).transform()
         self.school_functioning = patient_data.school_func
+        self.concerns = patient_data.subject_weaknesses_det
 
 
 class PsychiatricMedication:
@@ -450,7 +451,7 @@ class Development:
                 duration=getattr(patient_data, f"{service[0]}_dur"),
             )
             for index, service in enumerate(cpse_encodings)
-            if getattr(patient_data, f"schoolservices___{index+1}") == "1"
+            if getattr(patient_data, f"schoolservices___{index+1}")
         ]
 
         self.cpse_services = [
@@ -461,7 +462,7 @@ class Development:
                 duration=getattr(patient_data, f"cpse_{service[0]}_dur"),
             )
             for index, service in enumerate(cpse_encodings)
-            if getattr(patient_data, f"cpse_services___{index+1}") == "1"
+            if getattr(patient_data, f"cpse_services___{index+1}")
         ]
 
         self.started_walking = transformers.DevelopmentSkill(
