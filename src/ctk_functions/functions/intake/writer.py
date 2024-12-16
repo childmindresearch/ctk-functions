@@ -249,7 +249,7 @@ class ReportWriter:
         self._insert("DEVELOPMENTAL HISTORY", _StyleName.HEADING_1)
         self.write_prenatal_history()
         self.write_developmental_milestones()
-        self.write_early_education()
+        self.write_early_education_interventions()
 
     def write_prenatal_history(self) -> None:
         """Writes the prenatal and birth history of the patient to the report."""
@@ -329,8 +329,8 @@ class ReportWriter:
         )
         self._insert("")
 
-    def write_early_education(self) -> None:
-        """Writes the early education information to the report."""
+    def write_early_education_interventions(self) -> None:
+        """Writes the early education intervention information to the report."""
         logger.debug("Writing the early education information to the report.")
         patient = self.intake.patient
         development = patient.development
@@ -463,9 +463,19 @@ class ReportWriter:
         logger.debug("Writing the educational history to the report.")
         patient = self.intake.patient
 
+        if patient.education.concerns is None:
+            concern_instructions = ""
+        else:
+            concern_instructions = f"""
+                {patient.guardian.title_name} reported the following overall concerns:
+                "{patient.education.concerns}".
+            """
+
         placeholder_id = self.llm.run_with_object_input(
             patient.education.past_schools,
-            additional_instruction="""
+            additional_instruction=f"""
+                {concern_instructions}
+
                 Try to keep the text as concise as possible. THE TEXT SHOULD BE A
                 SINGLE PARAGRAPH!
 
@@ -494,10 +504,10 @@ class ReportWriter:
 
         if education.iep_classifications:
             iep_text = (
-                f"maintains an IEP allowing accomodations for/including {PLACEHOLDER}."
+                f"maintains an IEP allowing accomodations for/including {PLACEHOLDER}"
             )
         else:
-            iep_text = "does not have an IEP."
+            iep_text = "does not have an IEP"
 
         texts = [
             f"""
@@ -506,10 +516,10 @@ class ReportWriter:
                 {education.school_name}.""",
             f"""
                 {patient.first_name} does/does not receive special
-                education services and {iep_text}.
+                education services
             """,
             f"""
-                {patient.first_name}'s current academic performance was
+                and {iep_text}. {patient.first_name}'s current academic performance was
                 described as "{education.performance}" by
                 {patient.guardian.title_name},
                 {education.grades}.
