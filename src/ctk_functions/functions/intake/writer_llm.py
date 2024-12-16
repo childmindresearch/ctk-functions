@@ -44,6 +44,7 @@ requirements:
 - Do not extrapolate from the source material; i.e. only include information that is stated in the source material.
 - If acronyms are used, maintain the acronyms; do not guess at the meaning of the acronym.
 - Do not make subjective judgements on whether something was e.g. easy or challenging unless these are explicitly mentioned in the source material.
+- Always refer to the child and parent by name, i.e. do not use phrases like "the patient".
 """  # noqa: E501
 
 
