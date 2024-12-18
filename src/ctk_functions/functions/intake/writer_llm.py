@@ -30,6 +30,7 @@ class LlmPlaceholder:
 
     id: str
     replacement: Awaitable[str]
+    comment: str | None = None
 
 
 BASE_PROMPT = """
@@ -126,6 +127,7 @@ class WriterLlm:
         parent_input: str,
         additional_instruction: str = "",
         context: str = "",
+        comment: str | None = None,
     ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt with parent input.
 
@@ -135,6 +137,8 @@ class WriterLlm:
             additional_instruction: Additional instructions to include in the system
                 prompt.
             context: The context in which the excerpt will be placed.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
 
         Returns:
             The placeholder for the LLM edit.
@@ -159,13 +163,14 @@ class WriterLlm:
             )
             system_prompt = f"{system_prompt} {instruction} {context}\n\n"
 
-        return self._run(system_prompt, user_prompt)
+        return self._run(system_prompt, user_prompt, comment=comment)
 
     def run_edit(
         self,
         text: str,
         additional_instruction: str = "",
         context: str = "",
+        comment: str | None = None,
         *,
         verify: bool = False,
     ) -> str:
@@ -176,6 +181,8 @@ class WriterLlm:
             additional_instruction: Additional instructions to include in the system
                 prompt.
             context: The context in which the excerpt will be placed.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
             verify: If true, run verification prompts on the LLM output.
 
         Returns:
@@ -194,13 +201,14 @@ class WriterLlm:
                 "placed, do not include this context in your response:"
             )
             system_prompt = f"{system_prompt} {instruction} {context}\n\n"
-        return self._run(system_prompt, user_prompt, verify=verify)
+        return self._run(system_prompt, user_prompt, verify=verify, comment=comment)
 
     def run_with_object_input(
         self,
         items: Any,  # noqa: ANN401
         additional_instruction: str = "",
         context: str = "",
+        comment: str | None = None,
         *,
         verify: bool = False,
     ) -> str:
@@ -210,8 +218,10 @@ class WriterLlm:
             items: An object which will be converted to JSON.
             additional_instruction: Additional instructions to include in the system
                 prompt.
-            verify: If true, run verification prompts on the LLM output.
             context: The context in which the excerpt will be placed.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
+            verify: If true, run verification prompts on the LLM output.
 
         Returns:
             The placeholder for the LLM edit.
@@ -235,13 +245,15 @@ class WriterLlm:
         user_prompt = string_utils.remove_excess_whitespace(user_prompt)
         if not user_prompt:
             user_prompt = "No items provided."
-        return self._run(system_prompt, user_prompt, verify=verify)
+        return self._run(system_prompt, user_prompt, verify=verify, comment=comment)
 
-    def run_for_adjectives(self, description: str) -> str:
+    def run_for_adjectives(self, description: str, comment: str | None = None) -> str:
         """Extraces adjectives based on a description of a child.
 
         Args:
             description: The description of the child's strengths.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
 
         Returns:
             The adjectives.
@@ -264,12 +276,13 @@ class WriterLlm:
             user_prompt=description,
             max_tokens=1000,
         )
-        return self._add_to_placeholders(result)
+        return self._add_to_placeholders(result, comment=comment)
 
     def _run(
         self,
         system_prompt: str,
         user_prompt: str,
+        comment: str | None = None,
         *,
         verify: bool = False,
     ) -> str:
@@ -280,7 +293,10 @@ class WriterLlm:
         Args:
             system_prompt: The system prompt for the LLM.
             user_prompt: The user prompt for the LLM.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
             verify: If True, runs with self-assessment. Defaults to False.
+
 
         Returns:
             The placeholder for the LLM edit.
@@ -304,7 +320,7 @@ class WriterLlm:
             )
         else:
             replacement = self.client.run(system_prompt, user_prompt)
-        return self._add_to_placeholders(replacement)
+        return self._add_to_placeholders(replacement, comment=comment)
 
     @property
     def child_info(self) -> str:
@@ -319,12 +335,15 @@ class WriterLlm:
     def _add_to_placeholders(
         self,
         promise: Coroutine[Any, Any, Any],
+        comment: str | None = None,
     ) -> str:
         """Adds the given promise to the placeholders.
 
         Args:
             promise: The promise to add. If it is not a string, it will be converted to
                 one.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
 
         Returns:
             A UUID to reference the promise.
@@ -336,5 +355,7 @@ class WriterLlm:
         ) -> str:
             return str(await promise)
 
-        self.placeholders.append(LlmPlaceholder(placeholder_uuid, stringify(promise)))
+        self.placeholders.append(
+            LlmPlaceholder(placeholder_uuid, stringify(promise), comment),
+        )
         return placeholder_uuid

@@ -8,7 +8,7 @@ import threading
 import cmi_docx
 import docx
 import pydantic
-from cmi_docx import styles
+from cmi_docx import comment, styles
 from docx.enum import table as enum_table
 from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
@@ -225,6 +225,13 @@ class ReportWriter:
                 only the most pertinent information here.
             """,
             context=text,
+            comment="\n-\n".join(
+                [
+                    f"Reason for visit: {patient.reason_for_visit}.",
+                    f"Hopes: {patient.hopes}.",
+                    f"Learned of study: {patient.learned_of_study}.",
+                ],
+            ),
         )
 
         text += f" {placeholder_id}"
@@ -1110,6 +1117,14 @@ class ReportWriter:
                     replacement,
                     cmi_docx.RunStyle(font_rgb=_RGB.LLM.value),
                 )
+                if placeholder.comment:
+                    find_runs = self.report.find_in_runs(replacement)
+                    comment.add_comment(
+                        self.report.document,
+                        tuple(find_runs[0].runs),
+                        author="Clinician Toolkit",
+                        text=placeholder.comment,
+                    )
 
         logger.debug("Making edits to the report using a large language model.")
         await asyncio.gather(
