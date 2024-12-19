@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctk_functions.functions.intake import transformers
+from ctk_functions.functions.intake import parser_models, transformers
 from ctk_functions.microservices import redcap
 
 
@@ -214,12 +214,12 @@ def test_development_skill_transformer(
         ([], "with no prior history of psychiatric diagnoses", False),
         (
             [
-                redcap.PastDiagnosis(
+                parser_models.PastDiagnosis(
                     diagnosis="Anxiety",
                     age_at_diagnosis="8",
                     clinician="Dr. Smith",
                 ),
-                redcap.PastDiagnosis(
+                parser_models.PastDiagnosis(
                     diagnosis="Depression",
                     age_at_diagnosis="9",
                     clinician="Dr. Johnson",
@@ -233,12 +233,12 @@ def test_development_skill_transformer(
         ),
         (
             [
-                redcap.PastDiagnosis(
+                parser_models.PastDiagnosis(
                     diagnosis="Anxiety",
                     age_at_diagnosis="2022-01-01",
                     clinician="Dr. Smith",
                 ),
-                redcap.PastDiagnosis(
+                parser_models.PastDiagnosis(
                     diagnosis="Depression",
                     age_at_diagnosis="2022-02-01",
                     clinician="Dr. Johnson",
@@ -250,7 +250,7 @@ def test_development_skill_transformer(
     ],
 )
 def test_past_diagnoses_transformer(
-    base: list[redcap.PastDiagnosis],
+    base: list[parser_models.PastDiagnosis],
     expected: str,
     *,
     short: bool,

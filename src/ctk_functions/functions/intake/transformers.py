@@ -295,7 +295,7 @@ class DevelopmentSkill(Transformer[str | int]):
         return f"{self.other} at {self.base}"
 
 
-class PastDiagnoses(MultiTransformer[redcap.PastDiagnosis]):
+class PastDiagnoses(MultiTransformer[parser_models.PastDiagnosis]):
     """The transformer for past diagnoses."""
 
     def transform(self, *, short: bool = True) -> str:

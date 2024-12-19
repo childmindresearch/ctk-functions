@@ -4,12 +4,40 @@ Separate module is used as some of these need to be imported in both the parser 
 the transformers.
 """
 
+from collections.abc import Iterable
 from typing import Literal
 
 import pydantic
 
 
-class InfantDifficulties(pydantic.BaseModel):
+class CommentBaseModel:
+    """Base model that can generate a human-readable string representation of itself."""
+
+    def __str__(self) -> str:
+        """Converts a class to a human read-able format."""
+        properties = []
+        for key, value in vars(self).items():
+            if value is None or key.startswith("_"):
+                continue
+
+            if isinstance(value, Iterable) and not isinstance(value, str | bytes):
+                text = ", ".join(str(val) for val in value)
+            else:
+                text = str(value)
+            properties.append(f"{key.replace('_', ' ')}: {text}")
+
+        return "\n".join(properties)
+
+
+class PastDiagnosis(CommentBaseModel, pydantic.BaseModel):
+    """The model for the patient's past diagnosis."""
+
+    diagnosis: str
+    clinician: str
+    age_at_diagnosis: str
+
+
+class InfantDifficulties(CommentBaseModel, pydantic.BaseModel):
     """Difficulties during infancy."""
 
     colic: str | None
@@ -29,7 +57,7 @@ class InfantDifficulties(pydantic.BaseModel):
         return any(value for value in self.model_dump().values())
 
 
-class PastSchool(pydantic.BaseModel):
+class PastSchool(CommentBaseModel, pydantic.BaseModel):
     """The model for past schools."""
 
     name: str
@@ -37,7 +65,7 @@ class PastSchool(pydantic.BaseModel):
     experience: str
 
 
-class CurrentPsychiatricMedication(pydantic.BaseModel):
+class CurrentPsychiatricMedication(CommentBaseModel, pydantic.BaseModel):
     """The model for current psychiatric medication."""
 
     name: str
@@ -49,7 +77,7 @@ class CurrentPsychiatricMedication(pydantic.BaseModel):
     prescribing_doctor: str
 
 
-class PastPsychiatricMedication(pydantic.BaseModel):
+class PastPsychiatricMedication(CommentBaseModel, pydantic.BaseModel):
     """The model for past psychiatric medication."""
 
     name: str
@@ -61,7 +89,7 @@ class PastPsychiatricMedication(pydantic.BaseModel):
     prescribing_doctor: str
 
 
-class EiCpseTherapy(pydantic.BaseModel):
+class EiCpseTherapy(CommentBaseModel, pydantic.BaseModel):
     """Therapies from Committee on Preschool Special Education services."""
 
     type: Literal["early intervention", "cpse"]
@@ -70,7 +98,7 @@ class EiCpseTherapy(pydantic.BaseModel):
     dates: str
 
 
-class FamilyPsychiatricHistory(pydantic.BaseModel):
+class FamilyPsychiatricHistory(CommentBaseModel, pydantic.BaseModel):
     """The model for the patient's family psychiatric history."""
 
     diagnosis: str

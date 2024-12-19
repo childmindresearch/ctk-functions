@@ -244,7 +244,7 @@ class Household:
         self.languages = patient_data.household_languages
 
 
-class Language:
+class Language(parser_models.CommentBaseModel):
     """The parser for a language."""
 
     def __init__(self, patient_data: redcap.RedCapData, identifier: int) -> None:
@@ -256,9 +256,12 @@ class Language:
         """
         logger.debug("Parsing language %s.", identifier)
         self.name = getattr(patient_data, f"child_language{identifier}")
-        self.spoken_whole_life = getattr(
-            patient_data,
-            f"child_language{identifier}_spoken",
+        self.spoken_whole_life = (
+            getattr(
+                patient_data,
+                f"child_language{identifier}_spoken",
+            )
+            == 1
         )
         self.spoken_since_age: str = getattr(
             patient_data,
@@ -271,7 +274,7 @@ class Language:
         ).name
 
 
-class HouseholdMember:
+class HouseholdMember(parser_models.CommentBaseModel):
     """The parser for a household member."""
 
     def __init__(self, patient_data: redcap.RedCapData, identifier: int) -> None:
@@ -494,7 +497,7 @@ class PsychiatricHistory:
         """
         logger.debug("Parsing psychiatric history.")
         past_diagnoses = [
-            redcap.PastDiagnosis(
+            parser_models.PastDiagnosis(
                 diagnosis=getattr(patient_data, f"pastdx_{index}"),
                 clinician=getattr(patient_data, f"dx_name{index}"),
                 age_at_diagnosis=str(getattr(patient_data, f"age_{index}")),
@@ -582,7 +585,7 @@ class FamilyPyshicatricHistory:
         )
 
 
-class TherapeuticInterventions:
+class TherapeuticInterventions(parser_models.CommentBaseModel):
     """The parser for the patient's therapeutic history."""
 
     def __init__(self, patient_data: redcap.RedCapData, identifier: int) -> None:

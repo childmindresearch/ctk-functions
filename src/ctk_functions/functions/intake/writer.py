@@ -8,7 +8,7 @@ import threading
 import cmi_docx
 import docx
 import pydantic
-from cmi_docx import styles
+from cmi_docx import comment, styles
 from docx.enum import table as enum_table
 from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
@@ -225,6 +225,13 @@ class ReportWriter:
                 only the most pertinent information here.
             """,
             context=text,
+            comment="\n\n".join(
+                [
+                    f"Reason for visit: {patient.reason_for_visit}.",
+                    f"Hopes: {patient.hopes}.",
+                    f"Learned of study: {patient.learned_of_study}.",
+                ],
+            ),
         )
 
         text += f" {placeholder_id}"
@@ -269,7 +276,7 @@ class ReportWriter:
 
         if delivery.base == redcap.BirthDelivery.cesarean:
             # Contains a quote by the parent.
-            birth_sentence = self.llm.run_edit(birth_sentence)
+            birth_sentence = self.llm.run_edit(birth_sentence, comment=birth_sentence)
 
         text = f"""
             {patient.guardian.title_name} reported {pregnancy_symptoms}.
@@ -290,6 +297,7 @@ class ReportWriter:
                 """,
                 verify=True,
                 context=text,
+                comment=str(development.infant_difficulties),
             )
             text += f" {placeholder}"
 
@@ -369,6 +377,9 @@ class ReportWriter:
                     If neither were received, write that the reporting guardian denied
                     any history of early intervention or CPSE services.
                 """,
+                comment="\n\n".join(
+                    [str(model) for model in early_intervention + cpse],
+                ),
             )
         else:
             text = f"""
@@ -486,6 +497,10 @@ class ReportWriter:
                 be relevant unless that was a significant change from other
                 schools.
             """,
+            comment="\n\n".join(
+                [str(school) for school in patient.education.past_schools]
+                + [concern_instructions],
+            ),
         )
 
         self._insert("Educational History", _StyleName.HEADING_2)
@@ -504,7 +519,7 @@ class ReportWriter:
 
         if education.iep_classifications:
             iep_text = (
-                f"maintains an IEP allowing accomodations for/including {PLACEHOLDER}"
+                f"maintains an IEP allowing accommodations for/including {PLACEHOLDER}"
             )
         else:
             iep_text = "does not have an IEP"
@@ -532,6 +547,10 @@ class ReportWriter:
                     Details on school functioning: {education.school_functioning}
                 """,
                 context=" ".join(texts),
+                comment=(
+                    f"{patient.guardian.title_name} reported: "
+                    f"{education.school_functioning}."
+                ),
             )
         else:
             placeholder_id = ""
@@ -560,6 +579,20 @@ class ReportWriter:
         patient = self.intake.patient
         household = patient.household
 
+        comment = (
+            (
+                "Household Members:\n{members}\n\nCity: {city}\nState: {state}"
+                "\nHome Functioning:{functioning}\nHousehold Languages:{languages}\n\n"
+            ).format(
+                members="\n\n".join(str(member) for member in household.members),
+                city=household.city,
+                state=household.state,
+                functioning=household.home_functioning,
+                languages=", ".join([lang.name for lang in household.languages]),
+            )
+            + "Child Languages:\n"
+            + "\n\n".join([str(lang) for lang in patient.languages])
+        )
         text_home = self.llm.run_with_object_input(
             items={
                 "household": household,
@@ -606,6 +639,7 @@ class ReportWriter:
                 and the state ({household.state}) are included.
             """,
             verify=True,
+            comment=comment,
         )
 
         if not household.home_functioning:
@@ -622,6 +656,10 @@ class ReportWriter:
                 parent_input=f"""
                     Details on home functioning: {household.home_functioning}
                 """,
+                comment=(
+                    f"{patient.guardian.title_name} reported: "
+                    + household.home_functioning
+                ),
             )
 
         text_home = string_utils.remove_excess_whitespace(text_home)
@@ -639,23 +677,28 @@ class ReportWriter:
         patient = self.intake.patient
         social_functioning = patient.social_functioning
 
-        adjectives = self.llm.run_for_adjectives(social_functioning.talents)
+        adjectives = self.llm.run_for_adjectives(
+            social_functioning.talents,
+            comment=f"Talents: {social_functioning.talents}",
+        )
         text = f"""
             {patient.guardian.title_name} was pleased to describe
             {patient.first_name} as a {adjectives.lower()}
             {patient.age_gender_label}.
         """
 
+        llm_text = f"""
+            {patient.guardian.title_name} reported that
+            {patient.pronouns[0]} has {social_functioning.n_friends} friends
+            in {patient.pronouns[2]} peer group.
+            {patient.guardian.title_full_name} was concerned about:
+            '{social_functioning.social_concerns}'.
+            {patient.first_name}'s
+            hobbies include {social_functioning.hobbies}.'
+        """
+
         placeholder = self.llm.run_edit(
-            text=f"""
-                {patient.guardian.title_name} reported that
-                {patient.pronouns[0]} has {social_functioning.n_friends} friends
-                in {patient.pronouns[2]} peer group.
-                {patient.guardian.title_full_name} was concerned about:
-                '{social_functioning.social_concerns}.
-                {patient.first_name}'s
-                hobbies include {social_functioning.hobbies}.'
-            """,
+            text=llm_text,
             additional_instruction="""If no concerns were reported,
                 state that the parent reported no concerns. Maintain the
                 overall structure of:
@@ -666,8 +709,9 @@ class ReportWriter:
                 concerns in the hobbies. Adjust the text accordingly.
             """,
             verify=True,
-            context=text,
+            comment=string_utils.remove_excess_whitespace(llm_text),
         )
+
         text += f" {placeholder}"
         text = string_utils.remove_excess_whitespace(text)
 
@@ -712,6 +756,9 @@ class ReportWriter:
             text = self.llm.run_with_object_input(
                 items=past_diagnoses,
                 additional_instruction=instructions,
+                comment="\n\n".join(
+                    [str(model) for model in past_diagnoses],
+                ),
             )
 
         self._insert("Past Psychiatric Diagnoses", _StyleName.HEADING_2)
@@ -837,7 +884,12 @@ class ReportWriter:
                 transformers.ReplacementTags.PREFERRED_NAME.value,
                 self.intake.patient.first_name,
             )
-            text = self.llm.run_edit(llm_text, instructions, verify=True)
+            text = self.llm.run_edit(
+                llm_text,
+                comment=llm_text,
+                additional_instruction=instructions,
+                verify=True,
+            )
         self._insert(text)
         self._insert("")
 
@@ -867,6 +919,9 @@ class ReportWriter:
                     described the treatment as {PLACEHOLDER}.
                     Treatment was ended due to {PLACEHOLDER}.
                     """,
+                comment="\n\n".join(
+                    [str(intervention) for intervention in interventions],
+                ),
             )
 
         self._insert("Past Therapeutic Interventions", _StyleName.HEADING_2)
@@ -911,6 +966,7 @@ class ReportWriter:
                     For current medications, maintain the same format but change the
                     date format to "Since [DATE_STARTED].
                 """,
+                comment="\n\n".join([str(model) for model in all_medication]),
             )
 
         self._insert(text)
@@ -1110,6 +1166,19 @@ class ReportWriter:
                     replacement,
                     cmi_docx.RunStyle(font_rgb=_RGB.LLM.value),
                 )
+                if placeholder.comment:
+                    find_runs = self.report.find_in_runs(replacement)
+                    runs = (
+                        find_runs[0].runs
+                        if len(find_runs[0].runs) > 1
+                        else find_runs[0].runs[0]
+                    )
+                    comment.add_comment(
+                        self.report.document,
+                        runs,
+                        author="Clinician Toolkit",
+                        text=placeholder.comment,
+                    )
 
         logger.debug("Making edits to the report using a large language model.")
         await asyncio.gather(
@@ -1221,4 +1290,5 @@ class ReportWriter:
         return self.llm.run_text_with_parent_input(
             f"{self.intake.patient.guardian.title_name} reported that {PLACEHOLDER}.",
             parent_input=f"Details: {report}",
+            comment=report,
         )
