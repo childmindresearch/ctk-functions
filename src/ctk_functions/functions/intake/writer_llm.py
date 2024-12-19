@@ -125,20 +125,21 @@ class WriterLlm:
         self,
         text: str,
         parent_input: str,
+        *,
+        comment: str | None,
         additional_instruction: str = "",
         context: str = "",
-        comment: str | None = None,
     ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt with parent input.
 
         Args:
             text: The excerpt to edit.
             parent_input: The parent input to insert into the excerpt.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
             additional_instruction: Additional instructions to include in the system
                 prompt.
             context: The context in which the excerpt will be placed.
-            comment: The text of the comment to add to the document. If None, no
-                comment is added.
 
         Returns:
             The placeholder for the LLM edit.
@@ -168,21 +169,21 @@ class WriterLlm:
     def run_edit(
         self,
         text: str,
+        *,
+        comment: str | None,
         additional_instruction: str = "",
         context: str = "",
-        comment: str | None = None,
-        *,
         verify: bool = False,
     ) -> str:
         """Creates a placeholder for an LLM edit of an excerpt.
 
         Args:
             text: The excerpt to edit.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
             additional_instruction: Additional instructions to include in the system
                 prompt.
             context: The context in which the excerpt will be placed.
-            comment: The text of the comment to add to the document. If None, no
-                comment is added.
             verify: If true, run verification prompts on the LLM output.
 
         Returns:
@@ -206,21 +207,21 @@ class WriterLlm:
     def run_with_object_input(
         self,
         items: Any,  # noqa: ANN401
+        *,
+        comment: str | None,
         additional_instruction: str = "",
         context: str = "",
-        comment: str | None = None,
-        *,
         verify: bool = False,
     ) -> str:
         """Creates a placeholder for an LLM edit of a list of classes.
 
         Args:
             items: An object which will be converted to JSON.
+            comment: The text of the comment to add to the document. If None, no
+                comment is added.
             additional_instruction: Additional instructions to include in the system
                 prompt.
             context: The context in which the excerpt will be placed.
-            comment: The text of the comment to add to the document. If None, no
-                comment is added.
             verify: If true, run verification prompts on the LLM output.
 
         Returns:

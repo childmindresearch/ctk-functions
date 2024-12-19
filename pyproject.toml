@@ -29,7 +29,7 @@ openai = "^1.52.2"
 jsonpickle = "^3.3.0"
 anthropic = {version = "<0.37", extras = ["bedrock"]}
 instructor = {extras = ["anthropic"], version = "^1.6.3"}
-cmi-docx = "^0.3.6"
+cmi-docx = "^0.3.7"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

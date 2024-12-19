@@ -591,13 +591,13 @@ s3 = ["boto3 (>=1.34.0)"]
 
 [[package]]
 name = "cmi-docx"
-version = "0.3.6"
+version = "0.3.7"
 description = "Additional tooling for Python-docx."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "cmi_docx-0.3.6-py3-none-any.whl", hash = "sha256:55e3f4c8f0968673c39b7834d3d3461cd76484579edaa92342c725a0626e023d"},
-    {file = "cmi_docx-0.3.6.tar.gz", hash = "sha256:c87e9515680ba2ecd0a98617ffe8fc7c4b6a5ca4adbabd3b5351766bb79b36e2"},
+    {file = "cmi_docx-0.3.7-py3-none-any.whl", hash = "sha256:6524aff36fdd1cecdec4591294091fb2c5c6e409069a847fa5389f345f42387e"},
+    {file = "cmi_docx-0.3.7.tar.gz", hash = "sha256:025eda8903810adb5f9fb8c8215eff895e664fb0b7073ab5d9349e72d3c33631"},
 ]
 
 [package.dependencies]
@@ -4028,4 +4028,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "4076632fe58498a8d3b5acb9987d78cb3ac92311ab7f748874f961ecf9e4d92a"
+content-hash = "1d18b5e4e6265b2765e8b228618e9c9ccaeaeabc8b4dc637bc76621fea0b1a96"

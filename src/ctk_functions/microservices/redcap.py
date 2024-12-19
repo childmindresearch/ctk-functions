@@ -566,14 +566,6 @@ family_psychiatric_diagnoses = [
 ]
 
 
-class PastDiagnosis(pydantic.BaseModel):
-    """The model for the patient's past diagnosis."""
-
-    diagnosis: str
-    clinician: str
-    age_at_diagnosis: str
-
-
 class RedCapData(pydantic.BaseModel):
     """Validation for the REDcap data.
 
