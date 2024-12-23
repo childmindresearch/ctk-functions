@@ -588,7 +588,7 @@ class ReportWriter:
         patient = self.intake.patient
         household = patient.household
 
-        comment = (
+        comment_text = (
             (
                 "Household Members:\n{members}\n\nCity: {city}\nState: {state}"
                 "\nHome Functioning:{functioning}\nHousehold Languages:{languages}\n\n"
@@ -648,7 +648,7 @@ class ReportWriter:
                 and the state ({household.state}) are included.
             """,
             verify=True,
-            comment=comment,
+            comment=comment_text,
         )
 
         if not household.home_functioning:
@@ -817,7 +817,7 @@ class ReportWriter:
         )
         text = self._write_basic_psychiatric_history(
             "homicidality or severe physically aggressive behaviors towards others",
-            self.intake.patient.psychiatric_history.aggresive_behaviors,
+            self.intake.patient.psychiatric_history.aggressive_behaviors,
         )
 
         self._insert(
@@ -1192,7 +1192,7 @@ class ReportWriter:
                 if placeholder.comment:
                     find_runs = self.report.find_in_runs(replacement)
                     runs = (
-                        find_runs[0].runs
+                        (find_runs[0].runs[0], find_runs[0].runs[-1])
                         if len(find_runs[0].runs) > 1
                         else find_runs[0].runs[0]
                     )

@@ -244,7 +244,7 @@ def test_development_skill_transformer(
                     clinician="Dr. Johnson",
                 ),
             ],
-            ("with a prior history of Anxiety and Depression"),
+            "with a prior history of Anxiety and Depression",
             True,
         ),
     ],

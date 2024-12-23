@@ -3,9 +3,9 @@
 import concurrent.futures
 
 import cmi_docx
-import docx
 import spacy
 from docx import document
+from docx.text import paragraph
 
 from ctk_functions.text import corrections
 
@@ -32,40 +32,42 @@ class DocumentCorrections:
 
     def __init__(
         self,
-        document: document.Document,
-        enabled_rules: set[str] = DEFAULT_LANGUAGE_RULES,
+        doc: document.Document,
+        enabled_rules: set[str] | None = None,
     ) -> None:
         """Initializes the corrector with a document.
 
         Args:
-            document: The docx document to correct.
+            doc: The docx document to correct.
             enabled_rules: The rules to enable for the correction. If None, all rules
                 are enabled.
 
         """
-        self.document = document
-        self.correcter = corrections.LanguageCorrecter(enabled_rules)
+        self.document = doc
+        self.correcter = corrections.LanguageCorrecter(
+            enabled_rules or DEFAULT_LANGUAGE_RULES,
+        )
 
     def correct(self) -> None:
         """Makes corrections based on the enabled and disabled rules."""
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [
-                executor.submit(self._correct_paragraph, paragraph)
-                for paragraph in self.document.paragraphs
+                executor.submit(self._correct_paragraph, para)
+                for para in self.document.paragraphs
             ]
 
             for _ in concurrent.futures.as_completed(futures):
                 pass
 
-    def _correct_paragraph(self, paragraph: docx.text.paragraph.Paragraph) -> None:
+    def _correct_paragraph(self, para: paragraph.Paragraph) -> None:
         """Corrects conjugations in a single paragraph.
 
         Args:
-            paragraph: The paragraph to correct.
+            para: The paragraph to correct.
         """
-        sentences = list(NLP(paragraph.text).sents)
+        sentences = list(NLP(para.text).sents)
         new_sentences = [self.correcter.run(sentence.text) for sentence in sentences]
-        extended_pargraph = cmi_docx.ExtendParagraph(paragraph)
+        extended_pargraph = cmi_docx.ExtendParagraph(para)
         for old, new in zip(sentences, new_sentences, strict=True):
             if old.text != new:
                 extended_pargraph.replace(old.text, new)

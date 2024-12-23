@@ -8,7 +8,7 @@ from ctk_functions.microservices import redcap
 
 
 def test_redcap_error(mocker: pytest_mock.MockFixture) -> None:
-    """Tests the REDcap error handling."""
+    """Tests the REDCap error handling."""
     mocker.patch(
         "redcap.Project",
         return_value=mocker.MagicMock(

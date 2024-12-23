@@ -1,1 +1,1 @@
-"""Endpoint for language tool."""
+"""Endpoint for LanguageTool."""

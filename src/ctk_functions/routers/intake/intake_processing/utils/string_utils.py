@@ -139,7 +139,7 @@ class StringToInt:
         Returns:
             The integer value of the string.
         """
-        words = re.split(r" |-", string.lower())
+        words = re.split(r"[ \-]", string.lower())
 
         parsed_words = [self.word_mapping.get(word, None) for word in words]
 

@@ -254,6 +254,7 @@ class Language(parser_models.CommentBaseModel):
             patient_data: The patient dataframe.
             identifier: The id of the language.
         """
+        super().__init__()
         logger.debug("Parsing language %s.", identifier)
         self.name = getattr(patient_data, f"child_language{identifier}")
         self.spoken_whole_life = (
@@ -284,6 +285,7 @@ class HouseholdMember(parser_models.CommentBaseModel):
             patient_data: The patient dataframe.
             identifier: The id of the household member.
         """
+        super().__init__()
         logger.debug("Parsing household member %s.", identifier)
         self.name = all_caps_to_title(
             getattr(patient_data, f"peopleinhome{identifier}"),
@@ -385,7 +387,7 @@ class PsychiatricMedication:
                     initial_dosage=getattr(patient_data, f"dose{index}_start_past"),
                     maximum_dosage=getattr(patient_data, f"dose{index}_max_past"),
                     date_taken=getattr(patient_data, f"med{index}_past_date"),
-                    targetted_symptoms=getattr(patient_data, f"med{index}_past_reason"),
+                    targeted_symptoms=getattr(patient_data, f"med{index}_past_reason"),
                     response=getattr(patient_data, f"med{index}_past_se"),
                     prescribing_doctor=getattr(patient_data, f"med{index}_past_doc"),
                 )
@@ -513,16 +515,16 @@ class PsychiatricHistory:
         ]
         self.medications = PsychiatricMedication(patient_data)
         self.is_follow_up_done = patient_data.clinician is not None
-        self.aggresive_behaviors: str | None = patient_data.agress_exp
+        self.aggressive_behaviors: str | None = patient_data.agress_exp
         self.children_services: str | None = patient_data.acs_exp
         self.violence_and_trauma: str | None = patient_data.violence_exp
         self.self_harm: str | None = patient_data.selfharm_exp
-        self.family_psychiatric_history = FamilyPyshicatricHistory(
+        self.family_psychiatric_history = FamilyPsychiatricHistory(
             patient_data,
         ).get_family_diagnoses(patient_data)
 
 
-class FamilyPyshicatricHistory:
+class FamilyPsychiatricHistory:
     """The parser for the patient's family's psychiatric history."""
 
     def __init__(self, patient_data: redcap.RedCapData) -> None:
@@ -595,6 +597,7 @@ class TherapeuticInterventions(parser_models.CommentBaseModel):
             patient_data: The patient data.
             identifier: The id of the therapeutic history instance.
         """
+        super().__init__()
         logger.debug("Parsing therapeutic intervention %s.", identifier)
         self.therapist = getattr(patient_data, f"txhx_{identifier}")
         self.reason = getattr(patient_data, f"txhx{identifier}_reason")

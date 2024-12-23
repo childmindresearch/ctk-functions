@@ -1,6 +1,6 @@
 -- Provides tab support for markdown to docx conversions.
--- Pandoc automatically converts all consecutives tabs and spaces to a single space,
--- so we need to rely on a custom charater (|t) to represent a tab in the markdown file.
+-- Pandoc automatically converts all consecutive tabs and spaces to a single space,
+-- so we need to rely on a custom character (|t) to represent a tab in the markdown file.
 
 local tab_replacement = "%|t"
 return {

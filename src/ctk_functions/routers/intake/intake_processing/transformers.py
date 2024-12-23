@@ -77,8 +77,7 @@ class MultiTransformer(Transformer[list[T]]):
 
     def __init__(self, value: list[T], other: None | str = None) -> None:
         """Initializes the multi transformer."""
-        self.base = value
-        self.other = other
+        super().__init__(value, other)
 
     def __str__(self) -> str:
         """Returns the transformed object.

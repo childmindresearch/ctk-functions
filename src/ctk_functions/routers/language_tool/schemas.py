@@ -4,7 +4,7 @@ import pydantic
 
 
 class PostLanguageToolRequest(pydantic.BaseModel):
-    """POST Language Tool request definition.
+    """POST LanguageTool request definition.
 
     Attributes:
         text: The text to correct.

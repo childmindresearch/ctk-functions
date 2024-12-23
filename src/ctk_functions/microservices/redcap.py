@@ -1066,7 +1066,7 @@ class RedCapData(pydantic.BaseModel):
     tt_text: str | None
     tic_tourette___4: bool
 
-    # Therapeutric interventions
+    # Therapeutic interventions
 
     txhx1_effectiveness: str | None
     txhx1_end: str | None
@@ -1343,17 +1343,19 @@ def get_intake_data(mrn: str) -> RedCapData:
         raise exceptions.RedcapError(msg)
 
     project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore[attr-defined]
-    redcap_fields = project.export_records(
-        format_type="csv",
-        fields=["firstname"],
-        export_survey_fields=True,
-        raw_or_label="label",
+    redcap_fields = str(
+        project.export_records(
+            format_type="csv",
+            fields=["firstname"],
+            export_survey_fields=True,
+            raw_or_label="label",
+        ),
     )
 
-    redcap_fields = csv.DictReader(io.StringIO(redcap_fields))
+    redcap_fields_dict = csv.DictReader(io.StringIO(redcap_fields))
     record_ids = [
         row["record_id"]
-        for row in redcap_fields
+        for row in redcap_fields_dict
         if row["redcap_survey_identifier"].find(mrn) != -1
     ]
 
@@ -1361,10 +1363,12 @@ def get_intake_data(mrn: str) -> RedCapData:
         msg = "No record found for the given MRN."
         raise exceptions.RedcapError(msg)
 
-    patient_data: str = project.export_records(
-        format_type="csv",
-        export_survey_fields=True,
-        records=[record_ids[0]],
+    patient_data = str(
+        project.export_records(
+            format_type="csv",
+            export_survey_fields=True,
+            records=[record_ids[0]],
+        ),
     )
 
     return RedCapData.from_csv(patient_data)

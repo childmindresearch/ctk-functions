@@ -10,17 +10,19 @@ import pypandoc
 from docx import document, shared
 from docx.oxml import ns
 
-from ctk_functions.routers.file_conversion import schemas
 
-
-def markdown2docx(body: schemas.PostMarkdown2DocxRequest) -> bytes:
+def markdown2docx(
+    markdown: str,
+    formatting: cmi_docx.ParagraphStyle | None = None,
+) -> bytes:
     r"""Converts a Markdown document to a .docx file.
 
     Uses custom lua filters to allow underlining text between two '++' and
     converting '\t' to tabs.
 
     Args:
-        body: The request body, see schemas for full description.
+        markdown: The Markdown document to convert.
+        formatting: The formatting style to use.
 
     Returns:
         The .docx file as bytes.
@@ -29,7 +31,7 @@ def markdown2docx(body: schemas.PostMarkdown2DocxRequest) -> bytes:
     tab_filter = pathlib.Path(__file__).parent / "lua" / "tab.lua"
     with tempfile.NamedTemporaryFile(suffix=".docx") as docx_file:
         pypandoc.convert_text(
-            body.markdown,
+            markdown,
             "docx",
             format="commonmark_x",
             outputfile=docx_file.name,
@@ -37,16 +39,16 @@ def markdown2docx(body: schemas.PostMarkdown2DocxRequest) -> bytes:
         )
 
         docx_file.seek(0)
-        document = docx.Document(docx_file.name)
-        _mark_warnings_as_red(document)
-        _set_list_indentations(document)
-        _remove_curly_brackets(document)
+        doc = docx.Document(docx_file.name)
+        _mark_warnings_as_red(doc)
+        _set_list_indentations(doc)
+        _remove_curly_brackets(doc)
 
-        if body.formatting is not None:
-            for paragraph in document.paragraphs:
+        if formatting is not None:
+            for paragraph in doc.paragraphs:
                 extend_paragraph = cmi_docx.ExtendParagraph(paragraph)
-                extend_paragraph.format(body.formatting)
-        document.save(docx_file.name)
+                extend_paragraph.format(formatting)
+        doc.save(docx_file.name)
         return docx_file.read()
 
 

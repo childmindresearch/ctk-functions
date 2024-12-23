@@ -152,7 +152,7 @@ class LargeLanguageModel(pydantic.BaseModel, utils.LlmAbstractBaseClass):
                 prompt. Defaults to False.
 
         Returns:
-            The editted text result.
+            The edited text result.
         """
         if statements is None and not create_new_statements:
             msg = (

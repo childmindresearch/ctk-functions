@@ -1,1 +1,1 @@
-"""Module for syntax and grammatical correctionss of text."""
+"""Module for syntax and grammatical corrections of text."""

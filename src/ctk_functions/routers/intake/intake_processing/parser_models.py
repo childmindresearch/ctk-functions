@@ -84,7 +84,7 @@ class PastPsychiatricMedication(CommentBaseModel, pydantic.BaseModel):
     initial_dosage: str
     maximum_dosage: str
     date_taken: str
-    targetted_symptoms: str
+    targeted_symptoms: str
     response: str
     prescribing_doctor: str
 
