@@ -23,6 +23,7 @@ repos:
     - cmi-docx
     - instructor
     - openai
+    - fastapi
     - pycap
     - pydantic
     - pydantic_settings

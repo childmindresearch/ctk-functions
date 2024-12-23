@@ -13,13 +13,17 @@ from docx.enum import table as enum_table
 from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
-from ctk_functions import config
-from ctk_functions.functions.intake import parser, transformers, writer_llm
-from ctk_functions.functions.intake.utils import (
+from ctk_functions.core import config
+from ctk_functions.microservices import llm, redcap
+from ctk_functions.routers.intake.intake_processing import (
+    parser,
+    transformers,
+    writer_llm,
+)
+from ctk_functions.routers.intake.intake_processing.utils import (
     language_utils,
     string_utils,
 )
-from ctk_functions.microservices import llm, redcap
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR

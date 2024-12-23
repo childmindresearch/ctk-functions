@@ -12,7 +12,7 @@ import ctk_functions
 repository_root = pathlib.Path(ctk_functions.__file__).parent.parent.parent
 sys.path.insert(0, str(repository_root))
 
-import function_app  # noqa: E402
+import function_app_old  # noqa: E402
 
 
 def get_function_auth_level(
@@ -26,7 +26,7 @@ def get_function_auth_level(
 def test_function_auth_level() -> None:
     """Tests that no function has the anonymous auth level."""
     endpoints = inspect.getmembers(
-        function_app,
+        function_app_old,
         lambda attribute: isinstance(attribute, azure_function_app.FunctionBuilder),
     )
     allowed_auth_levels = ["FUNCTION", "ADMIN"]

@@ -9,7 +9,7 @@ from typing import Any, Self
 import pydantic
 import redcap
 
-from ctk_functions import config, exceptions
+from ctk_functions.core import config, exceptions
 
 settings = config.get_settings()
 REDCAP_ENDPOINT = settings.REDCAP_ENDPOINT

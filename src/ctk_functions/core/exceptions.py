@@ -1,6 +1,6 @@
 """Custom exceptions for the CTK functions package."""
 
-from ctk_functions import config
+from ctk_functions.core import config
 
 logger = config.get_logger()
 

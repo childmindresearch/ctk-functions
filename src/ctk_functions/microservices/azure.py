@@ -4,7 +4,7 @@ from typing import Literal
 
 import openai
 
-from ctk_functions import config
+from ctk_functions.core import config
 from ctk_functions.microservices import utils
 
 logger = config.get_logger()

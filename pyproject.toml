@@ -30,6 +30,7 @@ jsonpickle = "^3.3.0"
 anthropic = {version = "<0.37", extras = ["bedrock"]}
 instructor = {extras = ["anthropic"], version = "^1.6.3"}
 cmi-docx = "^0.3.7"
+fastapi = {extras = ["standard"], version = "^0.115.6"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

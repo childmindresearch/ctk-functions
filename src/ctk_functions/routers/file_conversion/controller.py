@@ -3,7 +3,6 @@
 import pathlib
 import re
 import tempfile
-from typing import Any
 
 import cmi_docx
 import docx
@@ -11,19 +10,17 @@ import pypandoc
 from docx import document, shared
 from docx.oxml import ns
 
+from ctk_functions.routers.file_conversion import schemas
 
-def markdown2docx(
-    markdown: str,
-    formatting: None | dict[str, Any] | cmi_docx.ParagraphStyle = None,
-) -> bytes:
-    """Converts a Markdown document to a .docx file.
 
-    Uses a custom lua filter to allow underlining text between two '++'.
+def markdown2docx(body: schemas.PostMarkdown2DocxRequest) -> bytes:
+    r"""Converts a Markdown document to a .docx file.
+
+    Uses custom lua filters to allow underlining text between two '++' and
+    converting '\t' to tabs.
 
     Args:
-        markdown: The Markdown document.
-        formatting: Formatting options, must abide by cmi_docx.ParagraphStyle arguments
-            if it is provided as a dictionary.
+        body: The request body, see schemas for full description.
 
     Returns:
         The .docx file as bytes.
@@ -32,7 +29,7 @@ def markdown2docx(
     tab_filter = pathlib.Path(__file__).parent / "lua" / "tab.lua"
     with tempfile.NamedTemporaryFile(suffix=".docx") as docx_file:
         pypandoc.convert_text(
-            markdown,
+            body.markdown,
             "docx",
             format="commonmark_x",
             outputfile=docx_file.name,
@@ -41,21 +38,19 @@ def markdown2docx(
 
         docx_file.seek(0)
         document = docx.Document(docx_file.name)
-        mark_warnings_as_red(document)
-        set_list_indentations(document)
-        remove_curly_brackets(document)
+        _mark_warnings_as_red(document)
+        _set_list_indentations(document)
+        _remove_curly_brackets(document)
 
-        if formatting is not None:
-            if isinstance(formatting, dict):
-                formatting = cmi_docx.ParagraphStyle(**formatting)
+        if body.formatting is not None:
             for paragraph in document.paragraphs:
                 extend_paragraph = cmi_docx.ExtendParagraph(paragraph)
-                extend_paragraph.format(formatting)
+                extend_paragraph.format(body.formatting)
         document.save(docx_file.name)
         return docx_file.read()
 
 
-def mark_warnings_as_red(doc: document.Document) -> None:
+def _mark_warnings_as_red(doc: document.Document) -> None:
     """Marks warning values as red.
 
     We use {{!WARNING-TEXT}} as a values for warnings that should be marked red.
@@ -73,7 +68,7 @@ def mark_warnings_as_red(doc: document.Document) -> None:
         extend_document.replace(match, match, cmi_docx.RunStyle(font_rgb=(255, 0, 0)))
 
 
-def set_list_indentations(doc: document.Document) -> None:
+def _set_list_indentations(doc: document.Document) -> None:
     """Sets list indentations for the clinical reports.
 
     Args:
@@ -100,7 +95,7 @@ def set_list_indentations(doc: document.Document) -> None:
         paragraph.paragraph_format.first_line_indent = shared.Inches(-0.25)
 
 
-def remove_curly_brackets(doc: document.Document) -> None:
+def _remove_curly_brackets(doc: document.Document) -> None:
     """Removes {{! and }} substrings.
 
     Args:

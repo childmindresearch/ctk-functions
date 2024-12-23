@@ -8,9 +8,9 @@ from typing import Any
 import jsonpickle
 import pydantic
 
-from ctk_functions import config
-from ctk_functions.functions.intake.utils import string_utils
+from ctk_functions.core import config
 from ctk_functions.microservices import llm
+from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
 settings = config.get_settings()

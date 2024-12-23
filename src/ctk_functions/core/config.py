@@ -12,7 +12,7 @@ import pydantic_settings
 class Settings(pydantic_settings.BaseSettings):
     """App settings."""
 
-    DATA_DIR: pydantic.DirectoryPath = pathlib.Path(__file__).parent / "data"
+    DATA_DIR: pydantic.DirectoryPath = pathlib.Path(__file__).parent.parent / "data"
     REDCAP_API_TOKEN: pydantic.SecretStr
     REDCAP_ENDPOINT: pydantic.HttpUrl = pydantic.HttpUrl(
         "https://redcap.healthybrainnetwork.org/redcap/api/",

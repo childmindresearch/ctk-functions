@@ -2,8 +2,8 @@
 
 import pytest
 
-from ctk_functions.functions.intake import parser_models, transformers
 from ctk_functions.microservices import redcap
+from ctk_functions.routers.intake.intake_processing import parser_models, transformers
 
 
 @pytest.mark.parametrize(
