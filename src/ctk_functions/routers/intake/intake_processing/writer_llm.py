@@ -3,10 +3,12 @@
 import dataclasses
 import uuid
 from collections.abc import Awaitable, Coroutine, Sequence
-from typing import Any
+from typing import Any, TypeGuard, get_args
 
+import cloai
 import jsonpickle
 import pydantic
+from cloai.llm import bedrock
 
 from ctk_functions.core import config
 from ctk_functions.routers.intake.intake_processing.utils import string_utils
