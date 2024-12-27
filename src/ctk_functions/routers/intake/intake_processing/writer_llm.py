@@ -9,7 +9,6 @@ import jsonpickle
 import pydantic
 
 from ctk_functions.core import config
-from ctk_functions.microservices import llm
 from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
@@ -105,7 +104,7 @@ class WriterLlm:
 
     def __init__(
         self,
-        model: llm.VALID_LLM_MODELS,
+        model: str,
         child_name: str,
         child_pronouns: Sequence[str],
     ) -> None:
@@ -116,7 +115,7 @@ class WriterLlm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = llm.LargeLanguageModel(model=model)
+        self.client = self._get_llm(model)
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []
@@ -249,7 +248,7 @@ class WriterLlm:
         return self._run(system_prompt, user_prompt, verify=verify, comment=comment)
 
     def run_for_adjectives(self, description: str, comment: str | None = None) -> str:
-        """Extraces adjectives based on a description of a child.
+        """Extracts adjectives based on a description of a child.
 
         Args:
             description: The description of the child's strengths.
@@ -317,6 +316,7 @@ class WriterLlm:
             replacement = self.client.chain_of_verification(
                 system_prompt,
                 user_prompt,
+                response_model=str,
                 create_new_statements=True,
             )
         else:
@@ -360,3 +360,35 @@ class WriterLlm:
             LlmPlaceholder(placeholder_uuid, stringify(promise), comment),
         )
         return placeholder_uuid
+
+    @staticmethod
+    def _get_llm(model: str) -> cloai.LargeLanguageModel:
+        """Gets the LLM client.
+
+        Args:
+            model: Model name to use.
+
+        Returns:
+            The client for the large language model.
+        """
+        if _is_anthropic_bedrock_model(model):
+            client = cloai.AnthropicBedrockLlm(
+                model=model,
+                aws_access_key=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
+                aws_secret_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
+                region=settings.AWS_REGION,
+            )
+        else:
+            client = cloai.AzureLlm(
+                deployment=settings.AZURE_OPENAI_LLM_DEPLOYMENT.get_secret_value(),
+                endpoint=settings.AZURE_OPENAI_ENDPOINT.get_secret_value(),
+                api_key=settings.AZURE_OPENAI_API_KEY.get_secret_value(),
+                api_version="2024-02-01",
+            )
+        return cloai.LargeLanguageModel(client=client)
+
+
+def _is_anthropic_bedrock_model(
+    model: str,
+) -> TypeGuard[bedrock.ANTHROPIC_BEDROCK_MODELS]:
+    return model in get_args(bedrock.ANTHROPIC_BEDROCK_MODELS)
