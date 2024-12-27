@@ -13,8 +13,8 @@ import pytest
 import pytest_mock
 from docx import document
 
+from ctk_functions.functions.intake import parser, writer
 from ctk_functions.microservices import redcap
-from ctk_functions.routers.intake.intake_processing import parser, writer
 
 T = TypeVar("T")
 

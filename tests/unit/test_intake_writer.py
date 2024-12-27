@@ -7,7 +7,7 @@ from typing import Literal
 import docx
 import pytest
 
-from ctk_functions.routers.intake.intake_processing import writer
+from ctk_functions.functions.intake import writer
 
 
 @dataclasses.dataclass

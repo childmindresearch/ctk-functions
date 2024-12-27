@@ -2,8 +2,8 @@
 
 import pytest
 
+from ctk_functions.functions.intake import parser
 from ctk_functions.microservices import redcap
-from ctk_functions.routers.intake.intake_processing import parser
 
 
 def test_guardian_parser(
