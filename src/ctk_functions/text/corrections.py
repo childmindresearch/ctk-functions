@@ -1,4 +1,4 @@
-"""Module for syntax and grammatical corrections of text."""
+"""Module for syntax and grammatical correctionss of text."""
 
 from collections.abc import Iterable
 
@@ -32,9 +32,9 @@ class LanguageCorrecter:
 
         Initializing the language tool takes a while, so it is performed at
         the class level. This, however, creates a race condition when multiple
-        threads try to access the language tool at the same time and want to apply
-        a correction to the same section. To prevent this, a lock is used to
-        ensure that only one thread can access the language tool at a time.
+        threads try to access the language tool at the same time. To prevent
+        this, a lock is used to ensure that only one thread can access the
+        language tool at a time.
 
         Args:
             text: The text to correct.

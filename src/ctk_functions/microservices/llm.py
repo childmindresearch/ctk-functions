@@ -8,14 +8,13 @@ from typing import Any, Literal, TypeGuard, TypeVar, overload
 import instructor
 import pydantic
 
-from ctk_functions.core import config
+from ctk_functions import config
 from ctk_functions.microservices import aws, azure, utils
 
 settings = config.get_settings()
-logger = config.get_logger()
-
 LOGGER_PHI_LOGGING_LEVEL = settings.LOGGER_PHI_LOGGING_LEVEL
 VALID_LLM_MODELS = typing.Literal[aws.ANTHROPIC_MODELS, azure.GPT_MODELS]
+logger = config.get_logger()
 
 T = TypeVar("T")
 
@@ -71,11 +70,11 @@ class LargeLanguageModel(pydantic.BaseModel, utils.LlmAbstractBaseClass):
         client: The client for the large language model.
     """
 
-    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True, frozen=True)
-
     model: VALID_LLM_MODELS
     _client: azure.AzureLlm | aws.ClaudeLlm = pydantic.PrivateAttr()
     _instructor_client: instructor.client.AsyncInstructor = pydantic.PrivateAttr()
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     def model_post_init(self, __context: Any) -> None:  # noqa: ANN401
         """Initializes the language model.
@@ -152,7 +151,7 @@ class LargeLanguageModel(pydantic.BaseModel, utils.LlmAbstractBaseClass):
                 prompt. Defaults to False.
 
         Returns:
-            The edited text result.
+            The editted text result.
         """
         if statements is None and not create_new_statements:
             msg = (

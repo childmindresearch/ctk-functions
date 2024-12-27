@@ -3,12 +3,12 @@
 import pytest
 import pytest_mock
 
-from ctk_functions.core import exceptions
+from ctk_functions import exceptions
 from ctk_functions.microservices import redcap
 
 
 def test_redcap_error(mocker: pytest_mock.MockFixture) -> None:
-    """Tests the REDCap error handling."""
+    """Tests the REDcap error handling."""
     mocker.patch(
         "redcap.Project",
         return_value=mocker.MagicMock(

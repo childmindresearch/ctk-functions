@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctk_functions.routers.intake.intake_processing.utils import (
+from ctk_functions.functions.intake.utils import (
     string_utils,
 )
 

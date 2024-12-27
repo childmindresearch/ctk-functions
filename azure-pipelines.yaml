@@ -14,11 +14,11 @@ steps:
     addToPath: true
 
 - script: |
-    python -m pip install uv
-    uv sync
+    python -m pip install poetry
+    poetry install
   displayName: Install dependencies
 
-- script: uv run python tests/integration/azure_test_intakes.py
+- script: poetry run python tests/integration/azure_test_intakes.py
   displayName: Run test_intake.py
   env:
     SURVEY_IDS: $(SURVEY_IDS)
