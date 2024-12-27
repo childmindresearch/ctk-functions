@@ -63,7 +63,7 @@ async def test_no_printed_objects(
     assert "<" not in text
     assert ">" not in text
     assert "none" not in text
-    assert "ctk_api" not in text
+    assert "ctk_functions" not in text
     assert "object at 0x" not in text
     assert "replacementtags" not in text
     assert re.match(regex_scientific_notation, text) is None
