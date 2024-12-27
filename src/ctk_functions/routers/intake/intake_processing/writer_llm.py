@@ -9,7 +9,7 @@ import jsonpickle
 import pydantic
 
 from ctk_functions.core import config
-from ctk_functions.microservices import llm
+from ctk_functions.microservices import language_models
 from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
@@ -116,7 +116,7 @@ class WriterLlm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = llm.get_llm(model)
+        self.client = language_models.get_llm(model)
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []
