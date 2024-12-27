@@ -19,20 +19,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Install uv
+      run: pipx install uv
     - uses: actions/setup-python@v5
       with:
         python-version-file: pyproject.toml
-        cache: poetry
+        cache: pip
     - name: Install dependencies
       run: |
-        poetry install
-        poetry run python -m spacy download en_core_web_sm
+        uv sync
+        uv run python -m spacy download en_core_web_sm
     - name: Run tests
       id: run-tests
       run: >
-        poetry run pytest . \
+        uv run pytest . \
           --junitxml=pytest.xml \
           --cov-report=term-missing:skip-covered \
           --cov-report=xml:coverage.xml \
@@ -49,27 +49,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Install uv
+      run: pipx install uv
     - uses: actions/setup-python@v5
       with:
         python-version-file: pyproject.toml
-        cache: poetry
+        cache: pip
     - name: Install dependencies
       run: |
-        poetry install
-        poetry run ruff check .
+        uv sync
+        uv run ruff check .
 
   mypy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Install uv
+      run: pipx install uv
     - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-        cache: poetry
+        cache: pip
     - run: |
-        poetry install
-        poetry run mypy .
+        uv sync
+        uv run mypy .
