@@ -2,8 +2,8 @@
 
 import pytest
 
-from ctk_functions.functions.intake import parser_models, transformers
 from ctk_functions.microservices import redcap
+from ctk_functions.routers.intake.intake_processing import parser_models, transformers
 
 
 @pytest.mark.parametrize(
@@ -244,7 +244,7 @@ def test_development_skill_transformer(
                     clinician="Dr. Johnson",
                 ),
             ],
-            ("with a prior history of Anxiety and Depression"),
+            "with a prior history of Anxiety and Depression",
             True,
         ),
     ],

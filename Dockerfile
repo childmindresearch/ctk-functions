@@ -1,11 +1,14 @@
-# Dockerfile for building the ctk-functions container which runs Azure Functions using Python 3.11.
+# Dockerfile for building the ctk-functions container which runs Azure Functions
+# using Python 3.11.
 #
 # Stages:
 # 1. `unzipper`: Downloads and unzips Azure Blob Signatures.
-# 2. `mcr.microsoft.com/azure-functions/python:4-python3.11`: Final image that will run on Azure.
+# 2. `mcr.microsoft.com/azure-functions/python:4-python3.11`: Final image that will
+# run on Azure.
 #
 # Build Arguments:
-# - `AZURE_BLOB_SIGNATURES_CONNECTION_STRING`: Connection string that lets the container download the signatures file.
+# - `AZURE_BLOB_SIGNATURES_CONNECTION_STRING`: Connection string that lets the
+# container download the signatures file.
 FROM alpine:latest as unzipper
 
 WORKDIR /files
@@ -31,8 +34,8 @@ RUN cd /home/site/wwwroot && \
     apt-get install -y openjdk-17-jre && \
     update-alternatives --config java && \
     update-alternatives --config javac && \
-    pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --only main --no-interaction --no-ansi && \
-    poetry run python -c 'import spacy; spacy.load("en_core_web_sm")' && \
-    poetry run python -c 'import language_tool_python; language_tool_python.LanguageTool("en-US")'
+    pip install uv && \
+    uv sync && \
+    uv run python -c 'import spacy; spacy.load("en_core_web_sm")' && \
+    uv run python -c \
+      'import language_tool_python; language_tool_python.LanguageTool ("en-US")'
