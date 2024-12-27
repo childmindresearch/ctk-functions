@@ -1,4 +1,4 @@
-"""Test a few survey IDs."""
+"""Test a few survey IDs. This is run only on Azure Pipelines."""
 
 import asyncio
 import os

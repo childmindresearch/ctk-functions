@@ -1,13 +1,13 @@
 """Controller for the LLM model."""
 
 from ctk_functions.core import config
-from ctk_functions.microservices import llm
+from ctk_functions.microservices import language_models
 
 settings = config.get_settings()
 
 
 async def run_llm(
-    model: llm.VALID_LLM_MODELS,
+    model: str,
     system_prompt: str,
     user_prompt: str,
 ) -> str:
@@ -21,7 +21,5 @@ async def run_llm(
     Returns:
         The output text.
     """
-    return await llm.LargeLanguageModel(model=model).run(
-        system_prompt,
-        user_prompt,
-    )
+    client = language_models.get_llm(model)
+    return await client.run(system_prompt, user_prompt)  # type: ignore[no-any-return] # I can't figure out why mypy believes this returns Any type.

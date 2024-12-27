@@ -7,7 +7,7 @@ import pydantic
 from fastapi import status
 
 from ctk_functions.core import config, exceptions
-from ctk_functions.microservices import llm, redcap
+from ctk_functions.microservices import redcap
 from ctk_functions.routers.intake.intake_processing import parser, writer
 
 logger = config.get_logger()
@@ -15,7 +15,7 @@ logger = config.get_logger()
 
 async def get_intake_report(
     survey_id: str,
-    model: llm.VALID_LLM_MODELS,
+    model: str,
     enabled_tasks: writer.EnabledTasks | None = None,
 ) -> bytes:
     """Generates an intake report for a survey.

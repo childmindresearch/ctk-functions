@@ -9,7 +9,7 @@ import jsonpickle
 import pydantic
 
 from ctk_functions.core import config
-from ctk_functions.microservices import llm
+from ctk_functions.microservices import language_models
 from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
@@ -105,7 +105,7 @@ class WriterLlm:
 
     def __init__(
         self,
-        model: llm.VALID_LLM_MODELS,
+        model: str,
         child_name: str,
         child_pronouns: Sequence[str],
     ) -> None:
@@ -116,7 +116,7 @@ class WriterLlm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = llm.LargeLanguageModel(model=model)
+        self.client = language_models.get_llm(model)
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []
@@ -249,7 +249,7 @@ class WriterLlm:
         return self._run(system_prompt, user_prompt, verify=verify, comment=comment)
 
     def run_for_adjectives(self, description: str, comment: str | None = None) -> str:
-        """Extraces adjectives based on a description of a child.
+        """Extracts adjectives based on a description of a child.
 
         Args:
             description: The description of the child's strengths.
@@ -317,6 +317,7 @@ class WriterLlm:
             replacement = self.client.chain_of_verification(
                 system_prompt,
                 user_prompt,
+                response_model=str,
                 create_new_statements=True,
             )
         else:

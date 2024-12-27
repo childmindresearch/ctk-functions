@@ -121,15 +121,6 @@ wheels = [
 ]
 
 [[package]]
-name = "azure-functions"
-version = "1.21.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ee/6a/614f670cd8d28c68f744d849fafb654e6ab456954eb7160ddee25bfaa373/azure-functions-1.21.3.tar.gz", hash = "sha256:c359b9dbd2998c84d8595e31a28ffad4e8ca8dcfb4a3798327f776a67f964351", size = 205342 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/9f/2ab4ee66cb803d48b4a685a2c0a1a20b8f54f9c8a4ac474ffe1ebc0f9466/azure_functions-1.21.3-py3-none-any.whl", hash = "sha256:6c45f5e61fe59328c81928a428d43c838e9ead52f1cde1628fcabb372fa10cc8", size = 185657 },
-]
-
-[[package]]
 name = "blis"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -239,6 +230,21 @@ wheels = [
 ]
 
 [[package]]
+name = "cloai"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anthropic", extra = ["bedrock"] },
+    { name = "httpx" },
+    { name = "instructor", extra = ["anthropic"] },
+    { name = "openai" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/e7/d8e7d0f56eb045ae528e70602a54f5ed2947d2403728e187625ababe6759/cloai-1.0.0.tar.gz", hash = "sha256:b0cd28827385cb385ab71dc6ea875a277eee5a52f4016d2f0a6e89f50ed6702d", size = 29715 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/21/c3/e339910bbc8f62b4f989a4c8f0e5d2df6958c414d8722fd868bc719c425d/cloai-1.0.0-py3-none-any.whl", hash = "sha256:68eea48c336d85546cc11723138ad06f4bbd814d6497872cb528c663bfe0f802", size = 20463 },
+]
+
+[[package]]
 name = "cloudpathlib"
 version = "0.20.0"
 source = { registry = "https://pypi.org/simple" }
@@ -311,16 +317,12 @@ source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
-    { name = "anthropic", extra = ["bedrock"] },
-    { name = "azure-functions" },
+    { name = "cloai" },
     { name = "cmi-docx" },
     { name = "en-core-web-sm" },
     { name = "fastapi", extra = ["standard"] },
-    { name = "httpx" },
-    { name = "instructor", extra = ["anthropic"] },
     { name = "jsonpickle" },
     { name = "language-tool-python" },
-    { name = "openai" },
     { name = "pycap" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -350,16 +352,12 @@ dev = [
 requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "aiohttp", specifier = ">=3.11.11" },
-    { name = "anthropic", extras = ["bedrock"], specifier = ">=0.37.1" },
-    { name = "azure-functions", specifier = ">=1.21.3" },
+    { name = "cloai", specifier = ">=1.0.0" },
     { name = "cmi-docx", specifier = ">=0.3.7" },
     { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
-    { name = "httpx", specifier = "==0.27" },
-    { name = "instructor", extras = ["anthropic"], specifier = ">1.6" },
     { name = "jsonpickle", specifier = ">=4.0.1" },
     { name = "language-tool-python", specifier = ">=2.8.1" },
-    { name = "openai", specifier = ">=0.27.10" },
     { name = "pycap", specifier = ">=2.6.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "pydantic-settings", specifier = ">=2.7.0" },

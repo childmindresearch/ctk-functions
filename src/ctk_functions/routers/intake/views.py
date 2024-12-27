@@ -5,7 +5,7 @@ from typing import Annotated
 import fastapi
 
 from ctk_functions.core import config
-from ctk_functions.microservices import llm
+from ctk_functions.microservices import language_models
 from ctk_functions.routers.intake import controller
 
 logger = config.get_logger()
@@ -15,7 +15,7 @@ router = fastapi.APIRouter(prefix="")
 @router.get("/intake-report/{mrn}")
 async def post_language_tool(
     mrn: str,
-    x_model: Annotated[llm.VALID_LLM_MODELS, fastapi.Header()],
+    x_model: Annotated[language_models.VALID_MODELS, fastapi.Header()],
 ) -> fastapi.Response:
     """POST endpoint for markdown2docx.
 

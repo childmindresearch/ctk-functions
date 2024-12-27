@@ -1,11 +1,7 @@
 """Schemas for the file conversion router."""
 
-from typing import TypeVar
-
 import cmi_docx
 import pydantic
-
-ParagraphStyleType = TypeVar("ParagraphStyleType", bound=cmi_docx.ParagraphStyle)
 
 
 class PostMarkdown2DocxRequest(pydantic.BaseModel):

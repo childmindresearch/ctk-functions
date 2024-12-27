@@ -14,7 +14,7 @@ from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
 from ctk_functions.core import config
-from ctk_functions.microservices import llm, redcap
+from ctk_functions.microservices import redcap
 from ctk_functions.routers.intake.intake_processing import (
     parser,
     transformers,
@@ -78,7 +78,7 @@ class ReportWriter:
     def __init__(
         self,
         intake: parser.IntakeInformation,
-        model: llm.VALID_LLM_MODELS,
+        model: str,
         enabled_tasks: EnabledTasks | None = None,
     ) -> None:
         """Initializes the report writer.
