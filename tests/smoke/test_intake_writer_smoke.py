@@ -26,15 +26,15 @@ async def intake_document(
 ) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
     mocker.patch(
-        "ctk_functions.microservices.azure.AzureLlm.run",
+        "cloai.LargeLanguageModel.run",
         return_value="llm",
     )
     mocker.patch(
-        "ctk_functions.microservices.llm.LargeLanguageModel.chain_of_verification",
+        "cloai.LargeLanguageModel.chain_of_verification",
         return_value="cov",
     )
     mocker.patch(
-        "ctk_functions.microservices.llm.LargeLanguageModel.call_instructor",
+        "cloai.LargeLanguageModel.call_instructor",
         return_value="instructor",
     )
     intake_info = parser.IntakeInformation(test_redcap_data)

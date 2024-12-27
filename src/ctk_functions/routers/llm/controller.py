@@ -7,7 +7,7 @@ settings = config.get_settings()
 
 
 async def run_llm(
-    model: llm.VALID_LLM_MODELS,
+    model: str,
     system_prompt: str,
     user_prompt: str,
 ) -> str:
@@ -21,7 +21,7 @@ async def run_llm(
     Returns:
         The output text.
     """
-    return await llm.LargeLanguageModel(model=model).run(
+    return await llm.get_llm(model).run(
         system_prompt,
         user_prompt,
     )

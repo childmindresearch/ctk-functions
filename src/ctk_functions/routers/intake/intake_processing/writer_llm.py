@@ -3,14 +3,13 @@
 import dataclasses
 import uuid
 from collections.abc import Awaitable, Coroutine, Sequence
-from typing import Any, TypeGuard, get_args
+from typing import Any
 
-import cloai
 import jsonpickle
 import pydantic
-from cloai.llm import bedrock
 
 from ctk_functions.core import config
+from ctk_functions.microservices import llm
 from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
@@ -117,7 +116,7 @@ class WriterLlm:
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = self._get_llm(model)
+        self.client = llm.get_llm(model)
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []
@@ -362,35 +361,3 @@ class WriterLlm:
             LlmPlaceholder(placeholder_uuid, stringify(promise), comment),
         )
         return placeholder_uuid
-
-    @staticmethod
-    def _get_llm(model: str) -> cloai.LargeLanguageModel:
-        """Gets the LLM client.
-
-        Args:
-            model: Model name to use.
-
-        Returns:
-            The client for the large language model.
-        """
-        if _is_anthropic_bedrock_model(model):
-            client = cloai.AnthropicBedrockLlm(
-                model=model,
-                aws_access_key=settings.AWS_ACCESS_KEY_ID.get_secret_value(),
-                aws_secret_key=settings.AWS_SECRET_ACCESS_KEY.get_secret_value(),
-                region=settings.AWS_REGION,
-            )
-        else:
-            client = cloai.AzureLlm(
-                deployment=settings.AZURE_OPENAI_LLM_DEPLOYMENT.get_secret_value(),
-                endpoint=settings.AZURE_OPENAI_ENDPOINT.get_secret_value(),
-                api_key=settings.AZURE_OPENAI_API_KEY.get_secret_value(),
-                api_version="2024-02-01",
-            )
-        return cloai.LargeLanguageModel(client=client)
-
-
-def _is_anthropic_bedrock_model(
-    model: str,
-) -> TypeGuard[bedrock.ANTHROPIC_BEDROCK_MODELS]:
-    return model in get_args(bedrock.ANTHROPIC_BEDROCK_MODELS)

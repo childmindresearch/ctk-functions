@@ -21,15 +21,15 @@ def test_intake_with_model(
 ) -> None:
     """Tests whether the GET intake endpoint works with a model."""
     mocker.patch(
-        "ctk_functions.microservices.llm.LargeLanguageModel.chain_of_verification",
+        "cloai.LargeLanguageModel.chain_of_verification",
         return_value="cov",
     )
     mocker.patch(
-        "ctk_functions.microservices.llm.LargeLanguageModel.call_instructor",
+        "cloai.LargeLanguageModel.call_instructor",
         return_value="instructor",
     )
     mocker.patch(
-        "ctk_functions.microservices.llm.LargeLanguageModel.run",
+        "cloai.LargeLanguageModel.run",
         return_value="run",
     )
 

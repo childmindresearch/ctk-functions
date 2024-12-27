@@ -15,7 +15,7 @@ router = fastapi.APIRouter(prefix="")
 @router.get("/intake-report/{mrn}")
 async def post_language_tool(
     mrn: str,
-    x_model: Annotated[llm.VALID_LLM_MODELS, fastapi.Header()],
+    x_model: Annotated[llm.VALID_MODELS, fastapi.Header()],
 ) -> fastapi.Response:
     """POST endpoint for markdown2docx.
 

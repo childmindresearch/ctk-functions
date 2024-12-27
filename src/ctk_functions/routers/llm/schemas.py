@@ -14,6 +14,6 @@ class PostLlmRequest(pydantic.BaseModel):
         user_prompt: The user's message.
     """
 
-    model: llm.VALID_LLM_MODELS
+    model: llm.VALID_MODELS
     system_prompt: str
     user_prompt: str
