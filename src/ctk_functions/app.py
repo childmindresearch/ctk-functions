@@ -2,10 +2,13 @@
 
 import fastapi
 
+from ctk_functions.core import config
 from ctk_functions.routers.file_conversion import views as file_conversion_views
 from ctk_functions.routers.intake import views as intake_views
 from ctk_functions.routers.language_tool import views as language_tool_views
 from ctk_functions.routers.llm import views as llm_views
+
+logger = config.get_logger()
 
 app = fastapi.FastAPI(
     title="Clinician Toolkit API",

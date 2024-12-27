@@ -19,4 +19,8 @@ async def post_llm(body: schemas.PostLlmRequest) -> str:
     Returns:
         A FastAPI response containing the bytes of a .docx file.
     """
-    return await controller.run_llm(body)
+    return await controller.run_llm(
+        model=body.model,
+        system_prompt=body.system_prompt,
+        user_prompt=body.user_prompt,
+    )

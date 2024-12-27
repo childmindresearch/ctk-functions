@@ -2,21 +2,26 @@
 
 from ctk_functions.core import config
 from ctk_functions.microservices import llm
-from ctk_functions.routers.llm import schemas
 
 settings = config.get_settings()
 
 
-async def run_llm(body: schemas.PostLlmRequest) -> str:
+async def run_llm(
+    model: llm.VALID_LLM_MODELS,
+    system_prompt: str,
+    user_prompt: str,
+) -> str:
     """Runs the model with the given prompts.
 
     Args:
-        body: The request body, see schemas for full description.
+        model: The model to run.
+        system_prompt: The system prompt to be used.
+        user_prompt: The user prompt to be used.
 
     Returns:
         The output text.
     """
-    return await llm.LargeLanguageModel(model=body.model).run(
-        body.system_prompt,
-        body.user_prompt,
+    return await llm.LargeLanguageModel(model=model).run(
+        system_prompt,
+        user_prompt,
     )

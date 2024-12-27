@@ -12,4 +12,4 @@ class PostLanguageToolRequest(pydantic.BaseModel):
     """
 
     text: str
-    rules: tuple[str] = pydantic.Field(..., min_length=1)
+    rules: tuple[str, ...] = pydantic.Field(..., min_length=1)

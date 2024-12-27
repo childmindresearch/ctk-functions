@@ -53,9 +53,6 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
     async def run(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts.
 
-        The messages flips the user/assistant role because the Claude model
-        requires that the first message is a user message.
-
         Args:
             system_prompt: The system prompt.
             user_prompt: The user prompt.
