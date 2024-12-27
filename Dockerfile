@@ -3,7 +3,7 @@
 #
 # Stages:
 # 1. `unzipper`: Downloads and unzips Azure Blob Signatures.
-# 2. `mcr.microsoft.com/azure-functions/python:4-python3.11`: Final image that will
+# 2. `ghcr.io/astral-sh/uv:python3.11-bookworm-slim`: Final image that will
 # run on Azure.
 #
 # Build Arguments:
@@ -18,24 +18,24 @@ RUN apk add --no-cache unzip curl
 RUN curl -o /files/azure-blob-signatures.zip $AZURE_BLOB_SIGNATURES_CONNECTION_STRING
 RUN unzip /files/azure-blob-signatures.zip
 
-FROM mcr.microsoft.com/azure-functions/python:4-python3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm
 
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+EXPOSE 8000
+WORKDIR /app
 
-COPY . /home/site/wwwroot
-RUN mkdir -p /home/site/wwwroot/src/ctk_functions/data/signatures
+COPY . .
+RUN mkdir -p src/ctk_functions/data/signatures
 COPY --from=unzipper /files/*.png /home/site/wwwroot/src/ctk_functions/data/signatures
 
-RUN cd /home/site/wwwroot && \
-    apt-get clean; apt-get -y update && \
+RUN apt-get clean; apt-get -y update && \
     mkdir -p /usr/share/man/man1/ && \
     apt-get install -y openjdk-17-jdk && \
     apt-get install -y openjdk-17-jre && \
     update-alternatives --config java && \
     update-alternatives --config javac && \
-    pip install uv && \
-    uv sync && \
+    uv sync --frozen --no-cache && \
     uv run python -c 'import spacy; spacy.load("en_core_web_sm")' && \
     uv run python -c \
       'import language_tool_python; language_tool_python.LanguageTool ("en-US")'
+
+CMD ["uv", "run", "fastapi", "run", "src/ctk_functions/app.py", "--port", "8000",  "--host", "0.0.0.0"]
