@@ -1334,7 +1334,8 @@ def get_intake_data(mrn: str) -> RedCapData:
     Returns:
         The intake data for the survey.
     """
-    logger.debug("Getting intake data for MRN %s.", mrn)
+    mrn_sanitized = mrn.replace("\r\n", "").replace("\n", "")
+    logger.debug("Getting intake data for MRN '%s'.", mrn_sanitized)
     if mrn.lower().startswith("mock"):
         return RedCapData.from_csv((DATA_DIR / "mock_redcap_data.csv").read_text())
 
