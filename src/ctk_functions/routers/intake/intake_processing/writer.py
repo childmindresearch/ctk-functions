@@ -372,7 +372,7 @@ class ReportWriter:
                     the service is ongoing, or the dates are unknown. Always put the
                     frequency between brackets.
 
-                    If no EI was received, write that the reporting
+                    If no Early Intervention was received, write that the reporting
                     guardian denied any history of early intervention.
 
                     If no CPSE services were received, write that the reporting guardian
@@ -380,9 +380,6 @@ class ReportWriter:
 
                     If neither were received, write that the reporting guardian denied
                     any history of early intervention or CPSE services.
-
-                    The first time that you write EI or CPSE, write it out in full
-                    and put the acronym between brackets i.e. "Early Intervention (EI)".
                 """,
                 comment="\n\n".join(
                     [str(model) for model in early_intervention + cpse],
@@ -390,9 +387,8 @@ class ReportWriter:
             )
         else:
             text = f"""
-                {reporting_guardian} denied any history of Early Intervention (EI) or
-                Committee on Preschool Special Education (CPSE) services for
-                {patient.first_name}.
+                {reporting_guardian} denied any history of Early Intervention or CPSE
+                services for {patient.first_name}.
             """
             text = string_utils.remove_excess_whitespace(text)
 
@@ -476,7 +472,6 @@ class ReportWriter:
                         ),
                     ),
                 )
-        self._insert("")
 
     def write_past_educational_history(self) -> None:
         """Writes the past educational history to the report."""
@@ -835,7 +830,7 @@ class ReportWriter:
         """Writes the family psychiatric history to the report."""
         logger.debug("Writing the family psychiatric history to the report.")
 
-        instructions = f"""
+        instructions = """
             DO NOT USE BULLETED LISTS.
 
             Please refer to the patient's family by the degree of relation (e.g.,
@@ -880,15 +875,6 @@ class ReportWriter:
                 - Agoraphobia
                 - Specific phobias
                 - Tics/Tourette's
-
-            Ensure that all other diagnoses are included, regardless of result. Do not
-            use acronyms.
-
-            The structure of the paragraph should be as follows:
-            "{self.intake.patient.first_name} is remarkable for
-            [LIST PSYCHIATRIC HISTORY]. {self.intake.patient.guardian.title_name}
-            denied any family history related to [DENIED HISTORY]."
-
         """
 
         history = self.intake.patient.psychiatric_history.family_psychiatric_history
@@ -902,7 +888,6 @@ class ReportWriter:
                 transformers.ReplacementTags.PREFERRED_NAME.value,
                 self.intake.patient.first_name,
             )
-
             text = self.llm.run_edit(
                 llm_text,
                 comment=llm_text,
@@ -1128,11 +1113,7 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        header = self._insert("Denied Symptoms", _StyleName.HEADING_2)
         paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(header).format(
-            cmi_docx.ParagraphStyle(font_rgb=_RGB.TESTING.value),
-        )
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=_RGB.TESTING.value),
         )
