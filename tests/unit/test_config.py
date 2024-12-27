@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ctk_functions import config
+from ctk_functions.core import config
 
 
 @contextlib.contextmanager
