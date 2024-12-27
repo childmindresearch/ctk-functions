@@ -2,10 +2,11 @@
 
 import pathlib
 
+import cmi_docx
 import docx
 from docx.text import run
 
-from ctk_functions.functions.file_conversion import controller
+from ctk_functions.routers.file_conversion import controller
 
 
 def is_run_font_color_red(run: run.Run) -> bool:
@@ -25,7 +26,7 @@ def test_mark_warnings_as_red(tmp_path: pathlib.Path) -> None:
     doc.add_paragraph(sentences[1])
     doc.save(str(filename))
 
-    controller.mark_warnings_as_red(doc)
+    controller._mark_warnings_as_red(doc)
 
     assert doc.paragraphs[0].text == sentences[0]
     assert doc.paragraphs[1].text == sentences[1]
@@ -48,7 +49,10 @@ def test_markdown2docx(tmp_path: pathlib.Path) -> None:
         ],
     )
 
-    docx_bytes = controller.markdown2docx(markdown, formatting={"bold": True})
+    docx_bytes = controller.markdown2docx(
+        markdown,
+        formatting=cmi_docx.ParagraphStyle(bold=True),
+    )
     filename = tmp_path / "test.docx"
     with filename.open("wb") as file:
         file.write(docx_bytes)
@@ -82,6 +86,6 @@ def test_remove_warning_brackets() -> None:
     paragraph = doc.add_paragraph()
     paragraph.text = "Hello {{!REMOVE-THESE}} there. {{REMOVE-THESE}}"
 
-    controller.remove_curly_brackets(doc)
+    controller._remove_curly_brackets(doc)
 
     assert paragraph.text == "Hello REMOVE-THESE there. REMOVE-THESE"

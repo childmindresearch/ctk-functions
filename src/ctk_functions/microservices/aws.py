@@ -4,7 +4,7 @@ from typing import Literal
 
 import anthropic
 
-from ctk_functions import config
+from ctk_functions.core import config
 from ctk_functions.microservices import utils
 
 settings = config.get_settings()
@@ -12,9 +12,9 @@ settings = config.get_settings()
 AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
 ANTHROPIC_MODELS = Literal[
-    "anthropic.claude-3-opus-20240229-v1:0",
-    "anthropic.claude-3-5-sonnet-20240620-v1:0",
     "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "anthropic.claude-3-5-sonnet-20240620-v1:0",
+    "anthropic.claude-3-opus-20240229-v1:0",
 ]
 
 
@@ -52,9 +52,6 @@ class ClaudeLlm(utils.LlmAbstractBaseClass):
 
     async def run(self, system_prompt: str, user_prompt: str) -> str:
         """Runs the model with the given prompts.
-
-        The messages flips the user/assistant role because the Claude model
-        requires that the first message is a user message.
 
         Args:
             system_prompt: The system prompt.
