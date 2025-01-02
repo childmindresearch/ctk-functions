@@ -1365,7 +1365,7 @@ class RedCapData(pydantic.BaseModel):
         self,
     ) -> list[dict[Literal["name", "duration", "frequency"], str | None]]:
         """The IEP services provided to the child."""
-        services = []
+        services: list[dict[Literal["name", "duration", "frequency"], str | None]] = []
         database_names = {
             IepServices.speech_language_therapy: "iep_slt",
             IepServices.occupational_therapy: "iep_occ_therapy",

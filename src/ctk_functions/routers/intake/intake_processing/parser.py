@@ -1,6 +1,7 @@
 """Utilities for the file conversion router."""
 
 import math
+import re
 from datetime import datetime
 
 import pytz
@@ -319,7 +320,7 @@ class Education:
         """
         logger.debug("Parsing education information.")
         self.years_of_education = patient_data.yrs_school
-        self.school_name = all_caps_to_title(patient_data.school)
+        self.school_name = process_school_name(patient_data.school)
         self.grade = patient_data.grade
         self.iep_classifications = patient_data.iep_classifications
         self.iep_services = [
@@ -687,3 +688,20 @@ def all_caps_to_title(name: str) -> str:
     if all(char.isupper() for char in name if char.isalpha()):
         return name.title()
     return name
+
+
+def process_school_name(name: str) -> str:
+    """Catches some common mistakes in writing a school name.
+
+    Args:
+        name: The school name.
+
+    Returns:
+        The corrected school name.
+
+    """
+    if re.match("ps(| )[0-9]+", name, re.IGNORECASE):
+        number = name[2:].split()[0]
+        return f"P.S. {number}"
+
+    return all_caps_to_title(name)

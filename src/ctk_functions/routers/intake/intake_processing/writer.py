@@ -544,12 +544,10 @@ class ReportWriter:
                 """,
             )
         else:
-            services_text = (
-                f"""
+            services_text = f"""
                 {patient.first_name} does not receive special
                 education services.
-            """,
-            )
+            """
 
         if education.testing_accommodations:
             accommodation_text = self.llm.run_edit(
