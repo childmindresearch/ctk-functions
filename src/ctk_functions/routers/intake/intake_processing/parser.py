@@ -9,6 +9,7 @@ from dateutil import parser as dateutil_parser
 from ctk_functions.core import config
 from ctk_functions.microservices import redcap
 from ctk_functions.routers.intake.intake_processing import parser_models, transformers
+from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
 
@@ -633,15 +634,15 @@ class PrimaryCareInformation:
             glasses.base == redcap.Glasses.no
             and hearing_device.base == redcap.HearingDevice.no
         ):
-            self.glasses_hearing_device = """
-                {{PREFERRED_NAME}} does not wear prescription
-                glasses or use a hearing device
-              """
+            self.glasses_hearing_device = string_utils.remove_excess_whitespace("""
+                {{PREFERRED_NAME}} does not wear prescription glasses or use a hearing
+                device
+              """)
         else:
-            self.glasses_hearing_device = f"""
+            self.glasses_hearing_device = string_utils.remove_excess_whitespace(f"""
                 {{{{PREFERRED_NAME}}}} {glasses.transform()}.
                 {{{{PRONOUN_0}}}} {hearing_device.transform()}
-            """
+            """)
 
         diseases = [
             redcap.PriorDisease(
