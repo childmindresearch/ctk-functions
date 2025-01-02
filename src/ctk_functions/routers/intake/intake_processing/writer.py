@@ -535,7 +535,7 @@ class ReportWriter:
 
         texts = [
             f"""
-                {patient.first_name} is currently in the
+                At the time of intake, {patient.first_name} was in the
                 {education.grade}{grade_superscript} grade at
                 {education.school_name}.""",
             f"""
