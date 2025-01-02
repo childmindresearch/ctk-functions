@@ -1038,7 +1038,7 @@ class ReportWriter:
         logger.debug("Writing the exposure to violence and trauma to the report.")
 
         text = self._write_basic_psychiatric_history(
-            "violence or trauma",
+            "exposure to violence or trauma",
             self.intake.patient.psychiatric_history.violence_and_trauma,
         )
 
