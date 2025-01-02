@@ -57,6 +57,14 @@ class InfantDifficulties(CommentBaseModel, pydantic.BaseModel):
         return any(value for value in self.model_dump().values())
 
 
+class IepService(CommentBaseModel, pydantic.BaseModel):
+    """Specifics of an IEP service."""
+
+    name: str
+    duration: str | None = None
+    frequency: str | None = None
+
+
 class PastSchool(CommentBaseModel, pydantic.BaseModel):
     """The model for past schools."""
 

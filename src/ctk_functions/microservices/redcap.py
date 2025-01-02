@@ -4,7 +4,7 @@ import csv
 import enum
 import io
 import re
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 import pydantic
 import redcap
@@ -373,6 +373,62 @@ class EducationGrades(enum.Enum):
     not_graded = "10"
 
 
+class IepServices(enum.Enum):
+    """Collection of IEP services."""
+
+    speech_language_therapy = 1
+    occupational_therapy = 2
+    physical_therapy = 3
+    counselling = 4
+    SETSS = 5
+    resource_room = 6
+    para_aide = 7
+    full_time_behavioral_support_classroom = 8
+    full_time_learning_support_classroom = 9
+    fba_bip = 10
+    testing_accommodations = 11
+    other = 12
+
+    @property
+    def intake_name(self) -> str:
+        """Provides in-report names for the properties."""
+        if self.name == "speech_language_therapy":
+            return "speech/language therapy"
+        if self.name == "para_aide":
+            return "para/aide"
+        if self.name == "fba_bip":
+            return "FBA/BIP"
+        return self.name.replace("_", " ")
+
+
+class TestingAccommodations(enum.Enum):
+    """Collection of testing accommodations."""
+
+    extended_time = 1
+    tests_read = 2
+    preferential_seating = 3
+    directions_clarified = 4
+    check_for_understanding = 5
+    frequent_breaks = 6
+    questions_and_directions_repeated = 7
+    flexible_seating = 8
+    multiple_day_administration = 9
+    reduced_number_of_test_items_per_page = 10
+    on_task_focusing_prompts = 11
+    use_of_masks_markers_to_maintain_place = 12
+    answers_recorded_in_test_booklet = 13
+    other = 14
+
+    @property
+    def intake_name(self) -> str:
+        """Returns the name that can be used in the intake report."""
+        if self.name == "flexible_seating":
+            return "flexible seating/separate location to minimize distractions"
+        if self.name == "use_of_masks_markers_to_maintain_place":
+            return "use of masks/markers to maintain place"
+        return self.name.replace("_", " ")
+
+
 class PriorDisease(pydantic.BaseModel):
     """Class used for prior diseases in the Primary Care Information."""
 
@@ -724,7 +780,22 @@ class RedCapData(pydantic.BaseModel):
     iep_classification___12: bool
     iep_classification___13: bool
     iep_classification___14: bool
+    iep_services___1: bool
+    iep_services___2: bool
+    iep_services___3: bool
+    iep_services___4: bool
+    iep_services___5: bool
+    iep_services___6: bool
+    iep_services___7: bool
+    iep_services___8: bool
+    iep_services___9: bool
+    iep_services___10: bool
+    iep_services___11: bool
+    iep_services___12: bool
+    other_desc: str | None
     iep_classification_other: str | None
+    para_aide_type___1: bool
+    para_aide_type___2: bool
     pastschool1_grades: str | None
     pastschool1: str | None
     pastschool10_grades: str | None
@@ -759,6 +830,38 @@ class RedCapData(pydantic.BaseModel):
     school_func: str | None
     school: str
     schooltype: SchoolType
+    setss_subjects___1: bool
+    setss_subjects___2: bool
+    setss_subjects___3: bool
+    testing_accommodations_type___1: bool
+    testing_accommodations_type___2: bool
+    testing_accommodations_type___3: bool
+    testing_accommodations_type___4: bool
+    testing_accommodations_type___5: bool
+    testing_accommodations_type___6: bool
+    testing_accommodations_type___7: bool
+    testing_accommodations_type___8: bool
+    testing_accommodations_type___9: bool
+    testing_accommodations_type___10: bool
+    testing_accommodations_type___11: bool
+    testing_accommodations_type___12: bool
+    testing_accommodations_type___13: bool
+    testing_accommodations_type___14: bool
+    other_testing: str | None
+
+    iep_slt_freq: str | None
+    iep_slt_dur: str | None
+    iep_occ_therapy_freq: str | None
+    iep_occ_therapy_dur: str | None
+    iep_phy_therapy_freq: str | None
+    iep_phy_therapy_dur: str | None
+    iep_counselling_freq: str | None
+    iep_counselling_dur: str | None
+    iep_setts_freq: str | None
+    iep_setts_dur: str | None
+    iep_resourceroom_dur: str | None
+    iep_resourceroom_freq_2: str | None
+
     yrs_school: str
     subject_weaknesses_det: str | None
 
@@ -1257,6 +1360,61 @@ class RedCapData(pydantic.BaseModel):
 
         return classifications
 
+    @property
+    def iep_services(
+        self,
+    ) -> list[dict[Literal["name", "duration", "frequency"], str | None]]:
+        """The IEP services provided to the child."""
+        services = []
+        database_names = {
+            IepServices.speech_language_therapy: "iep_slt",
+            IepServices.occupational_therapy: "iep_occ_therapy",
+            IepServices.physical_therapy: "iep_phy_therapy",
+            IepServices.counselling: "iep_counselling",
+            IepServices.SETSS: "iep_setts",
+            IepServices.resource_room: "iep_resourceroom",
+        }
+        for index in range(1, 13):
+            if getattr(self, f"iep_services___{index}"):
+                service = IepServices(index)
+                if service == IepServices.other:
+                    if not self.other_desc:
+                        msg = "Could not find the 'other' service."
+                        raise exceptions.RedcapError(msg)
+                    services.append({"name": self.other_desc})
+                elif service in database_names:
+                    key = database_names[service]
+                    services.append(
+                        {
+                            "name": service.intake_name,
+                            "frequency": getattr(self, f"{key}_freq"),
+                            "duration": getattr(self, f"{key}_dur"),
+                        },
+                    )
+                elif service == IepServices.testing_accommodations:
+                    # These are covered by their own checklist.
+                    continue
+                else:
+                    services.append({"name": service.intake_name})
+
+        return services
+
+    @property
+    def testing_accommodations(self) -> list[str]:
+        """Generates a list of testing accommodations."""
+        accommodations = []
+        for index in range(1, 15):
+            if getattr(self, f"testing_accommodations_type___{index}"):
+                accommodation = TestingAccommodations(index)
+                if accommodation == TestingAccommodations.other:
+                    if not self.other_testing:
+                        msg = "Could not find the 'other' testing accommodation."
+                        raise exceptions.RedcapError(msg)
+                    accommodations.append(self.other_testing)
+                else:
+                    accommodations.append(accommodation.intake_name)
+        return accommodations
+
     # Aliases
 
     @property
@@ -1315,6 +1473,14 @@ class RedCapData(pydantic.BaseModel):
         Alias used to make the name conform to the other dose#_start_past names.
         """
         return self.dose_4_start_past
+
+    @property
+    def iep_resourceroom_freq(self) -> str | None:
+        """The frequency of the resource room service.
+
+        Alias used to make iep_resourceroom_freq_2 conform to the other names.
+        """
+        return self.iep_resourceroom_freq_2
 
 
 def get_intake_data(mrn: str) -> RedCapData:

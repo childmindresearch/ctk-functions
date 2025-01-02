@@ -451,10 +451,10 @@ class ReportWriter:
             "Percentile Rank",
             "Descriptor",
         ]
-        for i, header in enumerate(header_texts):
-            header_row[i].text = header
-            header_row[i].width = 10
-            cmi_docx.ExtendCell(header_row[i]).format(
+        for index, header in enumerate(header_texts):
+            header_row[index].text = header
+            header_row[index].width = 10
+            cmi_docx.ExtendCell(header_row[index]).format(
                 cmi_docx.TableStyle(
                     paragraph=cmi_docx.ParagraphStyle(
                         bold=True,
@@ -526,29 +526,52 @@ class ReportWriter:
         else:
             grade_superscript = ""
 
-        if education.iep_classifications:
-            iep_text = (
-                f"maintains an IEP allowing accommodations for/including {PLACEHOLDER}"
-            )
-        else:
-            iep_text = "does not have an IEP"
-
         texts = [
             f"""
                 At the time of intake, {patient.first_name} was in the
                 {education.grade}{grade_superscript} grade at
                 {education.school_name}.""",
-            f"""
-                {patient.first_name} does/does not receive special
-                education services
+        ]
+        if education.iep_services:
+            services_text = self.llm.run_with_object_input(
+                education.iep_services,
+                comment=", ".join(str(service) for service in education.iep_services),
+                context=texts[0],
+                additional_instruction="""
+                    Write the IEP services that the child had access to.
+                    If no date or frequency are reported, do not mention
+                    that these are not reported; simply omit this information.
+                """,
+            )
+        else:
+            services_text = (
+                f"""
+                {patient.first_name} does not receive special
+                education services.
             """,
+            )
+
+        if education.testing_accommodations:
+            accommodation_text = self.llm.run_edit(
+                f"{patient.first_name} maintains an IEP allowing accommodations for "
+                + string_utils.join_with_oxford_comma(education.testing_accommodations),
+                comment="Testing accommodations: "
+                + string_utils.join_with_oxford_comma(education.testing_accommodations),
+                context=" ".join(texts),
+                additional_instruction="Use only one sentence.",
+            )
+        else:
+            accommodation_text = ""
+
+        texts.append(services_text)
+        texts.append(
             f"""
-                and {iep_text}. {patient.first_name}'s current academic performance was
-                described as "{education.performance}" by
+                {accommodation_text} {patient.first_name}'s current academic performance
+                was described as "{education.performance}" by
                 {patient.guardian.title_name},
                 {education.grades}.
             """,
-        ]
+        )
         if education.school_functioning:
             placeholder_id = self.llm.run_text_with_parent_input(
                 text=f"{patient.guardian.title_name} reported that {PLACEHOLDER}.",
@@ -885,7 +908,7 @@ class ReportWriter:
             use acronyms.
 
             The structure of the paragraph should be as follows:
-            "{self.intake.patient.first_name} is remarkable for
+            "{self.intake.patient.first_name} history is remarkable for
             [LIST PSYCHIATRIC HISTORY]. {self.intake.patient.guardian.title_name}
             denied any family history related to [DENIED HISTORY]."
 

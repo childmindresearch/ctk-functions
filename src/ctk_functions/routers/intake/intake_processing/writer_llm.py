@@ -195,7 +195,9 @@ class WriterLlm:
         context = string_utils.remove_excess_whitespace(context)
         user_prompt = string_utils.remove_excess_whitespace(text)
 
-        system_prompt = f"{Prompts.edit}\n{additional_instruction}"
+        system_prompt = (
+            f"{Prompts.edit}\n\n{self.child_info}\n\n{additional_instruction}"
+        )
         if context:
             instruction = (
                 "The following is the context preceding where the excerpt will be "

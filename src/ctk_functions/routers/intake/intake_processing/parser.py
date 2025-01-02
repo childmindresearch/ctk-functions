@@ -321,6 +321,11 @@ class Education:
         self.school_name = all_caps_to_title(patient_data.school)
         self.grade = patient_data.grade
         self.iep_classifications = patient_data.iep_classifications
+        self.iep_services = [
+            parser_models.IepService(**service)  # type: ignore[misc]
+            for service in patient_data.iep_services
+        ]
+        self.testing_accommodations = patient_data.testing_accommodations
         self.individualized_educational_program = (
             transformers.IndividualizedEducationProgram(
                 patient_data.iep,
