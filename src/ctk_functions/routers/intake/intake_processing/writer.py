@@ -212,7 +212,7 @@ class ReportWriter:
         placeholder_id = self.llm.run_text_with_parent_input(
             text=(
                 f"""
-                    {patient.guardian.title_name} attended the present
+                    {patient.guardian.title_full_name} attended the present
                     evaluation due to concerns regarding {PLACEHOLDER}.
                     The family is hoping for {PLACEHOLDER}.
                     The family learned of the study through {PLACEHOLDER}."
