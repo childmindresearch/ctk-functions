@@ -860,7 +860,10 @@ class RedCapData(pydantic.BaseModel):
     iep_setts_freq: str | None
     iep_setts_dur: str | None
     iep_resourceroom_dur: str | None
-    iep_resourceroom_freq_2: str | None
+    iep_resourceroom_freq: str | None = pydantic.Field(
+        ...,
+        alias="iep_resourceroom_freq_2",
+    )
 
     yrs_school: str
     subject_weaknesses_det: str | None
@@ -912,7 +915,6 @@ class RedCapData(pydantic.BaseModel):
     language___8: bool
     language___9: bool
     language_other: str | None
-    peopleinhome_relationship: RelationshipQuality | None
     peopleinhome1_age: str | None
     peopleinhome1_gradeocc: str | None
     peopleinhome1_relation_other: str | None
@@ -925,6 +927,10 @@ class RedCapData(pydantic.BaseModel):
     peopleinhome10_relation: HouseholdRelationship | None
     peopleinhome10_relationship: RelationshipQuality | None
     peopleinhome10: str | None
+    peopleinhome2_relationship: RelationshipQuality | None = pydantic.Field(
+        ...,
+        alias="peopleinhome_relationship",
+    )
     peopleinhome2_age: str | None
     peopleinhome2_gradeocc: str | None
     peopleinhome2_relation_other: str | None
@@ -1026,7 +1032,7 @@ class RedCapData(pydantic.BaseModel):
     dose3_max_past: str | None
     dose3_start_past: str | None
     dose4_max_past: str | None
-    dose_4_start_past: str | None
+    dose4_start_past: str | None = pydantic.Field(..., alias="dose_4_start_past")
     dose5_max_past: str | None
     dose5_start_past: str | None
     med1_doc: str | None
@@ -1037,7 +1043,7 @@ class RedCapData(pydantic.BaseModel):
     med1_reason: str | None
     med1_se: str | None
     med1_start: str | None
-    med2_current_reason: str | None
+    med2_reason: str | None = pydantic.Field(..., alias="med2_current_reason")
     med2_doc: str | None
     med2_past_date: str | None
     med2_past_doc: str | None
@@ -1053,7 +1059,7 @@ class RedCapData(pydantic.BaseModel):
     med3_reason: str | None
     med3_se: str | None
     med3_start: str | None
-    med4_date: str | None
+    med4_start: str | None = pydantic.Field(..., alias="med4_date")
     med4_doc: str | None
     med4_past_date: str | None
     med4_past_doc: str | None
@@ -1061,7 +1067,7 @@ class RedCapData(pydantic.BaseModel):
     med4_past_se: str | None
     med4_reason: str | None
     med4_se: str | None
-    med5_date: str | None
+    med5_start: str | None = pydantic.Field(..., alias="med5_date")
     med5_doc: str | None
     med5_past_date: str | None
     med5_past_doc: str | None
@@ -1069,11 +1075,11 @@ class RedCapData(pydantic.BaseModel):
     med5_past_se: str | None
     med5_reason: str | None
     med5_se: str | None
-    medname_5_past: str | None
     medname1_past: str | None
     medname2_past: str | None
     medname3_past: str | None
     medname4_past: str | None
+    medname5_past: str | None = pydantic.Field(..., alias="medname_5_past")
     past_psychmed_num: int | None
     psychmed_name_1: str | None
     psychmed_name_2: str | None
@@ -1184,7 +1190,7 @@ class RedCapData(pydantic.BaseModel):
     txhx2_reason: str | None
     txhx2_start: str | None
     txhx2_terminate: str | None
-    txhx2: str | None
+    txhx_2: str | None = pydantic.Field(..., alias="txhx2")
     txhx3_effectiveness: str | None
     txhx3_end: str | None
     txhx3_freq: str | None
@@ -1414,73 +1420,6 @@ class RedCapData(pydantic.BaseModel):
                 else:
                     accommodations.append(accommodation.intake_name)
         return accommodations
-
-    # Aliases
-
-    @property
-    def peopleinhome2_relationship(self) -> RelationshipQuality | None:
-        """The relationship of the second person in the home.
-
-        Alias used to make the name conform to the other peopleinhome#_relationship
-        names.
-        """
-        return self.peopleinhome_relationship
-
-    @property
-    def txhx_2(self) -> str | None:
-        """The second treatment history.
-
-        Alias used to make the name conform to the other txhx_# names.
-        """
-        return self.txhx2
-
-    @property
-    def med2_reason(self) -> str | None:
-        """The reason for the second medication.
-
-        Alias used to make the name conform to the other med#_reason names.
-        """
-        return self.med2_current_reason
-
-    @property
-    def medname5_past(self) -> str | None:
-        """The name of the fifth past medication.
-
-        Alias used to make the name conform to the other medname#_past names.
-        """
-        return self.medname_5_past
-
-    @property
-    def med4_start(self) -> str | None:
-        """The start date of the fourth medication.
-
-        Alias used to make the name conform to the other med#_start names.
-        """
-        return self.med4_date
-
-    @property
-    def med5_start(self) -> str | None:
-        """The start date of the fifth medication.
-
-        Alias used to make the name conform to the other med#_start names.
-        """
-        return self.med5_date
-
-    @property
-    def dose4_start_past(self) -> str | None:
-        """The start date of the fourth dose.
-
-        Alias used to make the name conform to the other dose#_start_past names.
-        """
-        return self.dose_4_start_past
-
-    @property
-    def iep_resourceroom_freq(self) -> str | None:
-        """The frequency of the resource room service.
-
-        Alias used to make iep_resourceroom_freq_2 conform to the other names.
-        """
-        return self.iep_resourceroom_freq_2
 
 
 def get_intake_data(mrn: str) -> RedCapData:
