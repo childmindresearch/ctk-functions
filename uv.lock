@@ -255,14 +255,14 @@ wheels = [
 
 [[package]]
 name = "cmi-docx"
-version = "0.3.7"
+version = "0.3.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-docx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/5a/04513bbfec945215c02e56fa496583b1b4b78b34989c999b4b50c489ffbe/cmi_docx-0.3.7.tar.gz", hash = "sha256:025eda8903810adb5f9fb8c8215eff895e664fb0b7073ab5d9349e72d3c33631", size = 28122 }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/ab/6a391b6e8846c592be6e8ff04a2bc3032e3820c5e1417926de4d8609114a/cmi_docx-0.3.8.tar.gz", hash = "sha256:8307ab70cf037ad8ac32de3261f1b398871ddbc868f16db6ef487f9e61b86b0c", size = 28567 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/66/cc7b383a490b1d8d69a70d8a76cae449d8ca1c5f84c1b5ff81270e8681dd/cmi_docx-0.3.7-py3-none-any.whl", hash = "sha256:6524aff36fdd1cecdec4591294091fb2c5c6e409069a847fa5389f345f42387e", size = 19330 },
+    { url = "https://files.pythonhosted.org/packages/2a/1d/d864234d23b3eeeaf117b907a00cbe324206310052703bf43b2278d2f5ab/cmi_docx-0.3.8-py3-none-any.whl", hash = "sha256:46b05cfa376a13ebe348daadadf4b87ccd2801914f92fd94c3f4af57c95bcc76", size = 19662 },
 ]
 
 [[package]]
@@ -353,7 +353,7 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "aiohttp", specifier = ">=3.11.11" },
     { name = "cloai", specifier = ">=1.0.0" },
-    { name = "cmi-docx", specifier = ">=0.3.7" },
+    { name = "cmi-docx", specifier = ">=0.3.8" },
     { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
     { name = "jsonpickle", specifier = ">=4.0.1" },

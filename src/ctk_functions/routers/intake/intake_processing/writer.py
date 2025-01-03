@@ -3,6 +3,7 @@
 import asyncio
 import enum
 import itertools
+import re
 import threading
 
 import cmi_docx
@@ -140,6 +141,7 @@ class ReportWriter:
             self.add_signatures()
 
         await self.make_llm_edits()
+        self.set_superscripts()
 
     def replace_patient_information(self) -> None:
         """Replaces the patient information in the report."""
@@ -1290,7 +1292,36 @@ class ReportWriter:
             for index in range(len(self.report.document.paragraphs))
             if self.report.document.paragraphs[index].text == self.insert_before.text
         )
-        return self.report.insert_paragraph_by_text(insertion_index, text, style.value)  # type: ignore[no-any-return] # mypy doesn't seem to recognize the returntype for an unknown reason.
+        return self.report.insert_paragraph_by_text(insertion_index, text, style.value)  # type: ignore[no-any-return] # mypy doesn't seem to recognize the return type for an unknown reason.
+
+    def set_superscripts(self) -> None:
+        """Sets ordinal suffixes to superscript."""
+        logger.debug("Setting ordinal suffixes to superscript.")
+
+        pattern = (
+            # Match ordinal numbers with 'th' suffix:
+            r"\d*(?:[04-9]|1[1-3])th"  # Matches:
+            # - Numbers ending in 0th (10th, 20th, etc.)
+            # - Numbers ending in 4-9th (4th, 15th, 26th, etc.)
+            # - Numbers ending in 11th, 12th, 13th
+            # Match special case ordinals:
+            r"|\d*1st"  # Numbers ending in 1st (1st, 21st, 31st, etc.)
+            r"|\d*2nd"  # Numbers ending in 2nd (2nd, 22nd, 32nd, etc.)
+            r"|\d*3rd"  # Numbers ending in 3rd (3rd, 23rd, 33rd, etc.)
+        )
+
+        for paragraph in self.report.document.paragraphs:
+            matches = list(re.finditer(pattern, paragraph.text))
+            for match in matches:
+                extended_paragraph = cmi_docx.ExtendParagraph(paragraph)
+                suffix = match.string[match.end() - 2 : match.end()]
+                style = cmi_docx.RunStyle(superscript=True)
+                extended_paragraph.replace_between(
+                    match.end() - 2,
+                    match.end(),
+                    suffix,
+                    style,
+                )
 
     @staticmethod
     def _join_patient_languages(languages: list[parser.Language]) -> str:

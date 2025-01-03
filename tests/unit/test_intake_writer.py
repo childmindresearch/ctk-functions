@@ -120,3 +120,20 @@ def test__join_patient_languages(languages: Language, expected: str) -> None:
     actual = writer.ReportWriter._join_patient_languages(languages)  # type: ignore[arg-type] # Tested in test_valid_language_replacement.
 
     assert actual == expected
+
+
+def test_set_superscript() -> None:
+    """Test that the set_superscript method returns correctly formatted text."""
+    intake = MockIntake()
+    report = writer.ReportWriter(intake, "gpt-4o")  # type: ignore[arg-type]
+    document = docx.Document()
+    document.add_paragraph("For the 1st time.")
+    report.report.document = document
+
+    report.set_superscripts()
+
+    assert document.paragraphs[0].text == "For the 1st time."
+    assert document.paragraphs[0].runs[0].text == "For the 1"
+    assert document.paragraphs[0].runs[1].text == "st"
+    assert document.paragraphs[0].runs[2].text == " time."
+    assert document.paragraphs[0].runs[1].font.superscript
