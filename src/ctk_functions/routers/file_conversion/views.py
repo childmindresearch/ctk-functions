@@ -24,6 +24,7 @@ def markdown2docx(body: schemas.PostMarkdown2DocxRequest) -> fastapi.Response:
         markdown=body.markdown,
         formatting=body.formatting,
     )
+    logger.info("Converted Markdown to .docx")
     return fastapi.Response(
         content=docx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
