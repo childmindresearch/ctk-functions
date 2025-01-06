@@ -1423,7 +1423,7 @@ class RedCapData(pydantic.BaseModel):
 
 
 def get_intake_data(mrn: str) -> RedCapData:
-    """Gets the intake data from REDcap.
+    """Gets the intake data from REDCap.
 
     REDCap does not allow filtering by redcap_survey_identifier, so we have to
     download all records, find the associated record_id, and then filter by that.

@@ -944,8 +944,8 @@ class ReportWriter:
 
         if not interventions:
             text = f"""
-                    {patient.guardian.title_name} denied any history of therapeutic
-                    interventions.
+                    {patient.first_name} does not have any history of mental
+                    health treatment.
                 """
             text = string_utils.remove_excess_whitespace(text)
         else:
