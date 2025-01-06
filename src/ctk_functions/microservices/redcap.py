@@ -4,12 +4,12 @@ import csv
 import enum
 import io
 import re
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 import pydantic
 import redcap
 
-from ctk_functions import config, exceptions
+from ctk_functions.core import config, exceptions
 
 settings = config.get_settings()
 REDCAP_ENDPOINT = settings.REDCAP_ENDPOINT
@@ -373,6 +373,62 @@ class EducationGrades(enum.Enum):
     not_graded = "10"
 
 
+class IepServices(enum.Enum):
+    """Collection of IEP services."""
+
+    speech_language_therapy = 1
+    occupational_therapy = 2
+    physical_therapy = 3
+    counselling = 4
+    SETSS = 5
+    resource_room = 6
+    para_aide = 7
+    full_time_behavioral_support_classroom = 8
+    full_time_learning_support_classroom = 9
+    fba_bip = 10
+    testing_accommodations = 11
+    other = 12
+
+    @property
+    def intake_name(self) -> str:
+        """Provides in-report names for the properties."""
+        if self.name == "speech_language_therapy":
+            return "speech/language therapy"
+        if self.name == "para_aide":
+            return "para/aide"
+        if self.name == "fba_bip":
+            return "FBA/BIP"
+        return self.name.replace("_", " ")
+
+
+class TestingAccommodations(enum.Enum):
+    """Collection of testing accommodations."""
+
+    extended_time = 1
+    tests_read = 2
+    preferential_seating = 3
+    directions_clarified = 4
+    check_for_understanding = 5
+    frequent_breaks = 6
+    questions_and_directions_repeated = 7
+    flexible_seating = 8
+    multiple_day_administration = 9
+    reduced_number_of_test_items_per_page = 10
+    on_task_focusing_prompts = 11
+    use_of_masks_markers_to_maintain_place = 12
+    answers_recorded_in_test_booklet = 13
+    other = 14
+
+    @property
+    def intake_name(self) -> str:
+        """Returns the name that can be used in the intake report."""
+        if self.name == "flexible_seating":
+            return "flexible seating/separate location to minimize distractions"
+        if self.name == "use_of_masks_markers_to_maintain_place":
+            return "use of masks/markers to maintain place"
+        return self.name.replace("_", " ")
+
+
 class PriorDisease(pydantic.BaseModel):
     """Class used for prior diseases in the Primary Care Information."""
 
@@ -724,7 +780,22 @@ class RedCapData(pydantic.BaseModel):
     iep_classification___12: bool
     iep_classification___13: bool
     iep_classification___14: bool
+    iep_services___1: bool
+    iep_services___2: bool
+    iep_services___3: bool
+    iep_services___4: bool
+    iep_services___5: bool
+    iep_services___6: bool
+    iep_services___7: bool
+    iep_services___8: bool
+    iep_services___9: bool
+    iep_services___10: bool
+    iep_services___11: bool
+    iep_services___12: bool
+    other_desc: str | None
     iep_classification_other: str | None
+    para_aide_type___1: bool
+    para_aide_type___2: bool
     pastschool1_grades: str | None
     pastschool1: str | None
     pastschool10_grades: str | None
@@ -759,6 +830,41 @@ class RedCapData(pydantic.BaseModel):
     school_func: str | None
     school: str
     schooltype: SchoolType
+    setss_subjects___1: bool
+    setss_subjects___2: bool
+    setss_subjects___3: bool
+    testing_accommodations_type___1: bool
+    testing_accommodations_type___2: bool
+    testing_accommodations_type___3: bool
+    testing_accommodations_type___4: bool
+    testing_accommodations_type___5: bool
+    testing_accommodations_type___6: bool
+    testing_accommodations_type___7: bool
+    testing_accommodations_type___8: bool
+    testing_accommodations_type___9: bool
+    testing_accommodations_type___10: bool
+    testing_accommodations_type___11: bool
+    testing_accommodations_type___12: bool
+    testing_accommodations_type___13: bool
+    testing_accommodations_type___14: bool
+    other_testing: str | None
+
+    iep_slt_freq: str | None
+    iep_slt_dur: str | None
+    iep_occ_therapy_freq: str | None
+    iep_occ_therapy_dur: str | None
+    iep_phy_therapy_freq: str | None
+    iep_phy_therapy_dur: str | None
+    iep_counselling_freq: str | None
+    iep_counselling_dur: str | None
+    iep_setts_freq: str | None
+    iep_setts_dur: str | None
+    iep_resourceroom_dur: str | None
+    iep_resourceroom_freq: str | None = pydantic.Field(
+        ...,
+        alias="iep_resourceroom_freq_2",
+    )
+
     yrs_school: str
     subject_weaknesses_det: str | None
 
@@ -809,7 +915,6 @@ class RedCapData(pydantic.BaseModel):
     language___8: bool
     language___9: bool
     language_other: str | None
-    peopleinhome_relationship: RelationshipQuality | None
     peopleinhome1_age: str | None
     peopleinhome1_gradeocc: str | None
     peopleinhome1_relation_other: str | None
@@ -822,6 +927,10 @@ class RedCapData(pydantic.BaseModel):
     peopleinhome10_relation: HouseholdRelationship | None
     peopleinhome10_relationship: RelationshipQuality | None
     peopleinhome10: str | None
+    peopleinhome2_relationship: RelationshipQuality | None = pydantic.Field(
+        ...,
+        alias="peopleinhome_relationship",
+    )
     peopleinhome2_age: str | None
     peopleinhome2_gradeocc: str | None
     peopleinhome2_relation_other: str | None
@@ -923,7 +1032,7 @@ class RedCapData(pydantic.BaseModel):
     dose3_max_past: str | None
     dose3_start_past: str | None
     dose4_max_past: str | None
-    dose_4_start_past: str | None
+    dose4_start_past: str | None = pydantic.Field(..., alias="dose_4_start_past")
     dose5_max_past: str | None
     dose5_start_past: str | None
     med1_doc: str | None
@@ -934,7 +1043,7 @@ class RedCapData(pydantic.BaseModel):
     med1_reason: str | None
     med1_se: str | None
     med1_start: str | None
-    med2_current_reason: str | None
+    med2_reason: str | None = pydantic.Field(..., alias="med2_current_reason")
     med2_doc: str | None
     med2_past_date: str | None
     med2_past_doc: str | None
@@ -950,7 +1059,7 @@ class RedCapData(pydantic.BaseModel):
     med3_reason: str | None
     med3_se: str | None
     med3_start: str | None
-    med4_date: str | None
+    med4_start: str | None = pydantic.Field(..., alias="med4_date")
     med4_doc: str | None
     med4_past_date: str | None
     med4_past_doc: str | None
@@ -958,7 +1067,7 @@ class RedCapData(pydantic.BaseModel):
     med4_past_se: str | None
     med4_reason: str | None
     med4_se: str | None
-    med5_date: str | None
+    med5_start: str | None = pydantic.Field(..., alias="med5_date")
     med5_doc: str | None
     med5_past_date: str | None
     med5_past_doc: str | None
@@ -966,11 +1075,11 @@ class RedCapData(pydantic.BaseModel):
     med5_past_se: str | None
     med5_reason: str | None
     med5_se: str | None
-    medname_5_past: str | None
     medname1_past: str | None
     medname2_past: str | None
     medname3_past: str | None
     medname4_past: str | None
+    medname5_past: str | None = pydantic.Field(..., alias="medname_5_past")
     past_psychmed_num: int | None
     psychmed_name_1: str | None
     psychmed_name_2: str | None
@@ -1066,7 +1175,7 @@ class RedCapData(pydantic.BaseModel):
     tt_text: str | None
     tic_tourette___4: bool
 
-    # Therapeutric interventions
+    # Therapeutic interventions
 
     txhx1_effectiveness: str | None
     txhx1_end: str | None
@@ -1081,7 +1190,7 @@ class RedCapData(pydantic.BaseModel):
     txhx2_reason: str | None
     txhx2_start: str | None
     txhx2_terminate: str | None
-    txhx2: str | None
+    txhx_2: str | None = pydantic.Field(..., alias="txhx2")
     txhx3_effectiveness: str | None
     txhx3_end: str | None
     txhx3_freq: str | None
@@ -1257,68 +1366,64 @@ class RedCapData(pydantic.BaseModel):
 
         return classifications
 
-    # Aliases
+    @property
+    def iep_services(
+        self,
+    ) -> list[dict[Literal["name", "duration", "frequency"], str | None]]:
+        """The IEP services provided to the child."""
+        services: list[dict[Literal["name", "duration", "frequency"], str | None]] = []
+        database_names = {
+            IepServices.speech_language_therapy: "iep_slt",
+            IepServices.occupational_therapy: "iep_occ_therapy",
+            IepServices.physical_therapy: "iep_phy_therapy",
+            IepServices.counselling: "iep_counselling",
+            IepServices.SETSS: "iep_setts",
+            IepServices.resource_room: "iep_resourceroom",
+        }
+        for index in range(1, 13):
+            if getattr(self, f"iep_services___{index}"):
+                service = IepServices(index)
+                if service == IepServices.other:
+                    if not self.other_desc:
+                        msg = "Could not find the 'other' service."
+                        raise exceptions.RedcapError(msg)
+                    services.append({"name": self.other_desc})
+                elif service in database_names:
+                    key = database_names[service]
+                    services.append(
+                        {
+                            "name": service.intake_name,
+                            "frequency": getattr(self, f"{key}_freq"),
+                            "duration": getattr(self, f"{key}_dur"),
+                        },
+                    )
+                elif service == IepServices.testing_accommodations:
+                    # These are covered by their own checklist.
+                    continue
+                else:
+                    services.append({"name": service.intake_name})
+
+        return services
 
     @property
-    def peopleinhome2_relationship(self) -> RelationshipQuality | None:
-        """The relationship of the second person in the home.
-
-        Alias used to make the name conform to the other peopleinhome#_relationship
-        names.
-        """
-        return self.peopleinhome_relationship
-
-    @property
-    def txhx_2(self) -> str | None:
-        """The second treatment history.
-
-        Alias used to make the name conform to the other txhx_# names.
-        """
-        return self.txhx2
-
-    @property
-    def med2_reason(self) -> str | None:
-        """The reason for the second medication.
-
-        Alias used to make the name conform to the other med#_reason names.
-        """
-        return self.med2_current_reason
-
-    @property
-    def medname5_past(self) -> str | None:
-        """The name of the fifth past medication.
-
-        Alias used to make the name conform to the other medname#_past names.
-        """
-        return self.medname_5_past
-
-    @property
-    def med4_start(self) -> str | None:
-        """The start date of the fourth medication.
-
-        Alias used to make the name conform to the other med#_start names.
-        """
-        return self.med4_date
-
-    @property
-    def med5_start(self) -> str | None:
-        """The start date of the fifth medication.
-
-        Alias used to make the name conform to the other med#_start names.
-        """
-        return self.med5_date
-
-    @property
-    def dose4_start_past(self) -> str | None:
-        """The start date of the fourth dose.
-
-        Alias used to make the name conform to the other dose#_start_past names.
-        """
-        return self.dose_4_start_past
+    def testing_accommodations(self) -> list[str]:
+        """Generates a list of testing accommodations."""
+        accommodations = []
+        for index in range(1, 15):
+            if getattr(self, f"testing_accommodations_type___{index}"):
+                accommodation = TestingAccommodations(index)
+                if accommodation == TestingAccommodations.other:
+                    if not self.other_testing:
+                        msg = "Could not find the 'other' testing accommodation."
+                        raise exceptions.RedcapError(msg)
+                    accommodations.append(self.other_testing)
+                else:
+                    accommodations.append(accommodation.intake_name)
+        return accommodations
 
 
 def get_intake_data(mrn: str) -> RedCapData:
-    """Gets the intake data from REDcap.
+    """Gets the intake data from REDCap.
 
     REDCap does not allow filtering by redcap_survey_identifier, so we have to
     download all records, find the associated record_id, and then filter by that.
@@ -1334,7 +1439,8 @@ def get_intake_data(mrn: str) -> RedCapData:
     Returns:
         The intake data for the survey.
     """
-    logger.debug("Getting intake data for MRN %s.", mrn)
+    mrn_sanitized = mrn.replace("\r\n", "").replace("\n", "")
+    logger.debug("Getting intake data for MRN '%s'.", mrn_sanitized)
     if mrn.lower().startswith("mock"):
         return RedCapData.from_csv((DATA_DIR / "mock_redcap_data.csv").read_text())
 
@@ -1343,17 +1449,19 @@ def get_intake_data(mrn: str) -> RedCapData:
         raise exceptions.RedcapError(msg)
 
     project = redcap.Project(str(REDCAP_ENDPOINT), REDCAP_API_TOKEN.get_secret_value())  # type: ignore[attr-defined]
-    redcap_fields = project.export_records(
-        format_type="csv",
-        fields=["firstname"],
-        export_survey_fields=True,
-        raw_or_label="label",
+    redcap_fields = str(
+        project.export_records(
+            format_type="csv",
+            fields=["firstname"],
+            export_survey_fields=True,
+            raw_or_label="label",
+        ),
     )
 
-    redcap_fields = csv.DictReader(io.StringIO(redcap_fields))
+    redcap_fields_dict = csv.DictReader(io.StringIO(redcap_fields))
     record_ids = [
         row["record_id"]
-        for row in redcap_fields
+        for row in redcap_fields_dict
         if row["redcap_survey_identifier"].find(mrn) != -1
     ]
 
@@ -1361,10 +1469,12 @@ def get_intake_data(mrn: str) -> RedCapData:
         msg = "No record found for the given MRN."
         raise exceptions.RedcapError(msg)
 
-    patient_data: str = project.export_records(
-        format_type="csv",
-        export_survey_fields=True,
-        records=[record_ids[0]],
+    patient_data = str(
+        project.export_records(
+            format_type="csv",
+            export_survey_fields=True,
+            records=[record_ids[0]],
+        ),
     )
 
     return RedCapData.from_csv(patient_data)

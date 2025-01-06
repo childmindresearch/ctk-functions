@@ -2,8 +2,8 @@
 
 import pytest
 
-from ctk_functions.functions.intake import parser
 from ctk_functions.microservices import redcap
+from ctk_functions.routers.intake.intake_processing import parser
 
 
 def test_guardian_parser(
@@ -91,4 +91,19 @@ def test_language_parser(
 def test_all_caps_to_title(test_input: str, expected: str) -> None:
     """Tests the conversion of all caps to title case."""
     actual = parser.all_caps_to_title(test_input)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("test_input", "expected"),
+    [
+        ("PS40", "P.S. 40"),
+        ("PS 40", "P.S. 40"),
+        ("P.S. 40", "P.S. 40"),
+        ("ELEMENTARY SCHOOL", "Elementary School"),
+    ],
+)
+def test_process_school_name(test_input: str, expected: str) -> None:
+    """Tests the processing of school name."""
+    actual = parser.process_school_name(test_input)
     assert actual == expected
