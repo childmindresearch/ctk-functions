@@ -7,6 +7,13 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
+
+services:
+  languagetool:
+    image: erikvl87/languagetool:6.5
+    ports:
+    - 8010:8010
+
 steps:
 - task: UsePythonVersion@0
   inputs:
@@ -25,6 +32,7 @@ steps:
     REDCAP_API_TOKEN: $(REDCAP_API_TOKEN)
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    LANGUAGE_TOOL_URL: http://localhost:8010/v2
     AZURE_BLOB_CONNECTION_STRING: unused
     AZURE_OPENAI_API_KEY: unused
     AZURE_OPENAI_LLM_DEPLOYMENT: unused
