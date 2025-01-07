@@ -136,7 +136,7 @@ class ReportWriter:
         self.replace_patient_information()
 
         if self.enabled_tasks.corrections:
-            self.apply_corrections()
+            await self.apply_corrections()
         if self.enabled_tasks.signatures:
             self.add_signatures()
 
@@ -1161,11 +1161,11 @@ class ReportWriter:
         )
         self._insert("")
 
-    def apply_corrections(self) -> None:
+    async def apply_corrections(self) -> None:
         """Applies various grammatical and styling corrections."""
         logger.debug("Applying corrections to the report.")
         document_corrector = language_utils.DocumentCorrections(self.report.document)
-        document_corrector.correct()
+        await document_corrector.correct()
 
     def add_signatures(self) -> None:
         """Adds the signatures to the report.

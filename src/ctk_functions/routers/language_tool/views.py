@@ -10,7 +10,7 @@ router = fastapi.APIRouter(prefix="")
 
 
 @router.post("/language-tool")
-def post_language_tool(body: schemas.PostLanguageToolRequest) -> str:
+async def post_language_tool(body: schemas.PostLanguageToolRequest) -> str:
     """POST endpoint for markdown2docx.
 
     Args:
@@ -19,4 +19,4 @@ def post_language_tool(body: schemas.PostLanguageToolRequest) -> str:
     Returns:
         A FastAPI response containing the bytes of a .docx file.
     """
-    return controller.language_tool(body)
+    return await controller.language_tool(body)

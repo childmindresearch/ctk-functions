@@ -7,7 +7,7 @@ from ctk_functions.text import corrections
 settings = config.get_settings()
 
 
-def language_tool(body: schemas.PostLanguageToolRequest) -> str:
+async def language_tool(body: schemas.PostLanguageToolRequest) -> str:
     """Corrects the grammar of the input text.
 
     Args:
@@ -17,4 +17,4 @@ def language_tool(body: schemas.PostLanguageToolRequest) -> str:
         The corrected text.
     """
     correcter = corrections.LanguageCorrecter(body.rules, settings.LANGUAGE_TOOL_URL)
-    return correcter.run(body.text)
+    return await correcter.correct(body.text)

@@ -1,6 +1,6 @@
 """Utilities for correcting grammar and syntax."""
 
-import concurrent.futures
+import asyncio
 
 import cmi_docx
 import spacy
@@ -51,25 +51,22 @@ class DocumentCorrections:
             settings.LANGUAGE_TOOL_URL,
         )
 
-    def correct(self) -> None:
+    async def correct(self) -> None:
         """Makes corrections based on the enabled and disabled rules."""
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(self._correct_paragraph, para)
-                for para in self.document.paragraphs
-            ]
+        await asyncio.gather(
+            *[self._correct_paragraph(para) for para in self.document.paragraphs],
+        )
 
-            for _ in concurrent.futures.as_completed(futures):
-                pass
-
-    def _correct_paragraph(self, para: paragraph.Paragraph) -> None:
+    async def _correct_paragraph(self, para: paragraph.Paragraph) -> None:
         """Corrects conjugations in a single paragraph.
 
         Args:
             para: The paragraph to correct.
         """
         sentences = list(NLP(para.text).sents)
-        new_sentences = [self.correcter.run(sentence.text) for sentence in sentences]
+        new_sentences = [
+            await self.correcter.correct(sentence.text) for sentence in sentences
+        ]
         extended_pargraph = cmi_docx.ExtendParagraph(para)
         for old, new in zip(sentences, new_sentences, strict=True):
             if old.text != new:

@@ -6,9 +6,16 @@ on:
     - main
   pull_request:
 
+
 jobs:
   unit:
+    services:
+      languagetool:
+        image: erikvl87/languagetool:6.5
+        ports:
+        - 8010:8010
     env:
+      LANGUAGE_TOOL_URL: http://localhost:8010/v2
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       REDCAP_API_TOKEN: test
@@ -28,7 +35,6 @@ jobs:
     - name: Install dependencies
       run: |
         uv sync
-        uv run python -m spacy download en_core_web_sm
     - name: Run tests
       id: run-tests
       run: >
