@@ -37,6 +37,12 @@ async def intake_document(
         "cloai.LargeLanguageModel.call_instructor",
         return_value="instructor",
     )
+    # LanguageTool is too hard on the Github CI and causes a test failure in
+    # this test.
+    mocker.patch(
+        "ctk_functions.text.corrections.LanguageCorrecter.correct",
+        side_effect=lambda x: x,
+    )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info, "gpt-4o")
     await intake_writer.transform()
