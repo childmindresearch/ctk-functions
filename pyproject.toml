@@ -9,7 +9,6 @@ dependencies = [
   "aiohttp>=3.11.11",
   "cmi-docx>=0.3.9",
   "fastapi[standard]>=0.115.6",
-  "language-tool-python>=2.8.1",
   "pycap>=2.6.0",
   "pydantic>=2.10.4",
   "pydantic-settings>=2.7.0",

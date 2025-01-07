@@ -69,7 +69,9 @@ class DocumentCorrections:
             para: The paragraph to correct.
         """
         sentences = list(NLP(para.text).sents)
-        new_sentences = [self.correcter.run(sentence.text) for sentence in sentences]
+        new_sentences = [
+            self.correcter.correct(sentence.text) for sentence in sentences
+        ]
         extended_pargraph = cmi_docx.ExtendParagraph(para)
         for old, new in zip(sentences, new_sentences, strict=True):
             if old.text != new:

@@ -12,6 +12,7 @@ def correcter() -> corrections.LanguageCorrecter:
     The initialization is slow, so it is performed at the module level.
     """
     return corrections.LanguageCorrecter(
+        url="http://0.0.0.0:8010/v2",
         enabled_rules=[
             "PERS_PRONOUN_AGREEMENT",
             "UPPERCASE_SENTENCE_START",
@@ -46,12 +47,13 @@ def correcter() -> corrections.LanguageCorrecter:
         ("", ""),
     ],
 )
-def test_text_corrections(
+@pytest.mark.asyncio
+async def test_text_corrections(
     correcter: corrections.LanguageCorrecter,
     input_text: str,
     expected: str,
 ) -> None:
     """Tests the entrypoint of the TextCorrections class."""
-    actual = correcter.run(input_text)
+    actual = await correcter.correct(input_text)
 
     assert actual == expected

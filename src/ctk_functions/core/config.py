@@ -26,7 +26,7 @@ class Settings(pydantic_settings.BaseSettings):
     AZURE_OPENAI_LLM_DEPLOYMENT: pydantic.SecretStr
     AZURE_OPENAI_ENDPOINT: pydantic.SecretStr
 
-    LANGUAGE_TOOL_URL: str | None = None
+    LANGUAGE_TOOL_URL: str
 
     LOGGER_VERBOSITY: int = logging.INFO
     LOGGER_PHI_LOGGING_LEVEL: int = pydantic.Field(1, lt=logging.DEBUG)
