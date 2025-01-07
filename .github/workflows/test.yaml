@@ -15,7 +15,7 @@ jobs:
         ports:
         - 8010:8010
     env:
-      LANGUAGE_TOOL_URL: http://languagetool:8010/v2
+      LANGUAGE_TOOL_URL: http://localhost:8010/v2
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       REDCAP_API_TOKEN: test
