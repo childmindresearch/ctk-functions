@@ -129,6 +129,7 @@ class LanguageCorrecter:
                     "text": text,
                     "language": "en-US",
                     "enabledRules": ",".join(self.enabled_rules),
+                    "enabledOnly": "true",
                 },
             )
             text = await response.text()
