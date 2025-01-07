@@ -1,7 +1,10 @@
 """Functions for converting files between different formats."""
 
+from ctk_functions.core import config
 from ctk_functions.routers.language_tool import schemas
 from ctk_functions.text import corrections
+
+settings = config.get_settings()
 
 
 def language_tool(body: schemas.PostLanguageToolRequest) -> str:
@@ -13,5 +16,5 @@ def language_tool(body: schemas.PostLanguageToolRequest) -> str:
     Returns:
         The corrected text.
     """
-    correcter = corrections.LanguageCorrecter(body.rules)
+    correcter = corrections.LanguageCorrecter(body.rules, settings.LANGUAGE_TOOL_URL)
     return correcter.run(body.text)

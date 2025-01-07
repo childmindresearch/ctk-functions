@@ -7,8 +7,10 @@ import spacy
 from docx import document
 from docx.text import paragraph
 
+from ctk_functions.core import config
 from ctk_functions.text import corrections
 
+settings = config.get_settings()
 NLP = spacy.load("en_core_web_sm", enable=["parser"])
 
 # c.f. https://community.languagetool.org/rule/list?lang=en for a list of rules.
@@ -46,6 +48,7 @@ class DocumentCorrections:
         self.document = doc
         self.correcter = corrections.LanguageCorrecter(
             enabled_rules or DEFAULT_LANGUAGE_RULES,
+            settings.LANGUAGE_TOOL_URL,
         )
 
     def correct(self) -> None:

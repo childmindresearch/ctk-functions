@@ -14,15 +14,18 @@ class LanguageCorrecter:
     def __init__(
         self,
         enabled_rules: Iterable[str],
+        remote_server: str | None = None,
     ) -> None:
         """Initializes the language tool.
 
         Args:
             enabled_rules: The rules to enable for the correction.
+            remote_server: The remote server to connect to.
 
         """
         self.language_tool = language_tool_python.LanguageTool(
-            "en-US",
+            language="en-US",
+            remote_server=remote_server,
         )
         self.language_tool.enabled_rules = set(enabled_rules)
         self.language_tool.enabled_rules_only = True

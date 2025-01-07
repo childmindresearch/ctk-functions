@@ -27,15 +27,7 @@ COPY . .
 RUN mkdir -p src/ctk_functions/data/signatures
 COPY --from=unzipper /files/*.png /home/site/wwwroot/src/ctk_functions/data/signatures
 
-RUN apt-get clean; apt-get -y update && \
-    mkdir -p /usr/share/man/man1/ && \
-    apt-get install -y openjdk-17-jdk && \
-    apt-get install -y openjdk-17-jre && \
-    update-alternatives --config java && \
-    update-alternatives --config javac && \
-    uv sync --frozen --no-cache && \
-    uv run python -c 'import spacy; spacy.load("en_core_web_sm")' && \
-    uv run python -c \
-      'import language_tool_python; language_tool_python.LanguageTool ("en-US")'
+RUN uv sync --frozen --no-cache && \
+    uv run python -c 'import spacy; spacy.load("en_core_web_sm")'
 
 CMD ["uv", "run", "fastapi", "run", "src/ctk_functions/app.py", "--port", "8000",  "--host", "0.0.0.0"]
