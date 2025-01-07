@@ -3,10 +3,10 @@
 import asyncio
 import os
 
+from ctk_functions.core import config
 from ctk_functions.routers.intake import controller
-from ctk_functions.text import corrections
 
-corrections.LanguageCorrecter(enabled_rules=set())  # Download LanguageTool
+settings = config.get_settings()
 survey_ids = [s.strip() for s in os.environ["SURVEY_IDS"].split(",")]
 
 promises = [
