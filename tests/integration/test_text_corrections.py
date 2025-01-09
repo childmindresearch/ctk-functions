@@ -7,10 +7,7 @@ from ctk_functions.text import corrections
 
 @pytest.fixture(scope="module")
 def correcter() -> corrections.LanguageCorrecter:
-    """Fixture for the LanguageCorrecter class.
-
-    The initialization is slow, so it is performed at the module level.
-    """
+    """Fixture for the LanguageCorrecter class."""
     return corrections.LanguageCorrecter(
         url="http://0.0.0.0:8010/v2",
         enabled_rules=[
