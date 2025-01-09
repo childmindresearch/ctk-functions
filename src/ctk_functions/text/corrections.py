@@ -5,6 +5,7 @@ from collections.abc import Iterable
 import aiohttp
 import pydantic
 import spacy
+import tenacity
 
 NLP = spacy.load("en_core_web_sm", enable=["tagger"])
 
@@ -113,6 +114,10 @@ class LanguageCorrecter:
         self.language_tool = "en-US"
         self.enabled_rules = set(enabled_rules)
 
+    @tenacity.retry(
+        stop=tenacity.stop_after_attempt(3),
+        wait=tenacity.wait_exponential(multiplier=1, min=1, max=5),
+    )
     async def check(self, text: str) -> LanguageToolResponse:
         """Sends a request to LanguageTool and returns the response.
 
