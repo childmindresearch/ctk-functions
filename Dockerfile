@@ -1,6 +1,6 @@
 # Dockerfile for building the ctk-functions container.
 
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm as builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm as builder
 
 WORKDIR /app
 ARG AZURE_BLOB_SIGNATURES_CONNECTION_STRING
@@ -17,7 +17,7 @@ RUN mv *.png src/ctk_functions/data/signatures
 RUN uv sync --frozen --no-cache --no-dev
 
 
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 EXPOSE 8000
 WORKDIR /app
