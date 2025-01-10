@@ -15,14 +15,12 @@ logger = config.get_logger()
 
 async def get_intake_report(
     survey_id: str,
-    model: str,
     enabled_tasks: writer.EnabledTasks | None = None,
 ) -> bytes:
     """Generates an intake report for a survey.
 
     Args:
         survey_id: The survey ID.
-        model: The model to use for the language model.
         enabled_tasks: Developer testing setting to reduce the amount of processing.
 
     Returns:
@@ -40,7 +38,7 @@ async def get_intake_report(
             ),
         ) from error
     parsed_data = parser.IntakeInformation(intake_data)
-    report = writer.ReportWriter(parsed_data, model, enabled_tasks)
+    report = writer.ReportWriter(parsed_data, enabled_tasks)
     await report.transform()
 
     logger.debug("Successfully generated intake report.")

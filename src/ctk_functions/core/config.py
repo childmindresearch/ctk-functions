@@ -28,6 +28,9 @@ class Settings(pydantic_settings.BaseSettings):
 
     LANGUAGE_TOOL_URL: str
 
+    CLOAI_SERVICE_URL: str
+    CLOAI_MODEL: str
+
     LOGGER_VERBOSITY: int = logging.INFO
     LOGGER_PHI_LOGGING_LEVEL: int = pydantic.Field(1, lt=logging.DEBUG)
     LOG_PHI: bool = pydantic.Field(
