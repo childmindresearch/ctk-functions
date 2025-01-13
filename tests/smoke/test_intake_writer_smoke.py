@@ -26,15 +26,15 @@ async def intake_document(
 ) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
     mocker.patch(
-        "cloai.LargeLanguageModel.run",
+        "ctk_functions.microservices.cloai_service.Client.run",
         return_value="llm",
     )
     mocker.patch(
-        "cloai.LargeLanguageModel.chain_of_verification",
+        "ctk_functions.microservices.cloai_service.Client.chain_of_verification",
         return_value="cov",
     )
     mocker.patch(
-        "cloai.LargeLanguageModel.call_instructor",
+        "ctk_functions.microservices.cloai_service.Client.call_instructor",
         return_value="instructor",
     )
 

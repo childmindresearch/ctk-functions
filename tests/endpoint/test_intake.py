@@ -7,13 +7,6 @@ import pytest_mock
 from fastapi import status, testclient
 
 
-def test_intake_no_model(client: testclient.TestClient) -> None:
-    """Tests whether the GET intake endpoint errors without a model."""
-    response = client.get("/intake-report/mock")
-
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-
-
 def test_intake_with_model(
     client: testclient.TestClient,
     tmp_path: pathlib.Path,
@@ -21,15 +14,15 @@ def test_intake_with_model(
 ) -> None:
     """Tests whether the GET intake endpoint works with a model."""
     mocker.patch(
-        "cloai.LargeLanguageModel.chain_of_verification",
+        "ctk_functions.microservices.cloai_service.Client.chain_of_verification",
         return_value="cov",
     )
     mocker.patch(
-        "cloai.LargeLanguageModel.call_instructor",
+        "ctk_functions.microservices.cloai_service.Client.call_instructor",
         return_value="instructor",
     )
     mocker.patch(
-        "cloai.LargeLanguageModel.run",
+        "ctk_functions.microservices.cloai_service.Client.run",
         return_value="run",
     )
 

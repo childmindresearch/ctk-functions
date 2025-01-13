@@ -23,6 +23,8 @@ jobs:
       AZURE_OPENAI_API_KEY: test
       AZURE_OPENAI_LLM_DEPLOYMENT: test
       AZURE_OPENAI_ENDPOINT: test
+      CLOAI_SERVICE_URL: unused
+      CLOAI_MODEL: unused
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
