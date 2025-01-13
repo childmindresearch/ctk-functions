@@ -12,7 +12,6 @@ survey_ids = [s.strip() for s in os.environ["SURVEY_IDS"].split(",")]
 promises = [
     controller.get_intake_report(
         survey_id,
-        "anthropic.claude-3-5-sonnet-20240620-v1:0",
     )
     for survey_id in survey_ids
 ]

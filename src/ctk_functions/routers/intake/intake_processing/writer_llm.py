@@ -9,7 +9,7 @@ import jsonpickle
 import pydantic
 
 from ctk_functions.core import config
-from ctk_functions.microservices import language_models
+from ctk_functions.microservices import cloai_service
 from ctk_functions.routers.intake.intake_processing.utils import string_utils
 
 logger = config.get_logger()
@@ -105,18 +105,16 @@ class WriterLlm:
 
     def __init__(
         self,
-        model: str,
         child_name: str,
         child_pronouns: Sequence[str],
     ) -> None:
         """Initializes the language model.
 
         Args:
-            model: The model to use for the language model.
             child_name: The name of the child in the report.
             child_pronouns: The pronouns of the child in the report.
         """
-        self.client = language_models.get_llm(model)
+        self.client = cloai_service.Client()
         self.child_name = child_name
         self.child_pronouns = child_pronouns
         self.placeholders: list[LlmPlaceholder] = []
@@ -268,7 +266,11 @@ class WriterLlm:
         )
 
         class Model(pydantic.BaseModel):
-            adjectives: tuple[str] | tuple[str, str]
+            adjectives: tuple[str, ...] = pydantic.Field(
+                ...,
+                min_length=1,
+                max_length=2,
+            )
 
             def __str__(self) -> str:
                 return ", ".join(self.adjectives)
@@ -277,8 +279,8 @@ class WriterLlm:
             Model,
             system_prompt=Prompts.adjectives,
             user_prompt=description,
-            max_tokens=1000,
         )
+
         return self._add_to_placeholders(result, comment=comment)
 
     def _run(
@@ -317,13 +319,14 @@ class WriterLlm:
 
         if verify:
             replacement = self.client.chain_of_verification(
-                system_prompt,
-                user_prompt,
-                response_model=str,
-                create_new_statements=True,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
             )
         else:
-            replacement = self.client.run(system_prompt, user_prompt)
+            replacement = self.client.run(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+            )
         return self._add_to_placeholders(replacement, comment=comment)
 
     @property

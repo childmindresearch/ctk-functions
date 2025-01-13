@@ -9,7 +9,7 @@ from ctk_functions.routers.llm import schemas
 def test_llm(client: testclient.TestClient, mocker: pytest_mock.MockerFixture) -> None:
     """Test the LLM endpoint."""
     spy = mocker.patch(
-        "cloai.LargeLanguageModel.run",
+        "ctk_functions.microservices.cloai_service.Client.run",
         return_value="output",
     )
     body = schemas.PostLlmRequest(

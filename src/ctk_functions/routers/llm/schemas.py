@@ -2,8 +2,6 @@
 
 import pydantic
 
-from ctk_functions.microservices import language_models
-
 
 class PostLlmRequest(pydantic.BaseModel):
     """POST LLM request definition.
@@ -14,6 +12,5 @@ class PostLlmRequest(pydantic.BaseModel):
         user_prompt: The user's message.
     """
 
-    model: language_models.VALID_MODELS
     system_prompt: str
     user_prompt: str

@@ -13,6 +13,26 @@ services:
     image: erikvl87/languagetool:6.5
     ports:
     - 8010:8010
+  cloai:
+    image: cmidair/cloai-service:main
+    ports:
+    - 8000:8000
+    env:
+      AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+      AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+      CONFIG_JSON: |
+        {
+          "clients": {
+            "sonnet-3.5-v2": {
+              "type": "anthropic",
+              "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+              "aws_access_key": "$(AWS_ACCESS_KEY_ID)",
+              "aws_secret_key": "$(AWS_SECRET_ACCESS_KEY)",
+              "region": "us-west-2"
+            }
+          }
+        }
+
 
 steps:
 - task: UsePythonVersion@0
@@ -37,3 +57,5 @@ steps:
     AZURE_OPENAI_API_KEY: unused
     AZURE_OPENAI_LLM_DEPLOYMENT: unused
     AZURE_OPENAI_ENDPOINT: unused
+    CLOAI_SERVICE_URL: http://localhost:8000/v1
+    CLOAI_MODEL: sonnet-3.5-v2

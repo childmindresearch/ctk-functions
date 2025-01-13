@@ -4,7 +4,6 @@ import asyncio
 import enum
 import itertools
 import re
-import threading
 
 import cmi_docx
 import docx
@@ -79,14 +78,12 @@ class ReportWriter:
     def __init__(
         self,
         intake: parser.IntakeInformation,
-        model: str,
         enabled_tasks: EnabledTasks | None = None,
     ) -> None:
         """Initializes the report writer.
 
         Args:
             intake: The intake information.
-            model: The model to use for the language model.
             enabled_tasks: Defines which subsets of the intake form to run.
         """
         logger.debug("Initializing the report writer.")
@@ -103,7 +100,6 @@ class ReportWriter:
         )
 
         self.llm = writer_llm.WriterLlm(
-            model,
             intake.patient.first_name,
             intake.patient.pronouns,
         )
@@ -1200,39 +1196,30 @@ class ReportWriter:
 
     async def make_llm_edits(self) -> None:
         """Makes edits to the report using a large language model."""
-        lock = threading.Lock()
-
-        async def replace_placeholder(
-            placeholder: writer_llm.LlmPlaceholder,
-        ) -> None:
-            replacement = await placeholder.replacement
-            with lock:
-                self.report.replace(
-                    placeholder.id,
-                    replacement,
-                    cmi_docx.RunStyle(font_rgb=_RGB.LLM.value),
-                )
-                if placeholder.comment:
-                    find_runs = self.report.find_in_runs(replacement)
-                    runs = (
-                        (find_runs[0].runs[0], find_runs[0].runs[-1])
-                        if len(find_runs[0].runs) > 1
-                        else find_runs[0].runs[0]
-                    )
-                    comment.add_comment(
-                        self.report.document,
-                        runs,
-                        author="Clinician Toolkit",
-                        text=placeholder.comment,
-                    )
-
         logger.debug("Making edits to the report using a large language model.")
-        await asyncio.gather(
-            *[
-                replace_placeholder(placeholder)
-                for placeholder in self.llm.placeholders
-            ],
+        texts = await asyncio.gather(
+            *[placeholder.replacement for placeholder in self.llm.placeholders],
         )
+
+        for placeholder, text in zip(self.llm.placeholders, texts, strict=False):
+            self.report.replace(
+                placeholder.id,
+                text,
+                cmi_docx.RunStyle(font_rgb=_RGB.LLM.value),
+            )
+            if placeholder.comment:
+                find_runs = self.report.find_in_runs(text)
+                runs = (
+                    (find_runs[0].runs[0], find_runs[0].runs[-1])
+                    if len(find_runs[0].runs) > 1
+                    else find_runs[0].runs[0]
+                )
+                comment.add_comment(
+                    self.report.document,
+                    runs,
+                    author="Clinician Toolkit",
+                    text=placeholder.comment,
+                )
 
     def add_footer(self) -> None:
         """Adds a footer to the report."""

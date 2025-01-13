@@ -26,20 +26,20 @@ async def intake_document(
 ) -> document.Document:
     """Returns a file-like object for the intake_writer.py module."""
     mocker.patch(
-        "cloai.LargeLanguageModel.run",
+        "ctk_functions.microservices.cloai_service.Client.run",
         return_value="llm",
     )
     mocker.patch(
-        "cloai.LargeLanguageModel.chain_of_verification",
+        "ctk_functions.microservices.cloai_service.Client.chain_of_verification",
         return_value="cov",
     )
     mocker.patch(
-        "cloai.LargeLanguageModel.call_instructor",
+        "ctk_functions.microservices.cloai_service.Client.call_instructor",
         return_value="instructor",
     )
 
     intake_info = parser.IntakeInformation(test_redcap_data)
-    intake_writer = writer.ReportWriter(intake_info, "gpt-4o")
+    intake_writer = writer.ReportWriter(intake_info)
     await intake_writer.transform()
     return intake_writer.report.document  # type: ignore[no-any-return]
 
