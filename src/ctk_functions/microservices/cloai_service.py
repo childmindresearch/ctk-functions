@@ -3,7 +3,9 @@
 from typing import TypeVar
 
 import aiohttp
+import fastapi
 import pydantic
+from fastapi import status
 
 from ctk_functions.core import config
 
@@ -12,6 +14,9 @@ T = TypeVar("T", bound=pydantic.BaseModel)
 settings = config.get_settings()
 CLOAI_SERVICE_URL = settings.CLOAI_SERVICE_URL
 CLOAI_MODEL = settings.CLOAI_MODEL
+ENVIRONMENT = settings.ENVIRONMENT
+
+logger = config.get_logger()
 
 
 class Client:
@@ -37,7 +42,12 @@ class Client:
                 "user_prompt": user_prompt,
             },
         ) as response:
-            return str((await response.json())["result"])
+            if response.ok:
+                return str((await response.json())["result"])
+            raise fastapi.HTTPException(
+                status.HTTP_502_BAD_GATEWAY,
+                await response.text(),
+            )
 
     async def call_instructor(
         self,
@@ -61,8 +71,13 @@ class Client:
                 "response_model": model.model_json_schema(),
             },
         ) as response:
-            data = (await response.json())["result"]
-            return model(**data)
+            if response.ok:
+                data = (await response.json())["result"]
+                return model(**data)
+            raise fastapi.HTTPException(
+                status.HTTP_502_BAD_GATEWAY,
+                await response.text(),
+            )
 
     async def chain_of_verification(
         self,
@@ -84,4 +99,9 @@ class Client:
                 "create_new_statements": True,
             },
         ) as response:
-            return str((await response.json())["result"])
+            if response.ok:
+                return str((await response.json())["result"])
+            raise fastapi.HTTPException(
+                status.HTTP_502_BAD_GATEWAY,
+                await response.text(),
+            )
