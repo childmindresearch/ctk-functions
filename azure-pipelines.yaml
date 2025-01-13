@@ -14,7 +14,7 @@ services:
     ports:
     - 8010:8010
   cloai:
-    image: cmidair/cloai-service
+    image: cmidair/cloai-service:main
     ports:
     - 8000:8000
     env:
