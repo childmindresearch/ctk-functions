@@ -20,7 +20,18 @@ services:
     env:
       AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
       AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-      CONFIG_JSON: '{"clients":{"sonnet-3.5-v2": { "type": "anthropic", "model": "anthropic.claude-3-5-sonnet-20241022-v2:0", "aws_access_key": $(AWS_ACCESS_KEY_ID), "aws_secret_key": $(AWS_SECRET_ACCESS_KEY), "region": "us-west-2"}}}'
+      CONFIG_JSON: |
+        {
+          "clients": {
+            "sonnet-3.5-v2": {
+              "type": "anthropic",
+              "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+              "aws_access_key": "$(AWS_ACCESS_KEY_ID)",
+              "aws_secret_key": "$(AWS_SECRET_ACCESS_KEY)",
+              "region": "us-west-2"
+            }
+          }
+        }
 
 
 steps:
