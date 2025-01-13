@@ -14,7 +14,6 @@ T = TypeVar("T", bound=pydantic.BaseModel)
 settings = config.get_settings()
 CLOAI_SERVICE_URL = settings.CLOAI_SERVICE_URL
 CLOAI_MODEL = settings.CLOAI_MODEL
-ENVIRONMENT = settings.ENVIRONMENT
 
 logger = config.get_logger()
 
