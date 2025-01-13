@@ -43,9 +43,11 @@ class Client:
         ) as response:
             if response.ok:
                 return str((await response.json())["result"])
+            text = await response.text()
+            logger.error(text)
             raise fastapi.HTTPException(
                 status.HTTP_502_BAD_GATEWAY,
-                await response.text(),
+                text,
             )
 
     async def call_instructor(
@@ -73,9 +75,11 @@ class Client:
             if response.ok:
                 data = (await response.json())["result"]
                 return model(**data)
+            text = await response.text()
+            logger.error(text)
             raise fastapi.HTTPException(
                 status.HTTP_502_BAD_GATEWAY,
-                await response.text(),
+                text,
             )
 
     async def chain_of_verification(
@@ -100,7 +104,9 @@ class Client:
         ) as response:
             if response.ok:
                 return str((await response.json())["result"])
+            text = await response.text()
+            logger.error(text)
             raise fastapi.HTTPException(
                 status.HTTP_502_BAD_GATEWAY,
-                await response.text(),
+                text,
             )
