@@ -14,7 +14,7 @@ services:
     ports:
     - 8010:8010
   cloai:
-    image: cliniciantoolkit.azurecr.io/cloai-service:latest
+    image: cmidair/cloai-service
     ports:
     - 8000:8000
     env:
