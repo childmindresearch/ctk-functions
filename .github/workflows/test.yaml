@@ -6,7 +6,6 @@ on:
     - main
   pull_request:
 
-
 jobs:
   unit:
     services:
@@ -14,6 +13,10 @@ jobs:
         image: erikvl87/languagetool:6.5
         ports:
         - 8010:8010
+      cloai_service:
+        image: cmidair/cloai-service:main
+        ports:
+        - 8000:8000
     env:
       LANGUAGE_TOOL_URL: http://localhost:8010/v2
       AWS_ACCESS_KEY_ID: test
@@ -23,8 +26,8 @@ jobs:
       AZURE_OPENAI_API_KEY: test
       AZURE_OPENAI_LLM_DEPLOYMENT: test
       AZURE_OPENAI_ENDPOINT: test
-      CLOAI_SERVICE_URL: unused
-      CLOAI_MODEL: unused
+      CLOAI_SERVICE_URL: http://localhost:8000/v1
+      CLOAI_MODEL: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
