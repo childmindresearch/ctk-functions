@@ -19,4 +19,4 @@ async def post_language_tool(body: schemas.PostLanguageToolRequest) -> str:
     Returns:
         A FastAPI response containing the bytes of a .docx file.
     """
-    return await controller.language_tool(body)
+    return await controller.run_language_tool(body)

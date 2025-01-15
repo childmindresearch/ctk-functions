@@ -2,13 +2,13 @@
 
 import pytest
 
-from ctk_functions.text import corrections
+from ctk_functions.microservices import language_tool
 
 
 @pytest.fixture(scope="module")
-def correcter() -> corrections.LanguageCorrecter:
+def correcter() -> language_tool.LanguageCorrecter:
     """Fixture for the LanguageCorrecter class."""
-    return corrections.LanguageCorrecter(
+    return language_tool.LanguageCorrecter(
         url="http://0.0.0.0:8010/v2",
         enabled_rules=[
             "PERS_PRONOUN_AGREEMENT",
@@ -46,7 +46,7 @@ def correcter() -> corrections.LanguageCorrecter:
 )
 @pytest.mark.asyncio
 async def test_text_corrections(
-    correcter: corrections.LanguageCorrecter,
+    correcter: language_tool.LanguageCorrecter,
     input_text: str,
     expected: str,
 ) -> None:

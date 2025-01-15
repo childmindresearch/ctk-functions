@@ -8,10 +8,12 @@ from docx import document
 from docx.text import paragraph
 
 from ctk_functions.core import config
-from ctk_functions.text import corrections
+from ctk_functions.microservices import language_tool
 
 settings = config.get_settings()
 NLP = spacy.load("en_core_web_sm", enable=["parser"])
+
+logger = config.get_logger()
 
 # c.f. https://community.languagetool.org/rule/list?lang=en for a list of rules.
 # These are the rules that have been tested on existing intake reports and are
@@ -46,7 +48,7 @@ class DocumentCorrections:
 
         """
         self.document = doc
-        self.correcter = corrections.LanguageCorrecter(
+        self.correcter = language_tool.LanguageCorrecter(
             enabled_rules or DEFAULT_LANGUAGE_RULES,
             settings.LANGUAGE_TOOL_URL,
         )
@@ -63,11 +65,11 @@ class DocumentCorrections:
         Args:
             para: The paragraph to correct.
         """
-        sentences = list(NLP(para.text).sents)
-        new_sentences = [
-            await self.correcter.correct(sentence.text) for sentence in sentences
-        ]
-        extended_pargraph = cmi_docx.ExtendParagraph(para)
-        for old, new in zip(sentences, new_sentences, strict=True):
-            if old.text != new:
-                extended_pargraph.replace(old.text, new)
+        replacements = await self.correcter.provide_replacements(para.text)
+        extended_paragraph = cmi_docx.ExtendParagraph(para)
+        for replacement in replacements:
+            extended_paragraph.replace_between(
+                replacement.start,
+                replacement.end,
+                replacement.text,
+            )
