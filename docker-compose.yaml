@@ -1,0 +1,11 @@
+services:
+  languagetool:
+    image: erikvl87/languagetool
+    ports:
+    - 8010:8010
+  cloai_service:
+    image: cmidair/cloai-service:main
+    ports:
+    - 8001:8000
+    env_file:
+    - .env.cloai

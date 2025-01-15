@@ -4,6 +4,7 @@ qodana.yaml
 .ruff_cache
 .vscode
 local
+.env.cloai
 
 .DS_Store
 local_run.py

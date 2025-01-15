@@ -131,12 +131,18 @@ class ReportWriter:
         self.add_footer()
         self.replace_patient_information()
 
-        if self.enabled_tasks.corrections:
-            await self.apply_corrections()
         if self.enabled_tasks.signatures:
             self.add_signatures()
 
-        await self.make_llm_edits()
+        promises = [
+            placeholder.await_replacement() for placeholder in self.llm.placeholders
+        ]
+        if self.enabled_tasks.corrections:
+            promises.append(self.apply_corrections())
+        # Python async execution is lazy, so we try to execute as many async calls
+        # concurrently in a single asyncio.gather.
+        await asyncio.gather(*promises)
+        self.make_llm_edits()
         self.set_superscripts()
 
     def replace_patient_information(self) -> None:
@@ -1194,21 +1200,18 @@ class ReportWriter:
                 self.report.insert_paragraph_by_text(index - 1, "")
                 index += 3
 
-    async def make_llm_edits(self) -> None:
+    def make_llm_edits(self) -> None:
         """Makes edits to the report using a large language model."""
         logger.debug("Making edits to the report using a large language model.")
-        texts = await asyncio.gather(
-            *[placeholder.replacement for placeholder in self.llm.placeholders],
-        )
 
-        for placeholder, text in zip(self.llm.placeholders, texts, strict=False):
+        for placeholder in self.llm.placeholders:
             self.report.replace(
                 placeholder.id,
-                text,
+                placeholder.text,
                 cmi_docx.RunStyle(font_rgb=_RGB.LLM.value),
             )
             if placeholder.comment:
-                find_runs = self.report.find_in_runs(text)
+                find_runs = self.report.find_in_runs(placeholder.text)
                 runs = (
                     (find_runs[0].runs[0], find_runs[0].runs[-1])
                     if len(find_runs[0].runs) > 1

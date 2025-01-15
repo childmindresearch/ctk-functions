@@ -18,8 +18,7 @@ settings = config.get_settings()
 LOGGER_PHI_LOGGING_LEVEL = settings.LOGGER_PHI_LOGGING_LEVEL
 
 
-@dataclasses.dataclass
-class LlmPlaceholder:
+class LlmPlaceholder(pydantic.BaseModel):
     """Represents a placeholder for large language model input in the report.
 
     Attributes:
@@ -28,9 +27,24 @@ class LlmPlaceholder:
             an awaitable to allow for asynchronous processing.
     """
 
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
     id: str
     replacement: Awaitable[str]
     comment: str | None = None
+    _text: str | None = None
+
+    @property
+    def text(self) -> str:
+        """Returns the awaited text."""
+        if self._text is None:
+            msg = "LlmPlaceholder must be awaited before calling .text."
+            raise RuntimeError(msg)
+        return self._text
+
+    async def await_replacement(self) -> None:
+        """Awaits the replacement and sets the text property."""
+        self._text = await self.replacement
 
 
 BASE_PROMPT = """
@@ -363,6 +377,10 @@ class WriterLlm:
             return str(await promise)
 
         self.placeholders.append(
-            LlmPlaceholder(placeholder_uuid, stringify(promise), comment),
+            LlmPlaceholder(
+                id=placeholder_uuid,
+                replacement=stringify(promise),
+                comment=comment,
+            ),
         )
         return placeholder_uuid

@@ -9,6 +9,15 @@ import tenacity
 
 NLP = spacy.load("en_core_web_sm", enable=["tagger"])
 
+# These rules are unlikely to interfere with each other and can be executed without
+# rerunning LanguageTool.
+SIMULTANEOUS_RULES = (
+    "THE_US",
+    "UPPERCASE_SENTENCE_START",
+    "WEEK_HYPHEN",
+    "CONSECUTIVE_SPACES",
+)
+
 
 class Software(pydantic.BaseModel):
     """Information on the language tool software."""
@@ -95,6 +104,18 @@ class LanguageToolResponse(pydantic.BaseModel):
     matches: list[Match]
 
 
+class ReplacementData(pydantic.BaseModel):
+    """The start, end, and text of a replacement.
+
+    Used to pass replacement data to the caller who can then perform the replacement
+    themselves.
+    """
+
+    start: int
+    end: int
+    text: str
+
+
 class LanguageCorrecter:
     """Corrects the grammar and syntax of text."""
 
@@ -141,6 +162,55 @@ class LanguageCorrecter:
 
         return LanguageToolResponse.model_validate_json(text)
 
+    async def provide_replacements(self, text: str) -> list[ReplacementData]:
+        """Corrects the text and returns the required replacements.
+
+        Replacements may interfere with each other and, as such, should always be
+        applied in the order listed.
+
+        Args:
+            text: The text to correct.
+
+        Returns:
+            The correct replacements.
+        """
+        response = await self.check(text)
+        replacements = []
+        while response.matches:
+            alterations = [
+                match
+                for match in response.matches
+                if match.rule.id in SIMULTANEOUS_RULES
+            ]
+            not_simultaneous_matches = [
+                match
+                for match in response.matches
+                if match.rule.id not in SIMULTANEOUS_RULES
+            ]
+
+            if not_simultaneous_matches:
+                alterations.append(not_simultaneous_matches[-1])
+            alterations.sort(key=lambda match: match.offset, reverse=True)
+
+            for match in alterations:
+                correction_index = self._get_correction_index(match, text)
+                replacements.append(
+                    ReplacementData(
+                        start=match.offset,
+                        end=match.offset + match.length,
+                        text=match.replacements[correction_index].value,
+                    ),
+                )
+                text = self._apply_correction(text, match, correction_index)
+
+            if len(response.matches) == len(alterations):
+                # Do not re-check if there was only one non-simultaneous correction
+                # remaining.
+                break
+            response = await self.check(text)
+
+        return replacements
+
     async def correct(self, text: str) -> str:
         """Corrects the text following the object's settings.
 
@@ -150,19 +220,28 @@ class LanguageCorrecter:
         Returns:
             The corrected text.
         """
-        response = await self.check(text)
-        while response.matches:
-            text = self._apply_correction(response.matches[-1], text)
-            response = await self.check(text)
+        replacements = await self.provide_replacements(text)
+        for replacement in replacements:
+            text = (
+                text[: replacement.start] + replacement.text + text[replacement.end :]
+            )
         return text
 
+    @staticmethod
+    def _apply_correction(text: str, correction: Match, index: int) -> str:
+        return (
+            text[: correction.offset]
+            + correction.replacements[index].value
+            + text[correction.offset + correction.length :]
+        )
+
     @classmethod
-    def _apply_correction(
+    def _get_correction_index(
         cls,
         correction: Match,
         full_text: str,
-    ) -> str:
-        """Applies a correction to a text.
+    ) -> int:
+        """Get a correction for the text.
 
         Args:
             correction: The language tool Match.
@@ -172,14 +251,7 @@ class LanguageCorrecter:
             The corrected text.
         """
         if len(correction.replacements) == 1:
-            # language_tool_python doesn't type hint replacements correctly.
-            replacement: str = correction.replacements[0].value
-            return (
-                full_text[: correction.offset]
-                + replacement
-                + full_text[correction.offset + correction.length :]
-            )
-
+            return 0
         if correction.rule.id == "PERS_PRONOUN_AGREEMENT":
             return cls._resolve_pers_pronoun_agreement(correction, full_text)
         msg = f"Cannot resolve replacement {correction}."
@@ -190,7 +262,7 @@ class LanguageCorrecter:
         cls,
         correction: Match,
         full_text: str,
-    ) -> str:
+    ) -> int:
         """Resolves personal pronoun corrections with multiple replacements.
 
         Consult https://www.nltk.org/book/ch05.html for more information on NLTK tokens.
@@ -200,7 +272,8 @@ class LanguageCorrecter:
             full_text: The full text to correct.
 
         Returns:
-            The corrected text.
+            The index of the selected replacement.
+
         """
         verb_tense = cls._get_verb_tense(full_text, correction.offset)
 
@@ -215,8 +288,7 @@ class LanguageCorrecter:
         else:
             target_tense = verb_tense
 
-        # language_tool_python doesn't type hint replacements correctly.
-        for replacement in correction.replacements:
+        for index, replacement in enumerate(correction.replacements):
             new_sentence = (
                 full_text[: correction.offset]
                 + replacement.value
@@ -224,13 +296,13 @@ class LanguageCorrecter:
             )
             new_verb_tense = cls._get_verb_tense(new_sentence, correction.offset)
             if new_verb_tense == target_tense:
-                return new_sentence
+                return index
 
         msg = f"Could not find a suitable replacement for {correction}."
         raise ValueError(msg)
 
-    @classmethod
-    def _get_verb_tense(cls, sentence: str, verb_offset: int) -> str:
+    @staticmethod
+    def _get_verb_tense(sentence: str, verb_offset: int) -> str:
         """Gets the tense of a verb."""
         doc = NLP(sentence)
         verb = next(word for word in doc if word.idx == verb_offset)
