@@ -646,7 +646,7 @@ class PrimaryCareInformation:
             """)
 
         diseases = [
-            redcap.PriorDisease(
+            parser_models.PriorDisease(
                 name=disease,
                 was_positive=getattr(patient_data, disease),
                 age=getattr(patient_data, f"{disease}_age"),
@@ -654,15 +654,8 @@ class PrimaryCareInformation:
             )
             for disease in ("seizures", "migraines", "meningitis", "encephalitis")
         ]
-        diseases.append(
-            redcap.PriorDisease(
-                name="head injury",
-                was_positive=patient_data.head_injuries,
-                age=None,
-                treatment=None,
-            ),
-        )
-        self.prior_diseases = transformers.PriorDiseases(diseases).transform()
+        self.head_injury = patient_data.head_injury_yes
+        self.prior_diseases = transformers.PriorDiseases(diseases)
 
 
 class SocialFunctioning:

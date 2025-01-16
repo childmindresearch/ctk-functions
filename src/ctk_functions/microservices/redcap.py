@@ -429,15 +429,6 @@ class TestingAccommodations(enum.Enum):
         return self.name.replace("_", " ")
 
 
-class PriorDisease(pydantic.BaseModel):
-    """Class used for prior diseases in the Primary Care Information."""
-
-    name: str
-    was_positive: bool
-    age: str | None
-    treatment: str | None
-
-
 class Intervention(pydantic.BaseModel):
     """Information about Early Intervention and CPSE services."""
 
