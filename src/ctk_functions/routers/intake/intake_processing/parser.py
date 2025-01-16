@@ -654,6 +654,14 @@ class PrimaryCareInformation:
             )
             for disease in ("seizures", "migraines", "meningitis", "encephalitis")
         ]
+        diseases.append(
+            redcap.PriorDisease(
+                name="head injury",
+                was_positive=patient_data.head_injuries,
+                age=None,
+                treatment=None,
+            ),
+        )
         self.prior_diseases = transformers.PriorDiseases(diseases).transform()
 
 

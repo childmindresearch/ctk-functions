@@ -415,9 +415,9 @@ class PriorDiseases(MultiTransformer[redcap.PriorDisease]):
                 )}"""
         else:
             string = f"""
-                {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of:
+                {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
                 {string_utils.join_with_oxford_comma(positive_diseases)} and denied
-                any history of:
+                any history of
                 {string_utils.join_with_oxford_comma(negative_diseases)}
             """
 
