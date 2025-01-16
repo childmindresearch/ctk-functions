@@ -1107,6 +1107,8 @@ class RedCapData(pydantic.BaseModel):
     encephalitis_age: str | None
     encephalitis_treatment: str | None
     encephalitis: bool
+    head_injuries: bool
+    head_injury_yes: str | None
 
     # Family psychiatric history
 
@@ -1476,5 +1478,4 @@ def get_intake_data(mrn: str) -> RedCapData:
             records=[record_ids[0]],
         ),
     )
-
     return RedCapData.from_csv(patient_data)
