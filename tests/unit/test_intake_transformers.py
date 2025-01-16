@@ -397,7 +397,7 @@ def test_hearing_device_transformer(
         ),
         (
             redcap.EducationGrades.ONE,
-            "as {{PRONOUN_0}} receives mostly 1s",
+            "as {{PRONOUN_0}} receives mostly 1's on a 4-point scale",
         ),
         (
             redcap.EducationGrades.not_graded,
