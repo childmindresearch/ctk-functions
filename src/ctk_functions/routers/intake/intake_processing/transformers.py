@@ -382,8 +382,10 @@ class Glasses(Transformer[redcap.Glasses]):
         raise exceptions.TransformerError(msg)
 
 
-class PriorDiseases(MultiTransformer[redcap.PriorDisease]):
-    """Transformer for the prior diseases information."""
+class PriorDiseases(
+    MultiTransformer[parser_models.PriorDisease],
+):
+    """Transformer for the prior diseases' information."""
 
     def transform(self) -> str:
         """Transforms the prior diseases information to a string.

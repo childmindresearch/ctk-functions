@@ -1,6 +1,7 @@
 """Contains report writing functionality for intake information."""
 
 import asyncio
+import copy
 import enum
 import itertools
 import re
@@ -17,6 +18,7 @@ from ctk_functions.core import config
 from ctk_functions.microservices import redcap
 from ctk_functions.routers.intake.intake_processing import (
     parser,
+    parser_models,
     transformers,
     writer_llm,
 )
@@ -1067,9 +1069,30 @@ class ReportWriter:
             currently taking any medications for chronic medical conditions.""",
             f"""
             {primary_care.glasses_hearing_device}.
-            {primary_care.prior_diseases}.
             """,
         ]
+
+        prior_diseases = copy.deepcopy(primary_care.prior_diseases)
+        if primary_care.head_injury is None:
+            prior_diseases.base.append(
+                parser_models.PriorDisease(
+                    name="head injury",
+                    was_positive=False,
+                ),
+            )
+            head_injury_text = ""
+        else:
+            head_injury_text = self.llm.run_edit(
+                primary_care.head_injury,
+                additional_instruction=(
+                    "The response should be a single sentence that rephrases this "
+                    "parent's statement on their child's head injury"
+                ),
+                context=" ".join(texts),
+                comment=primary_care.head_injury,
+            )
+        texts.append(head_injury_text)
+        texts.append(prior_diseases.transform())
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
         self._insert("MEDICAL HISTORY", _StyleName.HEADING_1)

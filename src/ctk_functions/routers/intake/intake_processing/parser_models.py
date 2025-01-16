@@ -121,3 +121,12 @@ class FamilyPsychiatricHistory(CommentBaseModel, pydantic.BaseModel):
         if value is None:
             return []
         return value.lower().split(",")
+
+
+class PriorDisease(pydantic.BaseModel):
+    """Class used for prior diseases in the Primary Care Information."""
+
+    name: str
+    was_positive: bool
+    age: str | None = None
+    treatment: str | None = None
