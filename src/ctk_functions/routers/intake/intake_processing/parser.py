@@ -1,5 +1,6 @@
 """Utilities for the file conversion router."""
 
+import abc
 import math
 import re
 from datetime import datetime
@@ -104,6 +105,21 @@ class Patient:
         self.household = Household(patient_data)
         self.social_functioning = SocialFunctioning(patient_data)
 
+        if (
+            patient_data.guardian_relationship
+            == redcap.GuardianRelationship.biological_mother
+        ):
+            self.mother: PersonalRelation | None = self.guardian
+        else:
+            self.mother = next(
+                (
+                    member
+                    for member in self.household.members
+                    if member.relationship.lower() == "mother"
+                ),
+                None,
+            )
+
     @property
     def full_name(self) -> str:
         """The full name of the patient."""
@@ -160,7 +176,52 @@ class Patient:
         return gender_string
 
 
-class Guardian:
+class PersonalRelation(abc.ABC):
+    """Basic string properties for personal relationships."""
+
+    first_name: str
+    last_name: str
+    relationship: str
+
+    @property
+    def title_name(self) -> str:
+        """The full name of the relationship."""
+        return f"{self.title} {self.last_name}"
+
+    @property
+    def title_full_name(self) -> str:
+        """The full name of the relationship."""
+        return f"{self.title} {self.first_name} {self.last_name}"
+
+    @property
+    def title(self) -> str:
+        """The title of the relationship.
+
+        We scan for more keywords than are available in the descriptor to attempt
+        to catch some of the "other" cases.
+
+        Returns:
+            str: The title of the relationship based on their inferred gender.
+        """
+        female_keywords = ["mother", "aunt", "carrier", "sister"]
+        male_keywords = ["father", "uncle", "brother"]
+
+        if any(keyword in self.relationship.lower() for keyword in male_keywords):
+            return "Mr."
+        if any(keyword in self.relationship.lower() for keyword in female_keywords):
+            return "Ms./Mrs."
+        return "Mr./Ms./Mrs."
+
+    @property
+    def parent_or_guardian(self) -> str:
+        """The parent or guardian."""
+        parent_keywords = ["mother", "father"]
+        if any(keyword in self.relationship.lower() for keyword in parent_keywords):
+            return "parent"
+        return "guardian"
+
+
+class Guardian(PersonalRelation):
     """The parser for a parent or guardian."""
 
     def __init__(self, patient_data: redcap.RedCapData) -> None:
@@ -179,43 +240,6 @@ class Guardian:
                 "_",
                 " ",
             )
-
-    @property
-    def title_name(self) -> str:
-        """The full name of the guardian."""
-        return f"{self.title} {self.last_name}"
-
-    @property
-    def title_full_name(self) -> str:
-        """The full name of the guardian."""
-        return f"{self.title} {self.first_name} {self.last_name}"
-
-    @property
-    def title(self) -> str:
-        """The title of the guardian.
-
-        We scan for more keywords than are available in the descriptor to attempt
-        to catch some of the "other" cases.
-
-        Returns:
-            str: The title of the guardian based on their inferred gender.
-        """
-        female_keywords = ["mother", "aunt", "carrier", "sister"]
-        male_keywords = ["father", "uncle", "brother"]
-
-        if any(keyword in self.relationship.lower() for keyword in male_keywords):
-            return "Mr."
-        if any(keyword in self.relationship.lower() for keyword in female_keywords):
-            return "Ms./Mrs."
-        return "Mr./Ms./Mrs."
-
-    @property
-    def parent_or_guardian(self) -> str:
-        """The parent or guardian."""
-        parent_keywords = ["mother", "father"]
-        if any(keyword in self.relationship.lower() for keyword in parent_keywords):
-            return "parent"
-        return "guardian"
 
 
 class Household:
@@ -277,7 +301,7 @@ class Language(parser_models.CommentBaseModel):
         ).name
 
 
-class HouseholdMember(parser_models.CommentBaseModel):
+class HouseholdMember(parser_models.CommentBaseModel, PersonalRelation):
     """The parser for a household member."""
 
     def __init__(self, patient_data: redcap.RedCapData, identifier: int) -> None:
@@ -292,6 +316,8 @@ class HouseholdMember(parser_models.CommentBaseModel):
         self.name = all_caps_to_title(
             getattr(patient_data, f"peopleinhome{identifier}"),
         )
+        self.first_name = self.name.split()[0]
+        self.last_name = " ".join(self.name.split()[1:])
         self.age = getattr(patient_data, f"peopleinhome{identifier}_age")
         self.relationship = transformers.HouseholdRelationship(
             getattr(patient_data, f"peopleinhome{identifier}_relation"),
@@ -426,10 +452,11 @@ class Development:
             patient_data.birth_other,
         )
 
-        self.birth_complications = transformers.BirthComplications(
-            patient_data.preg_symp,
-            other=patient_data.pregnancyhistory,
-        )
+        self.prenatal_issues = [
+            symp.name.replace("_", " ") for symp in patient_data.preg_symp
+        ]
+        self.prenatal_issues_description = patient_data.pregnancyhistory
+
         self.premature_birth = bool(patient_data.premature)
         self.premature_birth_specify = patient_data.premature_specify
         self.adaptability = transformers.Adaptability(

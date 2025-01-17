@@ -9,6 +9,7 @@ For strings too complicated for the transformers, a large language model is used
 
 import abc
 import enum
+import re
 from typing import Generic, TypeVar
 
 from ctk_functions.core import exceptions
@@ -134,45 +135,6 @@ class IndividualizedEducationProgram(
         )
 
 
-class BirthComplications(
-    MultiTransformer[redcap.BirthComplications],
-):
-    """The transformer for birth complications."""
-
-    def transform(self) -> str:
-        """Transforms the birth complications information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if (
-            redcap.BirthComplications.none_of_the_above in self.base
-            and len(self.base) > 1
-        ):
-            return """MANUAL INTERVENTION REQUIRED: 'None of the above' should not
-            be selected with other birth complications."""
-        if redcap.BirthComplications.none_of_the_above in self.base:
-            return "no birth complications"
-
-        names = []
-        for val in self.base:
-            if val == redcap.BirthComplications.other_illnesses:
-                if self.other is None:
-                    names.append("an unspecified illness")
-                else:
-                    names.append(self.other)
-            else:
-                names.append(val.name.replace("_", " "))
-        if len(names) == 1:
-            return f"the following birth complication: {names[0]}"
-        return (
-            "the following birth complications: "
-            + string_utils.join_with_oxford_comma(
-                names,
-            )
-        )
-
-
 class DurationOfPregnancy(Transformer[str | None]):
     """The transfomer for time of pregnancy."""
 
@@ -192,7 +154,15 @@ class DurationOfPregnancy(Transformer[str | None]):
             duration_of_pregnancy = float(self.base)
         except ValueError:
             parts = self.base.split()
-            if len(parts) == 2 and parts[0].isnumeric() and parts[1].lower() == "weeks":  # noqa: PLR2004
+            numeric_pattern = (
+                r"[0-9]{2}"  # A 2-digit number
+                r"((\.|\,)[0-9])?"  # Optionally a period or comma followed by 1 number.
+            )
+            if (
+                len(parts) == 2  # noqa: PLR2004
+                and re.match(numeric_pattern, parts[0])
+                and parts[1].lower() == "weeks"
+            ):
                 # Common edge case: guardian writes "40 weeks".
                 # This doesn't need additional quotes.
                 return self.base.lower()

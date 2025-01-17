@@ -10,10 +10,7 @@ def test_guardian_parser(
     test_redcap_data: redcap.RedCapData,
 ) -> None:
     """Tests the Guardian intake form parser."""
-    expected_relationship = test_redcap_data.guardian_relationship.name.replace(
-        "_",
-        " ",
-    )
+    expected_relationship = test_redcap_data.guardian_relationship
 
     guardian = parser.Guardian(test_redcap_data)
 
