@@ -659,11 +659,7 @@ class ReportWriter:
                 of where they speak them and their fluency.
 
                 Your task is to write a paragraph for the home functioning of
-                this patient. Do not include headers. Only the occupations of
-                adults in the household should be included, do not
-                include grades for children. Summarize the relationship with the
-                family as shortly as possible even if they are different. For example
-                you may merge 'fair' and 'excellent' relationships as 'positive'.
+                this patient.
 
                 Languages spoken in the household are as follows:
                 {string_utils.join_with_oxford_comma([language.name for language in
@@ -674,7 +670,7 @@ class ReportWriter:
                 "{patient.first_name} lives in {household.city}, {household.state},
                 with {patient.pronouns[2]} biological parents,
                 brother (age 10) and sister (age 15). The family is intact.
-                CHILDNAME's mother, MOTHER FIRST AND LAST NAME (age), is a
+                {patient.first_name}'s mother, MOTHER FIRST AND LAST NAME (age), is a
                 teacher, and {patient.pronouns[2]} father, FATHER FIRST
                 AND LAST NAME (age), is a fireman. {patient.first_name} has
                 mixed relationships with {patient.pronouns[2]} family members.
@@ -688,11 +684,20 @@ class ReportWriter:
                 If only one language is spoken at home, the final paragraph may be
                 simplified to e.g. "English is the only language spoken in the home".
 
-                Stick to the provided format wherein the children's ages are
-                mentioned in the first sentence, but adults' ages are mentioned
-                with their introduction. Ensure that both the city ({household.city})
-                and the state ({household.state}) are included.
-            """,
+                Ensure you abide by the following rules:
+                    - Do not include headers.
+                    - Only the occupations of adults in the household should be included.
+                    - Do not include grades for children.
+                    - Summarize the relationship with the family as shortly as possible
+                      even if they are different. For example  you may merge 'fair'
+                      and 'excellent' relationships as 'positive'.
+                    - Stick to the provided format wherein the children's ages are
+                      mentioned in the first sentence, but adults' ages are mentioned
+                      with their introduction.
+                    - Ensure that the city ({household.city}) is included.
+                    - Ensure that the state ({household.state}) is included.
+                    - Do not include sibling names.
+            """,  # noqa: E501
             verify=True,
             comment=comment_text,
         )
