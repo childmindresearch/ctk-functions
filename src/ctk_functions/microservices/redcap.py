@@ -162,8 +162,8 @@ class EducationPerformance(enum.Enum):
     failing = "5"
 
 
-class BirthComplications(enum.Enum):
-    """The birth complications experienced by the patient."""
+class PrenatalIssues(enum.Enum):
+    """The prenatal issues experienced by the mother."""
 
     spotting_or_vaginal_bleeding = "1"
     emotional_problems = "2"
@@ -1335,10 +1335,10 @@ class RedCapData(pydantic.BaseModel):
         return household_languages
 
     @property
-    def preg_symp(self) -> list[BirthComplications]:
+    def preg_symp(self) -> list[PrenatalIssues]:
         """The pregnancy symptoms."""
         return [
-            BirthComplications(str(index))
+            PrenatalIssues(str(index))
             for index in range(1, 21)
             if getattr(self, f"preg_symp___{index}")
         ]

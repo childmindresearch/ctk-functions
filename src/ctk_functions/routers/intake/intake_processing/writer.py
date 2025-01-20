@@ -273,27 +273,46 @@ class ReportWriter:
         logger.debug("Writing the prenatal history to the report.")
         patient = self.intake.patient
         development = patient.development
-        pregnancy_symptoms = development.birth_complications
-        delivery = development.delivery
-        delivery_location = development.delivery_location
-        adaptability = development.adaptability
-        duration_of_pregnancy = development.duration_of_pregnancy
+        mother_name = patient.mother.title_name if patient.mother else "[MOTHER NAME]"
 
         birth_sentence = f"""
-            {patient.first_name} was born at {duration_of_pregnancy} of
-            gestation with {delivery} at {delivery_location}.
+            {patient.first_name} was born at {development.duration_of_pregnancy} of
+            gestation with {development.delivery} at {development.delivery_location}.
         """
 
-        if delivery.base == redcap.BirthDelivery.cesarean:
+        if development.prenatal_issues:
+            prenatal_sentence = self.llm.run_edit(
+                text=f"""
+                    {mother_name}'s prenatal period was remarkable for
+                    {development.prenatal_issues} and
+                    "{development.prenatal_issues_description}.".
+                """,
+                comment=f"""
+                    Reported issues: {development.prenatal_issues}.\n\n
+                    Further description: {development.prenatal_issues_description}.
+                """,
+                additional_instruction=f"""The output should contain only a single
+                sentence. Your goal is to merge the quoted text in naturally.
+                Do not alter the '{mother_name}'s prenatal period was remarkable for'
+                snippet. Report only complications that occurred i.e. do not use
+                phrases like "with no other complications".""",
+            )
+        else:
+            prenatal_sentence = (
+                f"{patient.guardian.title_name} reported an "
+                "uncomplicated prenatal period."
+            )
+
+        if development.delivery.base == redcap.BirthDelivery.cesarean:
             # Contains a quote by the parent.
             birth_sentence = self.llm.run_edit(birth_sentence, comment=birth_sentence)
 
         text = f"""
-            {patient.guardian.title_name} reported {pregnancy_symptoms}.
-            {birth_sentence} {patient.first_name} had {adaptability}
-            during infancy and was {development.soothing_difficulty.name} to
-            soothe.
+            {prenatal_sentence} {birth_sentence} {patient.first_name} had
+            {development.adaptability} during infancy and was
+            {development.soothing_difficulty.name} to soothe.
         """
+
         text = string_utils.remove_excess_whitespace(text)
         if development.infant_difficulties.any():
             placeholder = self.llm.run_with_object_input(

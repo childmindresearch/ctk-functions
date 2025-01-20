@@ -36,45 +36,6 @@ def test_individualized_education_program_transformer(
     ("value", "expected", "other"),
     [
         (
-            [redcap.BirthComplications.none_of_the_above],
-            "no birth complications",
-            None,
-        ),
-        (
-            [redcap.BirthComplications.spotting_or_vaginal_bleeding],
-            "the following birth complication: spotting or vaginal bleeding",
-            None,
-        ),
-        (
-            [
-                redcap.BirthComplications.emotional_problems,
-                redcap.BirthComplications.diabetes,
-            ],
-            "the following birth complications: emotional problems and diabetes",
-            None,
-        ),
-        (
-            [redcap.BirthComplications.other_illnesses],
-            "the following birth complication: tester",
-            "tester",
-        ),
-    ],
-)
-def test_birth_complications_transformer(
-    value: list[redcap.BirthComplications],
-    expected: str,
-    other: str | None,
-) -> None:
-    """Test that the BirthComplications transformer returns the expected strings."""
-    transformer = transformers.BirthComplications(value, other)
-
-    assert str(transformer) == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected", "other"),
-    [
-        (
             redcap.BirthDelivery.unknown,
             "an unknown type of delivery",
             None,
@@ -301,6 +262,7 @@ def test_household_relationship_transformer(
         ("42", "42 weeks"),
         ("42.5", "42.5 weeks"),
         ("40 weeks", "40 weeks"),
+        ("40.3 weeks", "40.3 weeks"),
         ("9 months", '"9 months"'),
         ("non$en$e", '"non$en$e"'),
     ],
