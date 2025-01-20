@@ -10,14 +10,12 @@ def test_guardian_parser(
     test_redcap_data: redcap.RedCapData,
 ) -> None:
     """Tests the Guardian intake form parser."""
-    expected_relationship = test_redcap_data.guardian_relationship
-
     guardian = parser.Guardian(test_redcap_data)
 
     assert guardian.first_name == test_redcap_data.guardian_first_name
     assert guardian.last_name == test_redcap_data.guardian_last_name
     assert guardian.title_name == f"Ms./Mrs. {guardian.last_name}"
-    assert guardian.relationship == expected_relationship
+    assert guardian.relationship == "mother"
 
 
 def test_guardian_parser_other_relationship(
