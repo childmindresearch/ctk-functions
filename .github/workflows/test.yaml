@@ -19,6 +19,7 @@ jobs:
         - 8001:8001
         env:
           PORT: 8001
+          CONFIG_JSON: {clients: {}}
     env:
       LANGUAGE_TOOL_URL: http://localhost:8010/v2
       AWS_ACCESS_KEY_ID: test
