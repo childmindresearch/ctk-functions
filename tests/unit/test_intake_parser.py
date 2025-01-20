@@ -15,7 +15,7 @@ def test_guardian_parser(
     assert guardian.first_name == test_redcap_data.guardian_first_name
     assert guardian.last_name == test_redcap_data.guardian_last_name
     assert guardian.title_name == f"Ms./Mrs. {guardian.last_name}"
-    assert guardian.relationship == "mother"
+    assert guardian.relationship == "biological mother"
 
 
 def test_guardian_parser_other_relationship(
