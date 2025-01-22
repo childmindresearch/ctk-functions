@@ -380,6 +380,14 @@ class Education:
             patient_data.current_grades,
         ).transform()
         self.school_functioning = patient_data.school_func
+        self.detention = patient_data.detention_summary
+        self.suspensions = patient_data.suspension_summary
+        self.expulsion = patient_data.expulsion_summary
+        self.difficulty_starting_school = patient_data.concerns_startingschool
+        self.identified_learning_disabilities = (
+            patient_data.concerns_learningdisabilities
+        )
+        self.repeated_grades = patient_data.concerns_repeatedgrades
         self.concerns = patient_data.subject_weaknesses_det
 
 
@@ -434,7 +442,7 @@ class Development:
     """The parser for the patient's development history."""
 
     def __init__(self, patient_data: redcap.RedCapData) -> None:
-        """Initalizes the development history.
+        """Initializes the development history.
 
         Args:
             patient_data: The patient dataframe.
@@ -453,7 +461,9 @@ class Development:
         )
 
         self.prenatal_issues = [
-            symp.name.replace("_", " ") for symp in patient_data.preg_symp
+            symp.name.replace("_", " ")
+            for symp in patient_data.preg_symp
+            if symp is not redcap.PrenatalIssues.none_of_the_above
         ]
         self.prenatal_issues_description = patient_data.pregnancyhistory
 
