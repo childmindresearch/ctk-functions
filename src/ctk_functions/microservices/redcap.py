@@ -859,6 +859,13 @@ class RedCapData(pydantic.BaseModel):
     yrs_school: str
     subject_weaknesses_det: str | None
 
+    detention_summary: str | None
+    suspension_summary: str | None
+    expulsion_summary: str | None
+    concerns_startingschool: str | None
+    concerns_learningdisabilities: str | None
+    concerns_repeatedgrades: str | None
+
     # Child languages
 
     child_language1: str | None

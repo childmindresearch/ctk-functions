@@ -595,16 +595,23 @@ class ReportWriter:
                 {education.grades}.
             """,
         )
-        if education.school_functioning:
+
+        parent_reports = {
+            "school functioning": education.school_functioning,
+            "detention": education.detention,
+            "suspensions": education.suspensions,
+        }
+        parent_reports = {key: value for key, value in parent_reports.items() if value}
+        if parent_reports:
             placeholder_id = self.llm.run_text_with_parent_input(
                 text=f"{patient.guardian.title_name} reported that {PLACEHOLDER}.",
-                parent_input=f"""
-                    Details on school functioning: {education.school_functioning}
-                """,
+                parent_input=str(parent_reports),
                 context=" ".join(texts),
                 comment=(
                     f"{patient.guardian.title_name} reported: "
-                    f"{education.school_functioning}."
+                    + "\n\n".join(
+                        f"{key}: {value!s}" for key, value in parent_reports.items()
+                    )
                 ),
             )
         else:
