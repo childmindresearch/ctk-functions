@@ -1148,11 +1148,8 @@ class ReportWriter:
         logger.debug("Writing the current psychiatric medications to the report.")
         patient = self.intake.patient
         text = f"""
-            {patient.first_name} is currently prescribed a daily/twice daily
-            oral course of {PLACEHOLDER} for {PLACEHOLDER}.
-            {patient.pronouns[0].capitalize()} is being treated by Doctortype,
-            DoctorName, monthly/weekly/biweekly. The medication has been
-            ineffective/effective.
+            {patient.first_name} is not currently prescribed any psychiatric
+            medications.
         """
         text = string_utils.remove_excess_whitespace(text)
 
