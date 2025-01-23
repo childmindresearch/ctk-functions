@@ -156,11 +156,13 @@ class StringToInt:
 
 def join_with_oxford_comma(
     items: Sequence[str],
+    join_word: str = "and",
 ) -> str:
     """Joins a list of items with an Oxford comma.
 
     Args:
         items: The items to be joined.
+        join_word: The word used to join items, defaults to "and".
 
     Returns:
         str: The joined string.
@@ -170,8 +172,8 @@ def join_with_oxford_comma(
     if len(items) == 1:
         return items[0]
     if len(items) == 2:  # noqa: PLR2004
-        return f"{items[0]} and {items[1]}"
-    return f"{', '.join(items[:-1])}, and {items[-1]}"
+        return f"{items[0]} {join_word} {items[1]}"
+    return f"{', '.join(items[:-1])}, {join_word} {items[-1]}"
 
 
 def ordinal_suffix(number: int | str) -> str:
