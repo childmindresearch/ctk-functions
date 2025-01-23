@@ -1123,7 +1123,7 @@ class ReportWriter:
                 comment=primary_care.head_injury,
             )
         texts.append(head_injury_text)
-        texts.append(prior_diseases.transform())
+        texts.append(prior_diseases.transform() + ".")
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
         self._insert("MEDICAL HISTORY", _StyleName.HEADING_1)

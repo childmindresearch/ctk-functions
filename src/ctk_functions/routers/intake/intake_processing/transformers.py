@@ -136,7 +136,7 @@ class IndividualizedEducationProgram(
 
 
 class DurationOfPregnancy(Transformer[str | None]):
-    """The transfomer for time of pregnancy."""
+    """The transformer for time of pregnancy."""
 
     def transform(self) -> str:
         """Transforms the time of pregnancy information to a string.
@@ -384,13 +384,14 @@ class PriorDiseases(
                 {ReplacementTags.REPORTING_GUARDIAN.value} denied any history of
                 {string_utils.join_with_oxford_comma(
                     [disease.name for disease in self.base],
+                    join_word="or"
                 )}"""
         else:
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
                 {string_utils.join_with_oxford_comma(positive_diseases)} and denied
                 any history of
-                {string_utils.join_with_oxford_comma(negative_diseases)}
+                {string_utils.join_with_oxford_comma(negative_diseases, join_word="or")}
             """
 
         return string_utils.remove_excess_whitespace(string)
