@@ -562,10 +562,13 @@ class ReportWriter:
                 education.iep_services,
                 comment=", ".join(str(service) for service in education.iep_services),
                 context=texts[0],
-                additional_instruction="""
+                additional_instruction=f"""
                     Write the IEP services that the child had access to.
                     If no date or frequency are reported, do not mention
                     that these are not reported; simply omit this information.
+
+                    The phrase should start with: "{patient.pronouns[0].capitalize()}
+                    maintained an IEP allowing for "
                 """,
             )
         else:
