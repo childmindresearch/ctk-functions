@@ -1151,7 +1151,6 @@ class ReportWriter:
             self.intake.patient.psychiatric_history.medications.current_medication
         )
 
-        self._insert("Past Psychiatric Medications", _StyleName.HEADING_2)
         if not medications:
             text = f"""
                 {patient.first_name} is not currently prescribed any psychiatric
