@@ -1147,17 +1147,45 @@ class ReportWriter:
         """Writes the current psychiatric medications to the report."""
         logger.debug("Writing the current psychiatric medications to the report.")
         patient = self.intake.patient
-        text = f"""
-            {patient.first_name} is not currently prescribed any psychiatric
-            medications.
-        """
-        text = string_utils.remove_excess_whitespace(text)
+        medications = (
+            self.intake.patient.psychiatric_history.medications.current_medication
+        )
+
+        self._insert("Past Psychiatric Medications", _StyleName.HEADING_2)
+        if not medications:
+            text = f"""
+                {patient.first_name} is not currently prescribed any psychiatric
+                medications.
+            """
+            text = string_utils.remove_excess_whitespace(text)
+        else:
+            text = self.llm.run_with_object_input(
+                medications,
+                comment="\n\n".join(str(med) for med in medications),
+                additional_instruction=f"""
+                    You will be given a list of current medications taken by a patient.
+                    Your job is to write a paragraph appropriate for a clinical report
+                    based on this list. Ensure that the phrasing is appropriate for such
+                    a report, i.e. if the parent's phrasing is informal or otherwise
+                    inappropriate, feel free to change the phrasing without altering
+                    the underlying message.
+
+                    The format should be as follows:
+                    "{patient.first_name} is current prescribed paracetamol 5mg and
+                    Ritalin 5mg for symptoms of hyperactivity.
+                    {patient.pronouns[0].capitalize()} is being treated by
+                    doctor [NAME], MD. This medication has been effective."
+
+                    If any piece of information is not present in the input data,
+                    for example the doctor's name is "don't know", then place a
+                    [UNKNOWN NAME] tag where this information should go, where the
+                    word NAME may be replaced by the appropriate tag.
+                """,
+                verify=True,
+            )
 
         self._insert("Current Psychiatric Medications", _StyleName.HEADING_2)
-        paragraph = self._insert(text)
-        cmi_docx.ExtendParagraph(paragraph).format(
-            cmi_docx.ParagraphStyle(font_rgb=_RGB.UNRELIABLE.value),
-        )
+        self._insert(text)
         self._insert("")
 
     def write_current_psychiatric_medications_testing(self) -> None:
@@ -1396,7 +1424,7 @@ class ReportWriter:
         return text
 
     def _write_basic_psychiatric_history(self, label: str, report: str | None) -> str:
-        """Writes the ACS involvement to the report."""
+        """Writes the basic template for psychiatric history to the report."""
         if not report:
             text = f"""
                 {self.intake.patient.guardian.title_name} denied any history of

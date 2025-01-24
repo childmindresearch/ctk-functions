@@ -391,7 +391,7 @@ class Education:
         self.concerns = patient_data.subject_weaknesses_det
 
 
-class PsychiatricMedication:
+class PsychiatricMedication(parser_models.CommentBaseModel):
     """The parser for psychiatric medication."""
 
     def __init__(self, patient_data: redcap.RedCapData) -> None:
