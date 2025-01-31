@@ -513,7 +513,11 @@ class ReportWriter:
         else:
             concern_instructions = f"""
                 {patient.guardian.title_name} reported the following overall concerns:
-                "{patient.education.concerns}".
+                "{patient.education.concerns}". Do your best to include these concerns
+                where they chronologically make sense e.g. if concerns started in grade
+                6, then include them with the school where the child was in grade 6.
+                If no chronology can be derived, place these concerns at the start of
+                the text.
             """
 
         placeholder_id = self.llm.run_with_object_input(
@@ -521,8 +525,7 @@ class ReportWriter:
             additional_instruction=f"""
                 {concern_instructions}
 
-                Try to keep the text as concise as possible. THE TEXT SHOULD BE A
-                SINGLE PARAGRAPH!
+                Keep the text as concise as possible.
 
                 Include only information that may be pertinent to the child's
                 mental health. For example, if the child had strong negative
@@ -532,9 +535,13 @@ class ReportWriter:
                 schools.
             """,
             comment="\n\n".join(
-                [str(school) for school in patient.education.past_schools]
-                + [concern_instructions],
+                [
+                    f"{patient.guardian.title_name} reported the following overall "
+                    f"concerns: {patient.education.concerns}",
+                ]
+                + [str(school) for school in patient.education.past_schools],
             ),
+            verify=True,
         )
 
         self._insert("Educational History", _StyleName.HEADING_2)
