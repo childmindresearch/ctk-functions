@@ -33,6 +33,13 @@ class Settings(pydantic_settings.BaseSettings):
         ),
     )
 
+    MSSQL_USER: str
+    MSSQL_PASSWORD: pydantic.SecretStr
+    MSSQL_HOST: str
+    MSSQL_PORT: int
+    MSSQL_DATABASE: str
+    MSSQL_DRIVER: str
+
     @pydantic.model_validator(mode="after")
     def check_phi_logging(self) -> Self:
         """Checks if the PHI logging level is set too low."""
