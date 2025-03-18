@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import cmi_docx
 import sqlalchemy
 from docx import document
 
@@ -38,7 +39,6 @@ class Mfq(base.BaseTable):
         Args:
             doc: The Word document.
         """
-        doc.add_paragraph("Age Norms:")
         header_texts = [
             "Subscales",
             "Parent",
@@ -48,9 +48,20 @@ class Mfq(base.BaseTable):
         table = doc.add_table(2, len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
+        clinical_cutoff = 26
 
         row = table.rows[1].cells
         row[0].text = "Total Score"
         row[1].text = str(self._data_no_none.MFQ_P_Total)
         row[2].text = str(self._data_no_none.MFQ_SR_Total)
-        row[3].text = ">26 = cutoff for clinical concern"
+        row[3].text = f">{clinical_cutoff} = cutoff for clinical concern"
+
+        if self._data_no_none.MFQ_P_Total > clinical_cutoff:
+            cmi_docx.ExtendCell(row[1]).format(
+                cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            )
+
+        if self._data_no_none.MFQ_P_Total > clinical_cutoff:
+            cmi_docx.ExtendCell(row[2]).format(
+                cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            )

@@ -1,5 +1,6 @@
 """Unit tests for table utilities."""
 
+import cmi_docx
 import docx
 import pytest
 from docx import table
@@ -100,3 +101,98 @@ def test_standard_score_to_percentile(score: int, expected_percentile: int) -> N
     """Test converting standard scores to percentiles."""
     percentile = utils.standard_score_to_percentile(score)
     assert percentile == expected_percentile
+
+
+def test_clinical_relevance_init_with_valid_parameters() -> None:
+    """Test initialization with valid parameters."""
+    low = 10
+    high = 20
+    label = "Normal"
+
+    actual = utils.ClinicalRelevance(
+        low=low,
+        high=high,
+        label=label,
+        style=cmi_docx.TableStyle(),
+    )
+
+    assert actual.low == low
+    assert actual.high == high
+    assert actual.label == "Normal"
+
+
+def test_clinical_relevance_init_with_missing_low_high() -> None:
+    """Test initialization without low/high parameters."""
+    with pytest.raises(
+        ValueError,
+        match="At least one of low or high must not be None.",
+    ):
+        utils.ClinicalRelevance(
+            low=None,
+            high=None,
+            label="",
+            style=cmi_docx.TableStyle(),
+        )
+
+
+def test_clinical_relevance_init_with_invalid_low_high() -> None:
+    """Test initialization without low/high parameters."""
+    with pytest.raises(ValueError, match="Low must be lower than high."):
+        utils.ClinicalRelevance(low=1, high=0, label="", style=cmi_docx.TableStyle())
+
+
+@pytest.mark.parametrize(
+    ("low", "high", "label", "expected"),
+    [
+        (10, 20, "LABEL", "10-20 = LABEL"),
+        (10, None, "LABEL", ">10 = LABEL"),
+        (None, 10, "LABEL", "<10 = LABEL"),
+        (10, None, None, ">10"),
+    ],
+)
+def test_clinical_relevance_strings(
+    low: int,
+    high: int,
+    label: str | None,
+    expected: str,
+) -> None:
+    """Tests the string representation of ClinicalRelevance."""
+    cr = utils.ClinicalRelevance(
+        low=low,
+        high=high,
+        label=label,
+        style=cmi_docx.TableStyle(),
+    )
+
+    assert str(cr) == expected
+
+
+@pytest.mark.parametrize(
+    ("low", "high", "value", "expected"),
+    [
+        (1, 10, 5, True),
+        (1, 10, 11, False),
+        (1, 10, -1, False),
+        (None, 10, 9, True),
+        (None, 10, 10, True),
+        (None, 10, 11, False),
+        (1, None, 1, False),
+        (1, None, -1, False),
+        (1, None, 2, True),
+    ],
+)
+def test_clinical_relevance_in_range(
+    low: int | None,
+    high: int | None,
+    value: int,
+    expected: bool,  # noqa: FBT001
+) -> None:
+    """Tests that the in_range function evaluates correctly."""
+    cr = utils.ClinicalRelevance(
+        low=low,
+        high=high,
+        label="",
+        style=cmi_docx.TableStyle(),
+    )
+
+    assert cr.in_range(value) == expected

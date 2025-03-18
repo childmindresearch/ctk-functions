@@ -23,7 +23,7 @@ class ClinicalRelevance(pydantic.BaseModel):
 
     low: int | None
     high: int | None
-    label: str
+    label: str | None
     style: cmi_docx.TableStyle
 
     def in_range(self, value: float) -> bool:
@@ -55,7 +55,10 @@ class ClinicalRelevance(pydantic.BaseModel):
             value = f">{self.low}"
         else:
             value = f"{self.low}-{self.high}"
-        return f"{value} = {self.label}"
+
+        if self.label:
+            return f"{value} = {self.label}"
+        return value
 
     @pydantic.model_validator(mode="after")
     def check_low_and_high(self) -> Self:

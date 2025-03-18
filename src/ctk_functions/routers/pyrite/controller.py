@@ -22,6 +22,7 @@ from ctk_functions.routers.pyrite.tables import (
     gars,
     grooved_pegboard,
     mfq,
+    scared,
     scq,
     srs,
     swan,
@@ -62,6 +63,7 @@ class ParticipantTables:
         self.grooved_pegboard = grooved_pegboard.GroovedPegboard(eid=self.eid)
         self.mfq = mfq.Mfq(eid=self.eid)
         self.srs = srs.Srs(eid=self.eid)
+        self.scared = scared.Scared(eid=self.eid)
         self.scq = scq.Scq(eid=self.eid)
         self.swan = swan.Swan(eid=self.eid)
         self.wisc_composite = wisc_composite.WiscComposite(eid=self.eid)
@@ -225,6 +227,13 @@ class PyriteReport:
                 level=1,
             )
             self._tables.mfq.add(self.document)
+            self.document.add_paragraph()
+        if self._tables.scared.data:
+            self.document.add_heading(
+                "Screen for Child Anxiety Related Disorders",
+                level=1,
+            )
+            self._tables.scared.add(self.document)
             self.document.add_paragraph()
 
         self._replace_participant_information()

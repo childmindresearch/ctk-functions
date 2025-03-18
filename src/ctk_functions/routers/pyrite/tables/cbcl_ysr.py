@@ -63,57 +63,57 @@ ROW_LABELS = {
     key: (
         base.TScoreRow(
             name="Anxious/Depressed",
-            column=f"{key.upper()}_AD_T",
+            column=f"{key}_AD_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Withdrawn/Depressed",
-            column=f"{key.upper()}_WD_T",
+            column=f"{key}_WD_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Somatic Complaints",
-            column=f"{key.upper()}_SC_T",
+            column=f"{key}_SC_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Social Problems",
-            column=f"{key.upper()}_SP_T",
+            column=f"{key}_SP_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Thought Problems",
-            column=f"{key.upper()}_TP_T",
+            column=f"{key}_TP_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Attention Problems",
-            column=f"{key.upper()}_AP_T",
+            column=f"{key}_AP_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Rule Breaking Behaviors",
-            column=f"{key.upper()}_RBB_T",
+            column=f"{key}_RBB_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Aggressive Behaviors",
-            column=f"{key.upper()}_AB_T",
+            column=f"{key}_AB_T",
             relevance=CLINICAL_RELEVANCE_HIGH,
         ),
         base.TScoreRow(
             name="Internalizing (Emotional) Problems",
-            column=f"{key.upper()}_Int_T",
+            column=f"{key}_Int_T",
             relevance=CLINICAL_RELEVANCE_LOW,
         ),
         base.TScoreRow(
             name="Externalizing (Behavioral) Problems",
-            column=f"{key.upper()}_Ext_T",
+            column=f"{key}_Ext_T",
             relevance=CLINICAL_RELEVANCE_LOW,
         ),
         base.TScoreRow(
             name="Total Problems",
-            column=f"{key.upper()}_Total_T",
+            column=f"{key}_Total_T",
             relevance=CLINICAL_RELEVANCE_LOW,
         ),
     )
