@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="console.sql" type="DatabaseScript" editBeforeRun="true" nameIsGenerated="true">
+    <script-file value="$APPLICATION_CONFIG_DIR$/consoles/db/1785eec1-bce1-481e-936b-5781237c4ff7/console.sql" />
+    <script-mode>FILE</script-mode>
+    <data-source id="1785eec1-bce1-481e-936b-5781237c4ff7" namespace="database/&quot;HBNODSDEV&quot;" />
+    <method v="2" />
+  </configuration>
+</component>

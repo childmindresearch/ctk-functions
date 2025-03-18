@@ -14,3 +14,15 @@ class PostMarkdown2DocxRequest(pydantic.BaseModel):
 
     markdown: str
     formatting: cmi_docx.ParagraphStyle | None = None
+
+
+class PostReferralTableDocxRequest(pydantic.BaseModel):
+    """Definition of the referral table request.
+
+    Attributes:
+        title: The title of the referral table.
+        row_data: The contents of the referral table as a list of rows.
+    """
+
+    title: str
+    row_data: list[list[str]]

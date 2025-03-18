@@ -29,3 +29,17 @@ def markdown2docx(body: schemas.PostMarkdown2DocxRequest) -> fastapi.Response:
         content=docx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
+
+
+@router.post("/referral_table_docx")
+def referral_table_docx(body: schemas.PostReferralTableDocxRequest) -> fastapi.Response:
+    logger.info("Converting Referral Table to .docx")
+    docx_bytes = controller.create_referral_table_docx(
+        title=body.title,
+        row_data=body.row_data,
+    )
+    logger.info("Converted Referral Table to .docx")
+    return fastapi.Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )

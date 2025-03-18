@@ -1,5 +1,6 @@
 """Functions for converting files between different formats."""
 
+import io
 import pathlib
 import re
 import tempfile
@@ -9,6 +10,49 @@ import docx
 import pypandoc
 from docx import document, shared
 from docx.oxml import ns
+
+from ctk_functions.core import config
+
+settings = config.get_settings()
+
+
+def create_referral_table_docx(
+    title: str,
+    row_data: list[list[str]],
+) -> bytes:
+    doc = docx.Document(
+        str(settings.DATA_DIR / "referral_table_template.docx"),
+    )
+    doc.add_paragraph(title, "Heading 1")
+    table = doc.add_table(rows=len(row_data), cols=len(row_data[0]))
+    table.style = "Table Grid"
+    for row_index, (row, data) in enumerate(zip(table.rows, row_data, strict=True)):
+        for col_index, (cell, cell_data) in enumerate(
+            zip(row.cells, data, strict=True),
+        ):
+            cell.text = cell_data
+            if row_index == 0:  # Header row
+                cmi_docx.ExtendCell(cell).format(
+                    cmi_docx.TableStyle(
+                        paragraph=cmi_docx.ParagraphStyle(
+                            bold=True,
+                            font_size=13,
+                        ),
+                    ),
+                )
+            elif col_index == 0:
+                cmi_docx.ExtendCell(cell).format(
+                    cmi_docx.TableStyle(
+                        paragraph=cmi_docx.ParagraphStyle(
+                            bold=True,
+                            font_size=12,
+                        ),
+                    ),
+                )
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    return buffer.getvalue()
 
 
 def markdown2docx(
