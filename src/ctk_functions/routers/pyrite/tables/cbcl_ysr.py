@@ -59,10 +59,13 @@ class ClinicalRelevance(pydantic.BaseModel):
         return f"{value} = {self.label}"
 
     @pydantic.model_validator(mode="after")
-    def check_low_or_high(self) -> Self:
-        """Ascertains that at least one of low and high is set."""
+    def check_low_and_high(self) -> Self:
+        """Ascertains low/high are set correctly."""
         if not self.low and not self.high:
             msg = "At least one of low or high must not be None."
+            raise ValueError(msg)
+        if self.low and self.high and self.low >= self.high:
+            msg = "Low must be lower than high."
             raise ValueError(msg)
         return self
 
