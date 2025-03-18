@@ -19,8 +19,8 @@ dependencies = [
   "jsonpickle>=4.0.1",
   "tenacity>=9.0.0",
   "cmi-docx>=0.3.11",
-  "pyodbc>=5.2.0",
-  "sqlalchemy>=2.0.39"
+  "sqlalchemy>=2.0.39",
+  "pyodbc>=5.2.0"
 ]
 
 [tool.uv]
