@@ -22,7 +22,7 @@ class Celf5(base.BaseTable):
             The participant's CELF-5 table row.
         """
         statement = sqlalchemy.select(models.t_I2B2_Export_CELF_t).where(
-            self.eid == models.t_I2B2_Export_CELF_t.c.EID,
+            self.eid == models.t_I2B2_Export_CELF_t.c.EID,  # type: ignore[arg-type]
         )
         with client.get_session() as session:
             return session.execute(statement).fetchone()

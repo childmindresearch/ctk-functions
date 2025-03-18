@@ -32,7 +32,7 @@ class BaseTable(pydantic.BaseModel, abc.ABC):
         if self.data is None:
             msg = "Data is None, cannot add this table."
             raise TableDataNotFoundError(msg)
-        return self.data  # type-ignore: [return-value]
+        return self.data  # type: ignore[return-value] # Mypy incorrectly identifies data as Callable.
 
     @abc.abstractmethod
     def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
@@ -48,8 +48,6 @@ class BaseTable(pydantic.BaseModel, abc.ABC):
         doc: document.Document,
     ) -> None:
         """Adds the table to the document.
-
-        This hidden method may assume data is not None
 
         Args:
             doc: The Word document.

@@ -31,14 +31,21 @@ def add_header(tbl: table.Table, headers: Iterable[str]) -> None:
 
 
 def set_index_column_name_or_merge(
-    table: table.Table,
+    tbl: table.Table,
     label: str,
     row_index: int,
     col_index: int = 0,
 ) -> None:
-    """Merges cells if the previous row has the same name."""
-    prev_row = table.rows[row_index - 1].cells
-    row = table.rows[row_index].cells
+    """Merges cells if the previous row has the same name.
+
+    Args:
+        tbl: The table to modify.
+        label: The label to add or merge.
+        row_index: The row index of the target cell.
+        col_index: The column index of the target cell.
+    """
+    prev_row = tbl.rows[row_index - 1].cells
+    row = tbl.rows[row_index].cells
     if prev_row[col_index].text == label:
         prev_row[col_index].merge(row[col_index])
     else:
@@ -46,7 +53,14 @@ def set_index_column_name_or_merge(
 
 
 def standard_score_to_qualifier(score: int) -> str:  # noqa: PLR0911
-    """Converts standard score to a qualifier."""
+    """Converts standard score to a qualifier.
+
+    Args:
+        score: The standard score to convert.
+
+    Returns:
+        The corresponding qualifier.
+    """
     if score <= 59:
         return "extremely low"
     if score <= 69:
@@ -67,13 +81,13 @@ def standard_score_to_qualifier(score: int) -> str:  # noqa: PLR0911
 
 
 def standard_score_to_percentile(score: int) -> int:  # noqa: C901, PLR0911, PLR0912, PLR0915
-    """Maps a standard value to a corresponding value based on predefined ranges.
+    """Maps a standard score to a percentile rating.
 
     Args:
-        score: The standard value to be mapped.
+        score: The standard score to be mapped.
 
     Returns:
-        The mapped value based on the standard value.
+        The percentile.
     """
     if score <= 67:
         return 1

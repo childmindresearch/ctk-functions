@@ -149,7 +149,7 @@ class AcademicAchievement(base.BaseTable):
                 models.t_I2B2_Export_TOWRE_t,
             )
             .where(
-                self.eid == models.t_I2B2_Export_WIAT_t.c.EID,
+                self.eid == models.t_I2B2_Export_WIAT_t.c.EID,  # type: ignore[arg-type]
             )
             .outerjoin(
                 models.t_I2B2_Export_TOWRE_t,

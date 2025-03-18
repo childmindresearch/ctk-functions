@@ -36,7 +36,7 @@ class _RGB(enum.Enum):
 
 
 class ParticipantTables:
-    """A Pydantic dataclass representing a participant's assessment data.
+    """A dataclass representing a participant's assessment data.
 
     This class aggregates various assessment data for a participant by their EID.
     """
@@ -93,6 +93,12 @@ class PyriteReport:
         self._tables = ParticipantTables(eid=self._participant.GUID)
 
     def _get_participant(self) -> sqlalchemy.Row[tuple[Any, ...]]:
+        """Fetches the participant's data from the SQL database.
+
+        Returns:
+            A row from the CMI_HB_IDTrack_t table.
+        """
+        logger.debug("Fetching participant %s.", self._mrn)
         with client.get_session() as session:
             participant = session.execute(
                 sqlalchemy.select(models.t_CMI_HBN_IDTrack_t).where(
@@ -111,6 +117,7 @@ class PyriteReport:
     def create(self) -> None:
         """Creates the Pyrite report."""
         if self._tables.wisc_composite.data:  # type: ignore[truthy-function]
+            # Check only data of one table as they use the same data
             self.document.add_heading(
                 "The Wechsler Intelligence Scale for Children-Fifth Edition (WISC-V)",
                 level=1,

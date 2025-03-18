@@ -45,7 +45,7 @@ class Ctopp2(base.BaseTable):
             The participant's CTOPP2 table row.
         """
         statement = sqlalchemy.select(models.t_I2B2_Export_CTOPP_t).where(
-            self.eid == models.t_I2B2_Export_CTOPP_t.c.EID,
+            self.eid == models.t_I2B2_Export_CTOPP_t.c.EID,  # type: ignore[arg-type]
         )
         with client.get_session() as session:
             return session.execute(statement).fetchone()
