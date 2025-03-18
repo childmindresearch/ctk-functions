@@ -17,8 +17,11 @@ from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     cbcl_ysr,
     celf5,
+    conners3,
     ctopp_2,
     grooved_pegboard,
+    scq,
+    swan,
     wisc_composite,
     wisc_subtest,
 )
@@ -48,10 +51,13 @@ class ParticipantTables:
             eid=self.eid,
         )
         self.cbcl = cbcl_ysr.Cbcl(eid=self.eid)
+        self.conners3 = conners3.Conners3(eid=self.eid)
         self.ysr = cbcl_ysr.Ysr(eid=self.eid)
         self.celf5 = celf5.Celf5(eid=self.eid)
         self.ctopp2 = ctopp_2.Ctopp2(eid=self.eid)
         self.grooved_pegboard = grooved_pegboard.GroovedPegboard(eid=self.eid)
+        self.scq = scq.Scq(eid=self.eid)
+        self.swan = swan.Swan(eid=self.eid)
         self.wisc_composite = wisc_composite.WiscComposite(eid=self.eid)
         self.wisc_subtest = wisc_subtest.WiscSubtest(eid=self.eid)
 
@@ -70,6 +76,7 @@ def get_pyrite_report(mrn: str) -> bytes:
     report.create()
 
     logger.debug("Successfully generated Pyrite report.")
+    report.document.save("/Users/reinder.vosdewael/Desktop/pyrite_report.docx")
     out = io.BytesIO()
     report.document.save(out)
     return out.getvalue()
@@ -114,7 +121,7 @@ class PyriteReport:
 
         return participant
 
-    def create(self) -> None:
+    def create(self) -> None:  # noqa: C901
         """Creates the Pyrite report."""
         if self._tables.wisc_composite.data:  # type: ignore[truthy-function]
             # Check only data of one table as they use the same data
@@ -170,6 +177,28 @@ class PyriteReport:
             )
             self._tables.ysr.add(self.document)
             self.document.add_paragraph()
+        if self._tables.swan.data:  # type: ignore[truthy-function]
+            self.document.add_heading(
+                "Strengths and Weaknesses of ADHD Symptoms and Normal Behavior (SWAN)",
+                level=1,
+            )
+            self._tables.swan.add(self.document)
+            self.document.add_paragraph()
+        if self._tables.conners3.data:  # type: ignore[truthy-function]
+            self.document.add_heading(
+                "Conners 3 - Child Short Form",
+                level=1,
+            )
+            self._tables.conners3.add(self.document)
+            self.document.add_paragraph()
+        if self._tables.scq.data:  # type: ignore[truthy-function]
+            self.document.add_heading(
+                text="Social Communication Questionnaire",
+                level=1,
+            )
+            self._tables.scq.add(self.document)
+            self.document.add_paragraph()
+
         self._replace_participant_information()
 
     def _save(self, filepath: str | pathlib.Path) -> None:

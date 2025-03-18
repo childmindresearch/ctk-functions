@@ -2,12 +2,72 @@
 
 # flake8: noqa: PLR2004
 from collections.abc import Iterable
+from typing import Self
 
 import cmi_docx
+import pydantic
 from docx import table
 from docx.enum import text as enum_text
 
 TABLE_STYLE = "Grid Table 7 Colorful"
+
+
+class ClinicalRelevance(pydantic.BaseModel):
+    """Stores the score ranges for clinical relevance.
+
+    Attributes:
+        low: Minimum (exclusive) score for this tier of relevance.
+        high: Maximum (inclusive) score for this tier of relevance.
+        label: Label for this tier of relevance.
+        style: Custom cell styling for this tier of relevance.
+    """
+
+    low: int | None
+    high: int | None
+    label: str
+    style: cmi_docx.TableStyle
+
+    def in_range(self, value: float) -> bool:
+        """Checks if value is within the valid range.
+
+        Excludes low value, includes high value.
+        """
+        if not self.high:
+            return value > self.low  # type: ignore[operator]
+        if not self.low:
+            return value <= self.high
+        return self.low < value <= self.high
+
+    def __str__(self) -> str:
+        """String representation of the clinical relevance.
+
+        Returns:
+            A string denoting the range for this tier's relevance.
+
+        Example outputs:
+            "<65 = LABEL" if low is 65, high is not set.
+            ">65 = LABEL" if low is not set and high is 65.
+            "65-65 = LABEL" if low is 65 and high is 75.
+        """
+        if self.low is None:
+            value = f"<{self.high}"
+
+        elif self.high is None:
+            value = f">{self.low}"
+        else:
+            value = f"{self.low}-{self.high}"
+        return f"{value} = {self.label}"
+
+    @pydantic.model_validator(mode="after")
+    def check_low_and_high(self) -> Self:
+        """Ascertains low/high are set correctly."""
+        if not self.low and not self.high:
+            msg = "At least one of low or high must not be None."
+            raise ValueError(msg)
+        if self.low and self.high and self.low >= self.high:
+            msg = "Low must be lower than high."
+            raise ValueError(msg)
+        return self
 
 
 def add_header(tbl: table.Table, headers: Iterable[str]) -> None:

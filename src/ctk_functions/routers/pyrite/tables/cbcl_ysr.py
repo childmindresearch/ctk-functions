@@ -1,91 +1,31 @@
 """Module for inserting the CBCL and YSR tables."""
 
 import dataclasses
-from typing import Any, Literal, Self
+from typing import Any, Literal
 
 import cmi_docx
-import pydantic
 import sqlalchemy
 from docx import document
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
 
-
-class ClinicalRelevance(pydantic.BaseModel):
-    """Stores the score ranges for clinical relevance.
-
-    Attributes:
-        low: Minimum (exclusive) score for this tier of relevance.
-        high: Maximum (inclusive) score for this tier of relevance.
-        label: Label for this tier of relevance.
-        style: Custom cell styling for this tier of relevance.
-    """
-
-    low: int | None
-    high: int | None
-    label: str
-    style: cmi_docx.TableStyle
-
-    def in_range(self, value: float) -> bool:
-        """Checks if value is within the valid range.
-
-        Excludes low value, includes high value.
-        """
-        if not self.high:
-            return value > self.low  # type: ignore[operator]
-        if not self.low:
-            return value <= self.high
-        return self.low < value <= self.high
-
-    def __str__(self) -> str:
-        """String representation of the clinical relevance.
-
-        Returns:
-            A string denoting the range for this tier's relevance.
-
-        Example outputs:
-            "<65 = LABEL" if low is 65, high is not set.
-            ">65 = LABEL" if low is not set and high is 65.
-            "65-65 = LABEL" if low is 65 and high is 75.
-        """
-        if self.low is None:
-            value = f"<{self.high}"
-
-        elif self.high is None:
-            value = f">{self.low}"
-        else:
-            value = f"{self.low}-{self.high}"
-        return f"{value} = {self.label}"
-
-    @pydantic.model_validator(mode="after")
-    def check_low_and_high(self) -> Self:
-        """Ascertains low/high are set correctly."""
-        if not self.low and not self.high:
-            msg = "At least one of low or high must not be None."
-            raise ValueError(msg)
-        if self.low and self.high and self.low >= self.high:
-            msg = "Low must be lower than high."
-            raise ValueError(msg)
-        return self
-
-
 # There are two sets of thresholds for clinical relevance.
 # The one with higher scores is denoted as "HIGH", the other as "LOW".
 CLINICAL_RELEVANCE_HIGH = (
-    ClinicalRelevance(
+    utils.ClinicalRelevance(
         low=None,
         high=65,
         label="typical range",
         style=cmi_docx.TableStyle(),
     ),
-    ClinicalRelevance(
+    utils.ClinicalRelevance(
         low=65,
         high=70,
         label="borderline range",
         style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
-    ClinicalRelevance(
+    utils.ClinicalRelevance(
         low=70,
         high=None,
         label="clinically relevant",
@@ -96,19 +36,19 @@ CLINICAL_RELEVANCE_HIGH = (
 )
 
 CLINICAL_RELEVANCE_LOW = (
-    ClinicalRelevance(
+    utils.ClinicalRelevance(
         low=None,
         high=60,
         label="typical range",
         style=cmi_docx.TableStyle(),
     ),
-    ClinicalRelevance(
+    utils.ClinicalRelevance(
         low=60,
         high=65,
         label="borderline range",
         style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
-    ClinicalRelevance(
+    utils.ClinicalRelevance(
         low=65,
         high=None,
         label="clinically relevant",
@@ -130,7 +70,11 @@ class RowLabels:
 
     name: str
     acronym: str
-    relevance: tuple[ClinicalRelevance, ClinicalRelevance, ClinicalRelevance]
+    relevance: tuple[
+        utils.ClinicalRelevance,
+        utils.ClinicalRelevance,
+        utils.ClinicalRelevance,
+    ]
 
 
 # Defines the rows and their order of appearance.
@@ -187,9 +131,6 @@ class Cbcl(base.BaseTable):
     def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
         """Fetches the data for the CBCL table.
 
-        Args:
-            eid: The participant's EID.
-
         Returns:
             The participant's CBCL table row.
         """
@@ -210,7 +151,6 @@ class Cbcl(base.BaseTable):
 
         Args:
             doc: The document to add the table to.
-            data: The data from the CBCL SQL table.
         """
         _add_cbcl_ysr_table(doc, self._data_no_none, "cbcl")
 
@@ -241,7 +181,6 @@ class Ysr(base.BaseTable):
 
         Args:
             doc: The document to add the table to.
-            data: The data from the YSR SQL table.
         """
         _add_cbcl_ysr_table(doc, self._data_no_none, "ysr")
 
