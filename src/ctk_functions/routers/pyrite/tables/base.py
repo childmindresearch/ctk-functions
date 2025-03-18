@@ -7,7 +7,6 @@ from typing import Any
 
 import cmi_docx
 import fastapi
-import pydantic
 import sqlalchemy
 from docx import document
 from starlette import status
@@ -24,8 +23,15 @@ class BaseTable(abc.ABC):
     """Abstract base class for all Pyrite tables."""
 
     def __init__(self, eid: str) -> None:
-        """Initialize the table with an EID."""
+        """Initialize the table with an EID.
+
+        Args:
+            eid: The unique identifier of the participant.
+        """
         self.eid = eid
+
+        self._data: sqlalchemy.Row[tuple[Any, ...]] | None = None
+        self._has_fetched_data = False
 
     @abc.abstractmethod
     def add(
@@ -43,19 +49,26 @@ class BaseTable(abc.ABC):
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         """The SQL statement for fetching the data."""
 
-    @pydantic.computed_field
+    @property
     def data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
+        """Fetches the data if it has not been fetched yet."""
+        if not self._has_fetched_data:
+            self._get_data()
+        return self._data
+
+    def _get_data(self) -> None:
         """Cached data property that is only computed on request."""
         with client.get_session() as session:
             rows = session.execute(self._statement).fetchall()
-            if len(rows) > 1:
-                raise fastapi.HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Found multiple selected rows.",
-                )
-            if len(rows) == 1:
-                return rows[0]
-            return None
+
+        if len(rows) > 1:
+            raise fastapi.HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Found multiple selected rows.",
+            )
+
+        self._has_fetched_data = True
+        self._data = rows[0]
 
     @property
     def _data_no_none(self) -> sqlalchemy.Row[tuple[Any, ...]]:
@@ -66,7 +79,7 @@ class BaseTable(abc.ABC):
         if self.data is None:
             msg = "Data is None, cannot add this table."
             raise TableDataNotFoundError(msg)
-        return self.data  # type: ignore[return-value] # Mypy incorrectly identifies data as Callable.
+        return self.data
 
 
 @dataclasses.dataclass
@@ -83,7 +96,7 @@ class TScoreRow:
     relevance: Sequence[utils.ClinicalRelevance]
 
 
-class TScoreTable(BaseTable):
+class TScoreTable(BaseTable, abc.ABC):
     """Template for a standard t-score table."""
 
     def _add_tscore(

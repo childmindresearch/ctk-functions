@@ -129,7 +129,7 @@ class PyriteReport:
 
     def create(self) -> None:  # noqa: C901, PLR0912, PLR0915
         """Creates the Pyrite report."""
-        if self._tables.wisc_composite.data:  # type: ignore[truthy-function]
+        if self._tables.wisc_composite.data:
             # Check only data of one table as they use the same data
             self.document.add_heading(
                 "The Wechsler Intelligence Scale for Children-Fifth Edition (WISC-V)",
@@ -140,7 +140,7 @@ class PyriteReport:
             self._tables.wisc_subtest.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.grooved_pegboard.data:  # type: ignore[truthy-function]
+        if self._tables.grooved_pegboard.data:
             self.document.add_heading(
                 text="Abbreviated Neurocognitive Assessment",
                 level=1,
@@ -148,7 +148,7 @@ class PyriteReport:
             self._tables.grooved_pegboard.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.academic_achievement.data:  # type: ignore[truthy-function]
+        if self._tables.academic_achievement.data:
             self.document.add_heading(
                 text="Academic Achievement",
                 level=1,
@@ -156,7 +156,7 @@ class PyriteReport:
             self._tables.academic_achievement.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.celf5.data:  # type: ignore[truthy-function]
+        if self._tables.celf5.data:
             self.document.add_heading(
                 text="Language Screening",
                 level=1,
@@ -164,11 +164,11 @@ class PyriteReport:
             self._tables.celf5.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.ctopp2.data:  # type: ignore[truthy-function]
+        if self._tables.ctopp2.data:
             self._tables.ctopp2.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.cbcl.data:  # type: ignore[truthy-function]
+        if self._tables.cbcl.data:
             self.document.add_heading(
                 text="Child Behavior Checklist - Parent Report Form (CBCL)",
                 level=1,
@@ -176,28 +176,28 @@ class PyriteReport:
             self._tables.cbcl.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.ysr.data:  # type: ignore[truthy-function]
+        if self._tables.ysr.data:
             self.document.add_heading(
                 text="Child Behavior Checklist - Youth Self Report (YSR)",
                 level=1,
             )
             self._tables.ysr.add(self.document)
             self.document.add_paragraph()
-        if self._tables.swan.data:  # type: ignore[truthy-function]
+        if self._tables.swan.data:
             self.document.add_heading(
                 "Strengths and Weaknesses of ADHD Symptoms and Normal Behavior (SWAN)",
                 level=1,
             )
             self._tables.swan.add(self.document)
             self.document.add_paragraph()
-        if self._tables.conners3.data:  # type: ignore[truthy-function]
+        if self._tables.conners3.data:
             self.document.add_heading(
                 "Conners 3 - Child Short Form",
                 level=1,
             )
             self._tables.conners3.add(self.document)
             self.document.add_paragraph()
-        if self._tables.scq.data:  # type: ignore[truthy-function]
+        if self._tables.scq.data:
             self.document.add_heading(
                 text="Social Communication Questionnaire",
                 level=1,
@@ -205,21 +205,21 @@ class PyriteReport:
             self._tables.scq.add(self.document)
             self.document.add_paragraph()
 
-        if self._tables.gars.data:  # type: ignore[truthy-function]
+        if self._tables.gars.data:
             self.document.add_heading(
                 "Gilliam Autism Rating Scale, Third Edition (GARS-3)",
                 level=1,
             )
             self._tables.gars.add(self.document)
             self.document.add_paragraph()
-        if self._tables.srs.data:  # type: ignore[truthy-function]
+        if self._tables.srs.data:
             self.document.add_heading(
                 "Social Responsiveness Scale",
                 level=1,
             )
             self._tables.srs.add(self.document)
             self.document.add_paragraph()
-        if self._tables.mfq.data:  # type: ignore[truthy-function]
+        if self._tables.mfq.data:
             self.document.add_heading(
                 "Mood and Feelings Questionnaire (MFQ) - Long Version",
                 level=1,
