@@ -1,0 +1,74 @@
+"""Module for the WISC tables."""
+
+import dataclasses
+from typing import Any
+
+import sqlalchemy
+from docx import document
+
+from ctk_functions.microservices.sql import client, models
+from ctk_functions.routers.pyrite.tables import base, utils
+
+
+@dataclasses.dataclass
+class CompositeRowLabels:
+    """Defines the rows of the composite table.
+
+    Attributes:
+        name: Name of the score, used in the first column.
+        acronym: Acronym of the row, used in the first
+            column and for accessing the SQL data.
+    """
+
+    name: str
+    acronym: str
+
+
+COMPOSITE_ROW_LABELS = (
+    CompositeRowLabels(name="Verbal Comprehension", acronym="VCI"),
+    CompositeRowLabels(name="Visual Spatial", acronym="VSI"),
+    CompositeRowLabels(name="Fluid Reasoning", acronym="FRI"),
+    CompositeRowLabels(name="Working Memory", acronym="WMI"),
+    CompositeRowLabels(name="Processing Speed", acronym="PSI"),
+    CompositeRowLabels(name="Full Scale IQ", acronym="FSIQ"),
+)
+
+
+class WiscComposite(base.BaseTable):
+    """Fetches data for and creates the WISC composite table."""
+
+    def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
+        statement = sqlalchemy.select(models.t_I2B2_Export_WISC_V_t).where(
+            self.eid == models.t_I2B2_Export_WISC_V_t.c.EID,
+        )
+
+        with client.get_session() as session:
+            return session.execute(statement).fetchone()
+
+    def add(
+        self,
+        doc: document.Document,
+    ) -> None:
+        """Adds the WISC composite table to the report."""
+        table = doc.add_table(len(COMPOSITE_ROW_LABELS) + 1, 4)
+        table.style = utils.TABLE_STYLE
+        header_texts = [
+            "Composite",
+            "Standard Score",
+            "Percentile",
+            "Range",
+        ]
+        utils.add_header(table, header_texts)
+
+        for index, label in enumerate(COMPOSITE_ROW_LABELS):
+            index += 1  # Offset for the header row.  # noqa: PLW2901
+            row = table.rows[index].cells
+            row[0].text = f"{label.name} ({label.acronym})"
+            score = getattr(self._data_no_none, f"WISC_{label.acronym}")
+
+            percentile = utils.standard_score_to_percentile(score)
+            row[1].text = str(score)
+            row[2].text = str(percentile)
+            row[3].text = utils.standard_score_to_qualifier(
+                score,
+            )
