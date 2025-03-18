@@ -6,7 +6,7 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -35,20 +35,11 @@ ROW_LABELS = (
 class Ctopp2(base.BaseTable):
     """Creates the Comprehensive Test of Phonological Processing table."""
 
-    def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
-        """Fetches the data for the CTOPP2 table.
-
-        Args:
-            eid: The participant's EID.
-
-        Returns:
-            The participant's CTOPP2 table row.
-        """
-        statement = sqlalchemy.select(models.t_I2B2_Export_CTOPP_t).where(
+    @property
+    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
+        return sqlalchemy.select(models.t_I2B2_Export_CTOPP_t).where(
             self.eid == models.t_I2B2_Export_CTOPP_t.c.EID,  # type: ignore[arg-type]
         )
-        with client.get_session() as session:
-            return session.execute(statement).fetchone()
 
     def add(
         self,

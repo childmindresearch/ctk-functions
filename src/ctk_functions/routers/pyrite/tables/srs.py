@@ -1,6 +1,5 @@
-"""Module for inserting the Conners3 table."""
+"""Module for inserting the Srs table."""
 
-import dataclasses
 from typing import Any
 
 import cmi_docx
@@ -10,35 +9,21 @@ from docx import document
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
-
-@dataclasses.dataclass
-class RowLabels:
-    """Defines the rows of the table.
-
-    Attributes:
-        name: Name of the score, used in the first column.
-        column: Column name, used for accessing the SQL data.
-    """
-
-    name: str
-    column: str
-
-
 CLINICAL_RELEVANCE = (
     utils.ClinicalRelevance(
         low=None,
-        high=57,
+        high=60,
         label="typical range",
         style=cmi_docx.TableStyle(),
     ),
     utils.ClinicalRelevance(
-        low=57,
-        high=63,
+        low=60,
+        high=75,
         label="borderline range",
         style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
     utils.ClinicalRelevance(
-        low=63,
+        low=75,
         high=None,
         label="clinically relevant impairment",
         style=cmi_docx.TableStyle(
@@ -50,47 +35,52 @@ CLINICAL_RELEVANCE = (
 # Defines the rows and their order of appearance.
 ROW_LABELS = (
     base.TScoreRow(
-        name="Inattention",
-        column="C3SR_IN_T",
+        name="Social Awareness",
+        column="SRS_AWR_T",
         relevance=CLINICAL_RELEVANCE,
     ),
     base.TScoreRow(
-        name="Hyperactivity/Impulsivity",
-        column="C3SR_HY_T",
+        name="Social Cognition",
+        column="SRS_COG_T",
         relevance=CLINICAL_RELEVANCE,
     ),
     base.TScoreRow(
-        name="Learning Problems",
-        column="C3SR_LP_T",
+        name="Social Communication",
+        column="SRS_COM_T",
         relevance=CLINICAL_RELEVANCE,
     ),
     base.TScoreRow(
-        name="Defiance/Aggression",
-        column="C3SR_AG_T",
+        name="Social Motivation",
+        column="SRS_MOT_T",
         relevance=CLINICAL_RELEVANCE,
     ),
     base.TScoreRow(
-        name="Family Relations",
-        column="C3SR_FR_T",
+        name="Restrictive and Repetitive Behavior",
+        column="SRS_RRB_T",
+        relevance=CLINICAL_RELEVANCE,
+    ),
+    base.TScoreRow(
+        name="Total Score",
+        column="SRS_Total_T",
         relevance=CLINICAL_RELEVANCE,
     ),
 )
 
 
-class Conners3(base.TScoreTable):
-    """Fetches and creates the Conners3 table."""
+class Srs(base.TScoreTable):
+    """Fetches and creates the Srs table."""
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
-        return sqlalchemy.select(models.t_I2B2_Export_C3SR_t).where(
-            self.eid == models.t_I2B2_Export_C3SR_t.c.EID,  # type: ignore[arg-type]
+        return sqlalchemy.select(models.t_I2B2_Export_SRS_t).where(
+            self.eid == models.t_I2B2_Export_SRS_t.c.EID,  # type: ignore[arg-type]
         )
 
     def add(
         self,
         doc: document.Document,
     ) -> None:
-        """Adds the Conners3 table to the report.
+        """Adds the Srs table to the report.
 
         Args:
             doc: The word document.

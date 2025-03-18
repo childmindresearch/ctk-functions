@@ -6,7 +6,7 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -137,13 +137,9 @@ ROW_LABELS = (
 class AcademicAchievement(base.BaseTable):
     """Fetches and creates the academic achievement table."""
 
-    def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
-        """Fetches the data for the academic table.
-
-        Returns:
-            The participants academic table row.
-        """
-        statement = (
+    @property
+    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
+        return (
             sqlalchemy.select(
                 models.t_I2B2_Export_WIAT_t,
                 models.t_I2B2_Export_TOWRE_t,
@@ -156,9 +152,6 @@ class AcademicAchievement(base.BaseTable):
                 models.t_I2B2_Export_WIAT_t.c.EID == models.t_I2B2_Export_TOWRE_t.c.EID,
             )
         )
-
-        with client.get_session() as session:
-            return session.execute(statement).fetchone()
 
     def add(
         self,

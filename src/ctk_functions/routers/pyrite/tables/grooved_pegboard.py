@@ -9,7 +9,7 @@ import sqlalchemy
 from docx import document
 from starlette import status
 
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -36,19 +36,13 @@ ROW_LABELS = (
 class GroovedPegboard(base.BaseTable):
     """Fetches and creates the Grooved Pegboard table."""
 
-    def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
-        """Fetches the data for the grooved pegboard table.
-
-        Returns:
-            The participants grooved pegboard table row.
-        """
-        statement = sqlalchemy.select(
+    @property
+    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
+        return sqlalchemy.select(
             models.t_I2B2_Export_GroovedPeg_t,
         ).where(
             self.eid == models.t_I2B2_Export_GroovedPeg_t.c.EID,  # type: ignore[arg-type]
         )
-        with client.get_session() as session:
-            return session.execute(statement).fetchone()
 
     def add(
         self,

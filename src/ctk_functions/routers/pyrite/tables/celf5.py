@@ -5,27 +5,18 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
 class Celf5(base.BaseTable):
     """Fetches and creates the Clinical Evaluation of Language Fundamentals table."""
 
-    def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
-        """Fetches the data for the CELF-5 table.
-
-        Args:
-            eid: The participant's EID.
-
-        Returns:
-            The participant's CELF-5 table row.
-        """
-        statement = sqlalchemy.select(models.t_I2B2_Export_CELF_t).where(
+    @property
+    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
+        return sqlalchemy.select(models.t_I2B2_Export_CELF_t).where(
             self.eid == models.t_I2B2_Export_CELF_t.c.EID,  # type: ignore[arg-type]
         )
-        with client.get_session() as session:
-            return session.execute(statement).fetchone()
 
     def add(
         self,

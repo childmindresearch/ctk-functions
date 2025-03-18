@@ -7,7 +7,6 @@ from typing import Self
 import cmi_docx
 import pydantic
 from docx import table
-from docx.enum import text as enum_text
 
 TABLE_STYLE = "Grid Table 7 Colorful"
 
@@ -80,14 +79,6 @@ def add_header(tbl: table.Table, headers: Iterable[str]) -> None:
     """
     for cell, text in zip(tbl.rows[0].cells, headers, strict=True):
         cell.text = text
-        cmi_docx.ExtendCell(cell).format(
-            cmi_docx.TableStyle(
-                paragraph=cmi_docx.ParagraphStyle(
-                    bold=True,
-                    alignment=enum_text.WD_ALIGN_PARAGRAPH.CENTER,
-                ),
-            ),
-        )
 
 
 def set_index_column_name_or_merge(

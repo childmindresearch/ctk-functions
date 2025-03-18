@@ -19,8 +19,11 @@ from ctk_functions.routers.pyrite.tables import (
     celf5,
     conners3,
     ctopp_2,
+    gars,
     grooved_pegboard,
+    mfq,
     scq,
+    srs,
     swan,
     wisc_composite,
     wisc_subtest,
@@ -55,7 +58,10 @@ class ParticipantTables:
         self.ysr = cbcl_ysr.Ysr(eid=self.eid)
         self.celf5 = celf5.Celf5(eid=self.eid)
         self.ctopp2 = ctopp_2.Ctopp2(eid=self.eid)
+        self.gars = gars.Gars(eid=self.eid)
         self.grooved_pegboard = grooved_pegboard.GroovedPegboard(eid=self.eid)
+        self.mfq = mfq.Mfq(eid=self.eid)
+        self.srs = srs.Srs(eid=self.eid)
         self.scq = scq.Scq(eid=self.eid)
         self.swan = swan.Swan(eid=self.eid)
         self.wisc_composite = wisc_composite.WiscComposite(eid=self.eid)
@@ -121,7 +127,7 @@ class PyriteReport:
 
         return participant
 
-    def create(self) -> None:  # noqa: C901
+    def create(self) -> None:  # noqa: C901, PLR0912, PLR0915
         """Creates the Pyrite report."""
         if self._tables.wisc_composite.data:  # type: ignore[truthy-function]
             # Check only data of one table as they use the same data
@@ -197,6 +203,28 @@ class PyriteReport:
                 level=1,
             )
             self._tables.scq.add(self.document)
+            self.document.add_paragraph()
+
+        if self._tables.gars.data:  # type: ignore[truthy-function]
+            self.document.add_heading(
+                "Gilliam Autism Rating Scale, Third Edition (GARS-3)",
+                level=1,
+            )
+            self._tables.gars.add(self.document)
+            self.document.add_paragraph()
+        if self._tables.srs.data:  # type: ignore[truthy-function]
+            self.document.add_heading(
+                "Social Responsiveness Scale",
+                level=1,
+            )
+            self._tables.srs.add(self.document)
+            self.document.add_paragraph()
+        if self._tables.mfq.data:  # type: ignore[truthy-function]
+            self.document.add_heading(
+                "Mood and Feelings Questionnaire (MFQ) - Long Version",
+                level=1,
+            )
+            self._tables.mfq.add(self.document)
             self.document.add_paragraph()
 
         self._replace_participant_information()

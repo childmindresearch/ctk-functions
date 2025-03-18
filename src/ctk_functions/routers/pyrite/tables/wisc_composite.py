@@ -6,7 +6,7 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -37,13 +37,11 @@ COMPOSITE_ROW_LABELS = (
 class WiscComposite(base.BaseTable):
     """Fetches data for and creates the WISC composite table."""
 
-    def _get_data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
-        statement = sqlalchemy.select(models.t_I2B2_Export_WISC_V_t).where(
+    @property
+    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
+        return sqlalchemy.select(models.t_I2B2_Export_WISC_V_t).where(
             self.eid == models.t_I2B2_Export_WISC_V_t.c.EID,  # type: ignore[arg-type]
         )
-
-        with client.get_session() as session:
-            return session.execute(statement).fetchone()
 
     def add(
         self,
