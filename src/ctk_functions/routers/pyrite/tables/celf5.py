@@ -12,20 +12,22 @@ from ctk_functions.routers.pyrite.tables import base, utils
 class Celf5(base.BaseTable):
     """Fetches and creates the Clinical Evaluation of Language Fundamentals table."""
 
+    _title = "Language Screening"
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_CELF_t).where(
             self.eid == models.t_I2B2_Export_CELF_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
         """Adds the CELF 5 table to the report.
 
         Args:
-            doc: The word document.
+            doc: The Word document.
         """
         header_texts = [
             "Test",
@@ -39,10 +41,10 @@ class Celf5(base.BaseTable):
 
         row = table.rows[1]
         row.cells[0].text = "CELF-5 Screener"
-        row.cells[1].text = str(self._data_no_none.CELF_Total)
-        row.cells[2].text = str(self._data_no_none.CELF_CriterionScore)
+        row.cells[1].text = str(self.data_no_none.CELF_Total)
+        row.cells[2].text = str(self.data_no_none.CELF_CriterionScore)
         row.cells[3].text = (
             "Meets criterion cutoff"
-            if self._data_no_none.CELF_ExceedCutoff
+            if self.data_no_none.CELF_ExceedCutoff
             else "Does not meet criterion cutoff"
         )

@@ -12,13 +12,15 @@ from ctk_functions.routers.pyrite.tables import base, utils
 class Gars(base.BaseTable):
     """Fetches and creates the GARS table."""
 
+    _title = "Gilliam Autism Rating Scale, Third Edition (GARS-3)"
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_GARS_t).where(
             self.eid == models.t_I2B2_Export_GARS_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
@@ -37,8 +39,8 @@ class Gars(base.BaseTable):
         utils.add_header(table, header_texts)
 
         row = table.rows[1]
-        row.cells[0].text = str(self._data_no_none.GARS_AI)
-        row.cells[1].text = str(self._data_no_none.GARS_AI_Perc)
+        row.cells[0].text = str(self.data_no_none.GARS_AI)
+        row.cells[1].text = str(self.data_no_none.GARS_AI_Perc)
         row.cells[2].text = (
             "<60 = typical range\n60-75 = borderline range\n>75 = "
             "clinically relevant impairment"

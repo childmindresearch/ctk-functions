@@ -21,6 +21,7 @@ from ctk_functions.routers.pyrite.tables import (
     ctopp_2,
     gars,
     grooved_pegboard,
+    language,
     mfq,
     scared,
     scq,
@@ -40,34 +41,6 @@ class _RGB(enum.Enum):
     """Represents an RGB color code for specific sections."""
 
     BASIC = (0, 0, 0)
-
-
-class ParticipantTables:
-    """A dataclass representing a participant's assessment data.
-
-    This class aggregates various assessment data for a participant by their EID.
-    """
-
-    def __init__(self, eid: str) -> None:
-        """Initialize all assessment objects with the participant's EID."""
-        self.eid = eid
-        self.academic_achievement = academic_achievement.AcademicAchievement(
-            eid=self.eid,
-        )
-        self.cbcl = cbcl_ysr.Cbcl(eid=self.eid)
-        self.conners3 = conners3.Conners3(eid=self.eid)
-        self.ysr = cbcl_ysr.Ysr(eid=self.eid)
-        self.celf5 = celf5.Celf5(eid=self.eid)
-        self.ctopp2 = ctopp_2.Ctopp2(eid=self.eid)
-        self.gars = gars.Gars(eid=self.eid)
-        self.grooved_pegboard = grooved_pegboard.GroovedPegboard(eid=self.eid)
-        self.mfq = mfq.Mfq(eid=self.eid)
-        self.srs = srs.Srs(eid=self.eid)
-        self.scared = scared.Scared(eid=self.eid)
-        self.scq = scq.Scq(eid=self.eid)
-        self.swan = swan.Swan(eid=self.eid)
-        self.wisc_composite = wisc_composite.WiscComposite(eid=self.eid)
-        self.wisc_subtest = wisc_subtest.WiscSubtest(eid=self.eid)
 
 
 def get_pyrite_report(mrn: str) -> bytes:
@@ -105,7 +78,6 @@ class PyriteReport:
         self._mrn = mrn
         self.document = docx.Document(str(DATA_DIR / "pyrite_template.docx"))
         self._participant = self._get_participant()
-        self._tables = ParticipantTables(eid=self._participant.GUID)
 
     def _get_participant(self) -> sqlalchemy.Row[tuple[Any, ...]]:
         """Fetches the participant's data from the SQL database.
@@ -129,112 +101,32 @@ class PyriteReport:
 
         return participant
 
-    def create(self) -> None:  # noqa: C901, PLR0912, PLR0915
+    def create(self) -> None:
         """Creates the Pyrite report."""
-        if self._tables.wisc_composite.data:
-            # Check only data of one table as they use the same data
-            self.document.add_heading(
-                "The Wechsler Intelligence Scale for Children-Fifth Edition (WISC-V)",
-                level=1,
-            )
-            self._tables.wisc_composite.add(self.document)
-            self.document.add_paragraph()
-            self._tables.wisc_subtest.add(self.document)
-            self.document.add_paragraph()
+        assessment_classes = (
+            wisc_composite.WiscComposite,
+            wisc_subtest.WiscSubtest,
+            grooved_pegboard.GroovedPegboard,
+            academic_achievement.AcademicAchievement,
+            celf5.Celf5,
+            language.Language,
+            ctopp_2.Ctopp2,
+            cbcl_ysr.Cbcl,
+            cbcl_ysr.Ysr,
+            swan.Swan,
+            conners3.Conners3,
+            scq.Scq,
+            gars.Gars,
+            srs.Srs,
+            mfq.Mfq,
+            scared.Scared,
+        )
 
-        if self._tables.grooved_pegboard.data:
-            self.document.add_heading(
-                text="Abbreviated Neurocognitive Assessment",
-                level=1,
-            )
-            self._tables.grooved_pegboard.add(self.document)
-            self.document.add_paragraph()
-
-        if self._tables.academic_achievement.data:
-            self.document.add_heading(
-                text="Academic Achievement",
-                level=1,
-            )
-            self._tables.academic_achievement.add(self.document)
-            self.document.add_paragraph()
-
-        if self._tables.celf5.data:
-            self.document.add_heading(
-                text="Language Screening",
-                level=1,
-            )
-            self._tables.celf5.add(self.document)
-            self.document.add_paragraph()
-
-        if self._tables.ctopp2.data:
-            self._tables.ctopp2.add(self.document)
-            self.document.add_paragraph()
-
-        if self._tables.cbcl.data:
-            self.document.add_heading(
-                text="Child Behavior Checklist - Parent Report Form (CBCL)",
-                level=1,
-            )
-            self._tables.cbcl.add(self.document)
-            self.document.add_paragraph()
-
-        if self._tables.ysr.data:
-            self.document.add_heading(
-                text="Child Behavior Checklist - Youth Self Report (YSR)",
-                level=1,
-            )
-            self._tables.ysr.add(self.document)
-            self.document.add_paragraph()
-        if self._tables.swan.data:
-            self.document.add_heading(
-                "Strengths and Weaknesses of ADHD Symptoms and Normal Behavior (SWAN)",
-                level=1,
-            )
-            self._tables.swan.add(self.document)
-            self.document.add_paragraph()
-        if self._tables.conners3.data:
-            self.document.add_heading(
-                "Conners 3 - Child Short Form",
-                level=1,
-            )
-            self._tables.conners3.add(self.document)
-            self.document.add_paragraph()
-        if self._tables.scq.data:
-            self.document.add_heading(
-                text="Social Communication Questionnaire",
-                level=1,
-            )
-            self._tables.scq.add(self.document)
-            self.document.add_paragraph()
-
-        if self._tables.gars.data:
-            self.document.add_heading(
-                "Gilliam Autism Rating Scale, Third Edition (GARS-3)",
-                level=1,
-            )
-            self._tables.gars.add(self.document)
-            self.document.add_paragraph()
-        if self._tables.srs.data:
-            self.document.add_heading(
-                "Social Responsiveness Scale",
-                level=1,
-            )
-            self._tables.srs.add(self.document)
-            self.document.add_paragraph()
-        if self._tables.mfq.data:
-            self.document.add_heading(
-                "Mood and Feelings Questionnaire (MFQ) - Long Version",
-                level=1,
-            )
-            self._tables.mfq.add(self.document)
-            self.document.add_paragraph()
-        if self._tables.scared.data:
-            self.document.add_heading(
-                "Screen for Child Anxiety Related Disorders",
-                level=1,
-            )
-            self._tables.scared.add(self.document)
-            self.document.add_paragraph()
+        for assessment_class in assessment_classes:
+            table = assessment_class(eid=self._participant.GUID)
+            if table.data:
+                table.add(self.document)
+                self.document.add_paragraph()
 
         self._replace_participant_information()
 

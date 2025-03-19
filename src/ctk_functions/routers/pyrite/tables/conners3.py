@@ -5,7 +5,6 @@ from typing import Any
 
 import cmi_docx
 import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -80,19 +79,11 @@ ROW_LABELS = (
 class Conners3(base.TScoreTable):
     """Fetches and creates the Conners3 table."""
 
+    _title = "Conners 3 - Child Short Form"
+    _row_labels = ROW_LABELS
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_C3SR_t).where(
             self.eid == models.t_I2B2_Export_C3SR_t.c.EID,  # type: ignore[arg-type]
         )
-
-    def add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds the Conners3 table to the report.
-
-        Args:
-            doc: The word document.
-        """
-        self._add_tscore(doc, ROW_LABELS)

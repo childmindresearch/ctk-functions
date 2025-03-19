@@ -1,13 +1,12 @@
 """Adds the grooved pegboard table to the document."""
 
-import bisect
 import dataclasses
+import decimal
+import statistics
 from typing import Any
 
-import fastapi
 import sqlalchemy
 from docx import document
-from starlette import status
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -36,6 +35,8 @@ ROW_LABELS = (
 class GroovedPegboard(base.BaseTable):
     """Fetches and creates the Grooved Pegboard table."""
 
+    _title = "Abbreviated Neurocognitive Assessment"
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(
@@ -44,14 +45,14 @@ class GroovedPegboard(base.BaseTable):
             self.eid == models.t_I2B2_Export_GroovedPeg_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
         """Adds the grooved pegboard tables to the report.
 
         Args:
-            doc: The word document.
+            doc: The Word document.
         """
         header_texts = [
             "Grooved Pegboard",
@@ -67,66 +68,15 @@ class GroovedPegboard(base.BaseTable):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             row = table.rows[index].cells
             row[0].text = f"{label.name}"
-            score = getattr(self._data_no_none, f"peg_z_{label.acronym}")
-            percentile = _grooved_pegboard_score_to_percentile(score)
+            score = getattr(self.data_no_none, f"peg_z_{label.acronym}")
+            percentile = _zscore_to_percentile(score)
             row[1].text = f"{score:.2f}"
-            row[2].text = str(percentile)
-            row[3].text = str(_grooved_pegboard_percentile_to_qualifier(percentile))
+            row[2].text = str(int(percentile))
+            row[3].text = (_grooved_pegboard_percentile_to_qualifier(percentile),)
 
 
-def _grooved_pegboard_score_to_percentile(score: float) -> int:
-    if score > 2.4:  # noqa: PLR2004
-        return 99
-
-    z_percentile_map = [
-        (-2.1, 1),
-        (-1.8, 2),
-        (-1.7, 3),
-        (-1.6, 4),
-        (-1.5, 5),
-        (-1.4, 6),
-        (-1.3, 8),
-        (-1.2, 9),
-        (-1.1, 11),
-        (-1.0, 13),
-        (-0.9, 15),
-        (-0.8, 17),
-        (-0.7, 20),
-        (-0.6, 23),
-        (-0.5, 26),
-        (-0.4, 29),
-        (-0.3, 33),
-        (-0.2, 36),
-        (-0.1, 42),
-        (0.0, 48),
-        (0.1, 52),
-        (0.2, 56),
-        (0.3, 60),
-        (0.4, 64),
-        (0.5, 67),
-        (0.6, 71),
-        (0.7, 74),
-        (0.8, 77),
-        (0.9, 80),
-        (1.0, 83),
-        (1.1, 86),
-        (1.2, 88),
-        (1.3, 90),
-        (1.4, 91),
-        (1.5, 93),
-        (1.6, 94),
-        (1.7, 95),
-        (1.8, 96),
-        (1.9, 97),
-        (2.0, 97),
-        (2.1, 97),
-        (2.4, 98),
-    ]
-
-    breakpoints = [b for b, p in z_percentile_map]
-    idx = bisect.bisect_left(breakpoints, score)
-
-    return z_percentile_map[idx][1]
+def _zscore_to_percentile(zscore: decimal.Decimal) -> int:
+    return int(round((statistics.NormalDist().cdf(float(zscore))) * 100))
 
 
 def _grooved_pegboard_percentile_to_qualifier(percentile: int) -> str:  # noqa: PLR0911
@@ -145,11 +95,6 @@ def _grooved_pegboard_percentile_to_qualifier(percentile: int) -> str:  # noqa: 
         return "high average"
     if percentile <= 97:  # noqa: PLR2004
         return "high"
-    if percentile == 98:  # noqa: PLR2004
+    if percentile <= 98:  # noqa: PLR2004
         return "very high"
-    if percentile == 99:  # noqa: PLR2004
-        return "extremely high"
-    raise fastapi.HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Unknown pegboard percentile.",
-    )
+    return "extremely high"

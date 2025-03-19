@@ -4,7 +4,6 @@ from typing import Any
 
 import cmi_docx
 import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -124,6 +123,9 @@ ROW_LABELS = {
 class Cbcl(base.TScoreTable):
     """Fetches and creates the Child Behavior Checklist table."""
 
+    _title = "Child Behavior Checklist - Parent Report Form (CBCL)"
+    _row_labels = ROW_LABELS["CBCL"]
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(
@@ -132,20 +134,12 @@ class Cbcl(base.TScoreTable):
             self.eid == models.t_I2B2_Export_CBCL_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds the CBCL table to the document.
-
-        Args:
-            doc: The document to add the table to.
-        """
-        self._add_tscore(doc, ROW_LABELS["CBCL"])
-
 
 class Ysr(base.TScoreTable):
     """Fetches and creates the Youth Self Report table."""
+
+    _title = "Child Behavior Checklist - Youth Self Report (YSR)"
+    _row_labels = ROW_LABELS["YSR"]
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
@@ -154,14 +148,3 @@ class Ysr(base.TScoreTable):
         ).where(
             self.eid == models.t_I2B2_Export_YSR_t.c.EID,  # type: ignore[arg-type]
         )
-
-    def add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds the YSR table to the document.
-
-        Args:
-            doc: The document to add the table to.
-        """
-        self._add_tscore(doc, ROW_LABELS["YSR"])

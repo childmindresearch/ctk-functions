@@ -35,13 +35,15 @@ ROW_LABELS = (
 class Ctopp2(base.BaseTable):
     """Creates the Comprehensive Test of Phonological Processing table."""
 
+    _title = None
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_CTOPP_t).where(
             self.eid == models.t_I2B2_Export_CTOPP_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
@@ -62,7 +64,7 @@ class Ctopp2(base.BaseTable):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             row = table.rows[index].cells
             row[0].text = f"{label.name}"
-            score = getattr(self._data_no_none, f"CTOPP_{label.acronym}_S")
+            score = getattr(self.data_no_none, f"CTOPP_{label.acronym}_S")
             if not score:
                 # In case subtest was not done.
                 score = "N/A"

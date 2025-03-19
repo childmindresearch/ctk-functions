@@ -137,6 +137,8 @@ ROW_LABELS = (
 class AcademicAchievement(base.BaseTable):
     """Fetches and creates the academic achievement table."""
 
+    _title = "Academic Achievement"
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return (
@@ -153,7 +155,7 @@ class AcademicAchievement(base.BaseTable):
             )
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
@@ -181,7 +183,7 @@ class AcademicAchievement(base.BaseTable):
             row[1].text = label.subtest
             if label.score == "XXX":
                 continue
-            score = int(getattr(self._data_no_none, label.score))
+            score = int(getattr(self.data_no_none, label.score))
             percentile = utils.standard_score_to_percentile(score)
             row[2].text = str(score)
             row[3].text = str(percentile)

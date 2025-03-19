@@ -4,7 +4,6 @@ from typing import Any
 
 import cmi_docx
 import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -70,19 +69,11 @@ ROW_LABELS = (
 class Srs(base.TScoreTable):
     """Fetches and creates the Srs table."""
 
+    _title = "Social Responsiveness Scale"
+    _row_labels = ROW_LABELS
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_SRS_t).where(
             self.eid == models.t_I2B2_Export_SRS_t.c.EID,  # type: ignore[arg-type]
         )
-
-    def add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds the Srs table to the report.
-
-        Args:
-            doc: The word document.
-        """
-        self._add_tscore(doc, ROW_LABELS)

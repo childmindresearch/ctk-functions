@@ -12,20 +12,22 @@ from ctk_functions.routers.pyrite.tables import base, utils
 class Scq(base.BaseTable):
     """Fetches and creates the SCQ table."""
 
+    _title = "Social Communication Questionnaire"
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_SCQ_t).where(
             self.eid == models.t_I2B2_Export_SCQ_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
         """Adds the SCQ table to the report.
 
         Args:
-            doc: The word document.
+            doc: The Word document.
         """
         header_texts = [
             "Scale",
@@ -38,6 +40,6 @@ class Scq(base.BaseTable):
 
         row = table.rows[1]
         row.cells[0].text = "Social Communication Questionnaire"
-        score = self._data_no_none.SCQ_Total
+        score = self.data_no_none.SCQ_Total
         row.cells[1].text = str(score)
         row.cells[2].text = ">10: Evidence for clinical concern of ASD"

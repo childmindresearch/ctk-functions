@@ -61,13 +61,15 @@ SUBTEST_ROW_LABELS = (
 class WiscSubtest(base.BaseTable):
     """Fetches data for and creates the WISC subtest table."""
 
+    _title = None
+
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return sqlalchemy.select(models.t_I2B2_Export_WISC_V_t).where(
             self.eid == models.t_I2B2_Export_WISC_V_t.c.EID,  # type: ignore[arg-type]
         )
 
-    def add(
+    def _add(
         self,
         doc: document.Document,
     ) -> None:
@@ -91,7 +93,7 @@ class WiscSubtest(base.BaseTable):
                 row[0].text = label.scale
             row[1].text = label.subtest
 
-            score = getattr(self._data_no_none, f"WISC_{label.label}_Scaled")
+            score = getattr(self.data_no_none, f"WISC_{label.label}_Scaled")
             row[2].text = str(score)
             row[3].text = str(_wisc_subtest_scaled_score_to_percentile(score))
             row[4].text = _wisc_subtest_scaled_score_to_qualifier(score)
