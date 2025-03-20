@@ -58,7 +58,7 @@ CLINICAL_RELEVANCE_LOW = (
 
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = {
+CBCL_YSR_ROW_LABELS = {
     key: (
         base.TScoreRow(
             name="Anxious/Depressed",
@@ -124,7 +124,7 @@ class Cbcl(base.TScoreTable):
     """Fetches and creates the Child Behavior Checklist table."""
 
     _title = "Child Behavior Checklist - Parent Report Form (CBCL)"
-    _row_labels = ROW_LABELS["CBCL"]
+    _row_labels = CBCL_YSR_ROW_LABELS["CBCL"]
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
@@ -139,7 +139,7 @@ class Ysr(base.TScoreTable):
     """Fetches and creates the Youth Self Report table."""
 
     _title = "Child Behavior Checklist - Youth Self Report (YSR)"
-    _row_labels = ROW_LABELS["YSR"]
+    _row_labels = CBCL_YSR_ROW_LABELS["YSR"]
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:

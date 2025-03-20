@@ -14,7 +14,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class SubTestRowLabels:
+class WiscSubtestRowLabels:
     """Class definition for subtest rows.
 
     Attributes:
@@ -25,36 +25,60 @@ class SubTestRowLabels:
 
     scale: str
     subtest: str
-    label: str
+    column: str
 
 
-SUBTEST_ROW_LABELS = (
-    SubTestRowLabels(
+WISC_SUBTEST_ROW_LABELS = (
+    WiscSubtestRowLabels(
         scale="Verbal Comprehension",
         subtest="Similarities*",
-        label="Similarities",
+        column="WISC_Similarities_Scaled",
     ),
-    SubTestRowLabels(
+    WiscSubtestRowLabels(
         scale="Verbal Comprehension",
         subtest="Vocabulary*",
-        label="Vocab",
+        column="WISC_Vocab_Scaled",
     ),
-    SubTestRowLabels(scale="Visual Spatial", subtest="Block Design*", label="BD"),
-    SubTestRowLabels(scale="Visual Spatial", subtest="Visual Puzzles", label="VP"),
-    SubTestRowLabels(
+    WiscSubtestRowLabels(
+        scale="Visual Spatial",
+        subtest="Block Design*",
+        column="WISC_BD_Scaled",
+    ),
+    WiscSubtestRowLabels(
+        scale="Visual Spatial",
+        subtest="Visual Puzzles",
+        column="WISC_VP_Scaled",
+    ),
+    WiscSubtestRowLabels(
         scale="Fluid Reasoning",
         subtest="Matrix Reasoning*",
-        label="MR",
+        column="WISC_MR_Scaled",
     ),
-    SubTestRowLabels(
+    WiscSubtestRowLabels(
         scale="Fluid Reasoning",
         subtest="Figure Weights*",
-        label="FW",
+        column="WISC_FW_Scaled",
     ),
-    SubTestRowLabels(scale="Working Memory", subtest="Digit Span*", label="DS"),
-    SubTestRowLabels(scale="Working Memory", subtest="Picture Span", label="PS"),
-    SubTestRowLabels(scale="Processing Speed", subtest="Coding*", label="Coding"),
-    SubTestRowLabels(scale="Processing Speed", subtest="Symbol Search", label="SS"),
+    WiscSubtestRowLabels(
+        scale="Working Memory",
+        subtest="Digit Span*",
+        column="WISC_DS_Scaled",
+    ),
+    WiscSubtestRowLabels(
+        scale="Working Memory",
+        subtest="Picture Span",
+        column="WISC_PS_Scaled",
+    ),
+    WiscSubtestRowLabels(
+        scale="Processing Speed",
+        subtest="Coding*",
+        column="WISC_Coding_Scaled",
+    ),
+    WiscSubtestRowLabels(
+        scale="Processing Speed",
+        subtest="Symbol Search",
+        column="WISC_SS_Scaled",
+    ),
 )
 
 
@@ -81,10 +105,10 @@ class WiscSubtest(base.BaseTable):
             "Percentile",
             "Range",
         ]
-        table = doc.add_table(len(SUBTEST_ROW_LABELS) + 1, len(header_texts))
+        table = doc.add_table(len(WISC_SUBTEST_ROW_LABELS) + 1, len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
-        for index, label in enumerate(SUBTEST_ROW_LABELS):
+        for index, label in enumerate(WISC_SUBTEST_ROW_LABELS):
             prev_row = table.rows[index].cells
             row = table.rows[index + 1].cells
             if prev_row[0].text == label.scale:
@@ -93,7 +117,7 @@ class WiscSubtest(base.BaseTable):
                 row[0].text = label.scale
             row[1].text = label.subtest
 
-            score = getattr(self.data_no_none, f"WISC_{label.label}_Scaled")
+            score = getattr(self.data_no_none, label.column)
             row[2].text = str(score)
             row[3].text = str(_wisc_subtest_scaled_score_to_percentile(score))
             row[4].text = _wisc_subtest_scaled_score_to_qualifier(score)

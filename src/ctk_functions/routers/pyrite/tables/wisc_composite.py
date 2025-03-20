@@ -11,7 +11,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class CompositeRowLabels:
+class WiscCompositeRowLabels:
     """Defines the rows of the composite table.
 
     Attributes:
@@ -24,13 +24,13 @@ class CompositeRowLabels:
     acronym: str
 
 
-COMPOSITE_ROW_LABELS = (
-    CompositeRowLabels(name="Verbal Comprehension", acronym="VCI"),
-    CompositeRowLabels(name="Visual Spatial", acronym="VSI"),
-    CompositeRowLabels(name="Fluid Reasoning", acronym="FRI"),
-    CompositeRowLabels(name="Working Memory", acronym="WMI"),
-    CompositeRowLabels(name="Processing Speed", acronym="PSI"),
-    CompositeRowLabels(name="Full Scale IQ", acronym="FSIQ"),
+WISC_COMPOSITE_ROW_LABELS = (
+    WiscCompositeRowLabels(name="Verbal Comprehension", acronym="VCI"),
+    WiscCompositeRowLabels(name="Visual Spatial", acronym="VSI"),
+    WiscCompositeRowLabels(name="Fluid Reasoning", acronym="FRI"),
+    WiscCompositeRowLabels(name="Working Memory", acronym="WMI"),
+    WiscCompositeRowLabels(name="Processing Speed", acronym="PSI"),
+    WiscCompositeRowLabels(name="Full Scale IQ", acronym="FSIQ"),
 )
 
 
@@ -50,7 +50,7 @@ class WiscComposite(base.BaseTable):
         doc: document.Document,
     ) -> None:
         """Adds the WISC composite table to the report."""
-        table = doc.add_table(len(COMPOSITE_ROW_LABELS) + 1, 4)
+        table = doc.add_table(len(WISC_COMPOSITE_ROW_LABELS) + 1, 4)
         table.style = utils.TABLE_STYLE
         header_texts = [
             "Composite",
@@ -60,7 +60,7 @@ class WiscComposite(base.BaseTable):
         ]
         utils.add_header(table, header_texts)
 
-        for index, label in enumerate(COMPOSITE_ROW_LABELS):
+        for index, label in enumerate(WISC_COMPOSITE_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             row = table.rows[index].cells
             row[0].text = f"{label.name} ({label.acronym})"

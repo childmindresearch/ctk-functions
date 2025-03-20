@@ -11,7 +11,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class RowLabels:
+class Ctopp2RowLabels:
     """Defines the rows of the table.
 
     Attributes:
@@ -24,11 +24,11 @@ class RowLabels:
 
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = (
-    RowLabels(name="Rapid Digit Naming", acronym="RD"),
-    RowLabels(name="Rapid Letter Naming", acronym="RL"),
-    RowLabels(name="Rapid Object Naming", acronym="RO"),
-    RowLabels(name="Rapid Color Naming", acronym="NR"),
+CTOPP2_ROW_LABELS = (
+    Ctopp2RowLabels(name="Rapid Digit Naming", acronym="RD"),
+    Ctopp2RowLabels(name="Rapid Letter Naming", acronym="RL"),
+    Ctopp2RowLabels(name="Rapid Object Naming", acronym="RO"),
+    Ctopp2RowLabels(name="Rapid Color Naming", acronym="NR"),
 )
 
 
@@ -56,11 +56,11 @@ class Ctopp2(base.BaseTable):
             "CTOPP - 2 Rapid Naming",
             "Number of Errors",
         ]
-        table = doc.add_table(len(ROW_LABELS) + 1, len(header_texts))
+        table = doc.add_table(len(CTOPP2_ROW_LABELS) + 1, len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
 
-        for index, label in enumerate(ROW_LABELS):
+        for index, label in enumerate(CTOPP2_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             row = table.rows[index].cells
             row[0].text = f"{label.name}"

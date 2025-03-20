@@ -32,7 +32,7 @@ CLINICAL_RELEVANCE = (
 )
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = (
+SRS_ROW_LABELS = (
     base.TScoreRow(
         name="Social Awareness",
         column="SRS_AWR_T",
@@ -70,7 +70,7 @@ class Srs(base.TScoreTable):
     """Fetches and creates the Srs table."""
 
     _title = "Social Responsiveness Scale"
-    _row_labels = ROW_LABELS
+    _row_labels = SRS_ROW_LABELS
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:

@@ -3,7 +3,7 @@
 import enum
 
 
-class StyleName(str, enum.Enum):
+class StyleName(enum.StrEnum):
     """The styles for the report."""
 
     HEADING_1 = "Heading 1"

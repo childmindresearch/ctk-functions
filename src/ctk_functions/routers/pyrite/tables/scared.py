@@ -8,7 +8,7 @@ import sqlalchemy
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
-ROW_LABELS = (
+SCARED_ROW_LABELS = (
     base.ParentChildRow(
         subscale="Panic Disorder/Sig. Somatic Symptoms",
         parent_column="SCARED_P_PN",
@@ -82,7 +82,7 @@ class Scared(base.ParentChildTable):
     """Fetches and creates the Scared table."""
 
     _title = "Screen for Child Anxiety Related Disorders"
-    _row_labels = ROW_LABELS
+    _row_labels = SCARED_ROW_LABELS
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:

@@ -8,7 +8,7 @@ import sqlalchemy
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
-ROW_LABELS = (
+MFQ_ROW_LABELS = (
     base.ParentChildRow(
         subscale="Total Score",
         parent_column="MFQ_P_Total",
@@ -27,7 +27,7 @@ class Mfq(base.ParentChildTable):
     """Fetches and creates the MFQ table."""
 
     _title = "Mood and Feelings Questionnaire (MFQ) - Long Version"
-    _row_labels = ROW_LABELS
+    _row_labels = MFQ_ROW_LABELS
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:

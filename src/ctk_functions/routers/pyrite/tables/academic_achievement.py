@@ -11,7 +11,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class RowLabels:
+class AcademicRowLabels:
     """Class definition for subtest rows.
 
     Attributes:
@@ -28,104 +28,104 @@ class RowLabels:
 
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = (
-    RowLabels(
+ACADEMIC_ROW_LABELS = (
+    AcademicRowLabels(
         domain="Reading",
         subtest="WIAT-4 Word Reading",
         score="WIAT_Word_Stnd",
         percentile="WIAT_Word_P",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Reading",
         subtest="WIAT-4 Pseudoword Decoding",
         score="WIAT_Pseudo_Stnd",
         percentile="WIAT_Pseudo_P",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Reading",
         subtest="WIAT-4 Reading Comprehension",
         score="WIAT_RC_Stnd",
         percentile="WIAT_RC_P",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Reading",
         subtest="TOWRE-II Total Word Reading Efficiency",
         score="TOWRE_Total_Scaled",
         percentile="TOWRE_Total_Perc",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Reading",
         subtest="TOWRE-II Sight Word Efficiency",
         score="TOWRE_SWE_Scaled",
         percentile="TOWRE_SWE_Perc",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Reading",
         subtest="TOWRE-II Phonemic Decoding Efficiency",
         score="TOWRE_PDE_Scaled",
         percentile="TOWRE_PDE_Perc",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Writing",
         subtest="WIAT-4 Sentence Composition",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Writing",
         subtest="Sentence Building",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Writing",
         subtest="Sentence Combining",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Writing",
         subtest="WIAT-4 Essay Composition",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Writing",
         subtest="WIAT-4 Spelling",
         score="WIAT_Spell_Stnd",
         percentile="WIAT_Spell_P",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Math",
         subtest="WIAT-4 Numerical Operations",
         score="WIAT_Num_Stnd",
         percentile="WIAT_Num_P",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Math",
         subtest="WIAT-4 Math Problem Solving",
         score="WIAT_MP_Stnd",
         percentile="WIAT_MP_P",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Math",
         subtest="WIAT-4 Math Fluency",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Math",
         subtest="Math Fluency - Addition",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Math",
         subtest="Math Fluency - Subtraction",
         score="XXX",
         percentile="XXX",
     ),
-    RowLabels(
+    AcademicRowLabels(
         domain="Math",
         subtest="Math Fluency - Multiplication",
         score="XXX",
@@ -172,11 +172,11 @@ class AcademicAchievement(base.BaseTable):
             "Percentile",
             "Range",
         ]
-        table = doc.add_table(1 + len(ROW_LABELS), len(header_texts))
+        table = doc.add_table(1 + len(ACADEMIC_ROW_LABELS), len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
 
-        for index, label in enumerate(ROW_LABELS):
+        for index, label in enumerate(ACADEMIC_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             utils.set_index_column_name_or_merge(table, label.domain, index)
             row = table.rows[index].cells

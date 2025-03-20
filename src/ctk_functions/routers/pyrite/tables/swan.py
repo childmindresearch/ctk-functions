@@ -11,7 +11,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class RowLabels:
+class SwanRowLabels:
     """Defines the rows of the table.
 
     Attributes:
@@ -24,10 +24,10 @@ class RowLabels:
 
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = (
-    RowLabels(name="ADHD Inattentive", relevance=">= 1.78"),
-    RowLabels(name="ADHD Hyperactive/Impulsive", relevance=">= 1.44"),
-    RowLabels(name="ADHD Total (Combined Type)", relevance=">= 1.67"),
+SWAN_ROW_LABELS = (
+    SwanRowLabels(name="ADHD Inattentive", relevance=">= 1.78"),
+    SwanRowLabels(name="ADHD Hyperactive/Impulsive", relevance=">= 1.44"),
+    SwanRowLabels(name="ADHD Total (Combined Type)", relevance=">= 1.67"),
 )
 
 
@@ -56,7 +56,7 @@ class Swan(base.BaseTable):
             "Score",
             "Clinical Relevance",
         ]
-        table = doc.add_table(len(ROW_LABELS) + 1, len(header_texts))
+        table = doc.add_table(len(SWAN_ROW_LABELS) + 1, len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
 
@@ -67,7 +67,7 @@ class Swan(base.BaseTable):
             (max(self.data_no_none.SWAN_IN, 0) + max(self.data_no_none.SWAN_HY, 0)) / 2,
         ]
 
-        for index, label in enumerate(ROW_LABELS):
+        for index, label in enumerate(SWAN_ROW_LABELS):
             row = table.rows[index + 1]
             row.cells[0].text = label.name
             row.cells[1].text = f"{scores[index]:.2f}"

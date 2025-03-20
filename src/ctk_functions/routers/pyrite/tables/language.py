@@ -11,7 +11,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class RowLabels:
+class LanguageRowLabels:
     """Definitions of the rows of the language table."""
 
     test: str
@@ -20,86 +20,86 @@ class RowLabels:
     percentile_column: str | None
 
 
-ROW_LABELS = (
-    RowLabels(
+LANGUAGE_ROW_LABELS = (
+    LanguageRowLabels(
         test="WIAT-4",
         subtest="Listening Comprehension",
         score_column="WIAT_LC_Stnd",
         percentile_column="WIAT_LC_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="WIAT-4",
         subtest="Receptive Vocabulary",
         score_column="WIAT_LCRV_Std",
         percentile_column="WIAT_LCRV_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="WIAT-4",
         subtest="Oral Discourse Comprehension",
         score_column="WIAT_LCODC_Stnd",
         percentile_column="WIAT_LCODC_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Memory",
         score_column=None,
         percentile_column=None,
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Non-word Repetition",
         score_column="CTOPP_NR_R",
         percentile_column="CTOPP_NR_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Awareness",
         score_column="CTOPP_PA_Comp",
         percentile_column="CTOPP_PA_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Elision",
         score_column="CTOPP_EL_R",
         percentile_column="CTOPP_EL_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Blending Words",
         score_column="CTOPP_BW_R",
         percentile_column="CTOPP_BW_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Symbolic Naming",
         score_column="CTOPP_RSN_Comp",
         percentile_column="CTOPP_RSN_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Digit Naming",
         score_column="CTOPP_RD_R",
         percentile_column="CTOPP_RD_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Letter Naming",
         score_column="CTOPP_RL_R",
         percentile_column="CTOPP_RL_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Non-Symbolic",
         score_column="CTOPP_RnSN_Comp",
         percentile_column=None,
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Object Naming",
         score_column="CTOPP_RO_R",
         percentile_column="CTOPP_RO_P",
     ),
-    RowLabels(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Color Naming",
         score_column=None,
@@ -142,11 +142,11 @@ class Language(base.BaseTable):
             "Percentile",
             "Range",
         ]
-        table = doc.add_table(len(ROW_LABELS) + 1, len(header_texts))
+        table = doc.add_table(len(LANGUAGE_ROW_LABELS) + 1, len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
 
-        for index, label in enumerate(ROW_LABELS):
+        for index, label in enumerate(LANGUAGE_ROW_LABELS):
             index += 1  # noqa: PLW2901 # Adjust for header row.
             row = table.rows[index].cells
             utils.set_index_column_name_or_merge(

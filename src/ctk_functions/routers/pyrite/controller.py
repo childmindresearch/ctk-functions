@@ -1,6 +1,5 @@
 """Business logic for the Pyrite endpoints."""
 
-import enum
 import io
 import pathlib
 from typing import Any
@@ -35,12 +34,6 @@ logger = config.get_logger()
 settings = config.get_settings()
 
 DATA_DIR = settings.DATA_DIR
-
-
-class _RGB(enum.Enum):
-    """Represents an RGB color code for specific sections."""
-
-    BASIC = (0, 0, 0)
 
 
 def get_pyrite_report(mrn: str) -> bytes:

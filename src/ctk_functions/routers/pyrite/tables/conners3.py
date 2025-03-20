@@ -47,7 +47,7 @@ CLINICAL_RELEVANCE = (
 )
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = (
+CONNERS3_ROW_LABELS = (
     base.TScoreRow(
         name="Inattention",
         column="C3SR_IN_T",
@@ -80,7 +80,7 @@ class Conners3(base.TScoreTable):
     """Fetches and creates the Conners3 table."""
 
     _title = "Conners 3 - Child Short Form"
-    _row_labels = ROW_LABELS
+    _row_labels = CONNERS3_ROW_LABELS
 
     @property
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:

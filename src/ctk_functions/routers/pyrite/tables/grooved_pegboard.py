@@ -13,7 +13,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class RowLabels:
+class PegBoardRowLabels:
     """Defines the rows of the table.
 
     Attributes:
@@ -26,9 +26,9 @@ class RowLabels:
 
 
 # Defines the rows and their order of appearance.
-ROW_LABELS = (
-    RowLabels(name="Dominant", acronym="d"),
-    RowLabels(name="Non-Dominant", acronym="nd"),
+PEGBOARD_ROW_LABELS = (
+    PegBoardRowLabels(name="Dominant", acronym="d"),
+    PegBoardRowLabels(name="Non-Dominant", acronym="nd"),
 )
 
 
@@ -60,11 +60,11 @@ class GroovedPegboard(base.BaseTable):
             "Percentile",
             "Range",
         ]
-        table = doc.add_table(len(ROW_LABELS) + 1, len(header_texts))
+        table = doc.add_table(len(PEGBOARD_ROW_LABELS) + 1, len(header_texts))
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
 
-        for index, label in enumerate(ROW_LABELS):
+        for index, label in enumerate(PEGBOARD_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             row = table.rows[index].cells
             row[0].text = f"{label.name}"
