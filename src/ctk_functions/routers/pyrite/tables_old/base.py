@@ -1,4 +1,4 @@
-"""Base class definition for all tables."""
+"""Base class definition for all tables_old."""
 
 import abc
 import dataclasses
@@ -20,7 +20,7 @@ class TableDataNotFoundError(Exception):
 
 
 class BaseTable(Generic[T], abc.ABC):
-    """Abstract base class for all Pyrite tables."""
+    """Abstract base class for all Pyrite tables_old."""
 
     def __init__(self, eid: str) -> None:
         """Initialize the table with an EID.

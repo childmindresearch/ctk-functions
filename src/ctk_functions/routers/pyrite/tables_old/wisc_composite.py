@@ -1,4 +1,4 @@
-"""Module for the WISC tables."""
+"""Module for the WISC tables_old."""
 
 import dataclasses
 

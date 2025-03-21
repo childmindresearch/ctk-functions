@@ -1,5 +1,5 @@
 # ruff: noqa: N816
-"""Auto-generated schema of the NextGen tables."""
+"""Auto-generated schema of the NextGen tables_old."""
 
 import sqlalchemy
 from sqlalchemy.dialects import mssql

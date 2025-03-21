@@ -298,7 +298,7 @@ class Language(parser_models.CommentBaseModel):
         self.fluency: str = getattr(
             patient_data,
             f"child_language{identifier}_fluency",
-        ).name
+        ).subscale
 
 
 class HouseholdMember(parser_models.CommentBaseModel, PersonalRelation):
@@ -327,7 +327,7 @@ class HouseholdMember(parser_models.CommentBaseModel, PersonalRelation):
         self.relationship_quality = getattr(
             patient_data,
             f"peopleinhome{identifier}_relationship",
-        ).name
+        ).subscale
 
         self.grade_occupation = getattr(
             patient_data,
@@ -613,7 +613,7 @@ class FamilyPsychiatricHistory:
 
         family_diagnoses = [
             parser_models.FamilyPsychiatricHistory(
-                diagnosis=diagnosis.name,
+                diagnosis=diagnosis.subscale,
                 no_formal_diagnosis=getattr(
                     patient_data,
                     f"{diagnosis.checkbox_abbreviation}___4",

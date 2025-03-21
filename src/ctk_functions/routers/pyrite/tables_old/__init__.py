@@ -1,1 +1,1 @@
-"""Definitions of the tables in the Pyrite report."""
+"""Definitions of the tables_old in the Pyrite report."""

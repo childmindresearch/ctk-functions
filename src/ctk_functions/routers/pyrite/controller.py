@@ -11,22 +11,9 @@ import sqlalchemy
 from fastapi import status
 
 from ctk_functions.core import config
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import client, models_autogen
 from ctk_functions.routers.pyrite.tables import (
-    academic_achievement,
-    cbcl_ysr,
-    celf5,
-    conners3,
-    ctopp_2,
-    gars,
-    grooved_pegboard,
-    language,
-    mfq,
-    scared,
-    scq,
     srs,
-    swan,
-    wisc_composite,
     wisc_subtest,
 )
 
@@ -81,8 +68,8 @@ class PyriteReport:
         logger.debug("Fetching participant %s.", self._mrn)
         with client.get_session() as session:
             participant = session.execute(
-                sqlalchemy.select(models.t_CMI_HBN_IDTrack_t).where(
-                    self._mrn == models.t_CMI_HBN_IDTrack_t.c.MRN,  # type: ignore[arg-type]
+                sqlalchemy.select(models_autogen.t_CMI_HBN_IDTrack_t).where(
+                    self._mrn == models_autogen.t_CMI_HBN_IDTrack_t.c.MRN,  # type: ignore[arg-type]
                 ),
             ).fetchone()
 
@@ -97,29 +84,28 @@ class PyriteReport:
     def create(self) -> None:
         """Creates the Pyrite report."""
         assessment_classes = (
-            wisc_composite.WiscComposite,
+            # wisc_composite.WiscComposite,
             wisc_subtest.WiscSubtest,
-            grooved_pegboard.GroovedPegboard,
-            academic_achievement.AcademicAchievement,
-            celf5.Celf5,
-            language.Language,
-            ctopp_2.Ctopp2,
-            cbcl_ysr.Cbcl,
-            cbcl_ysr.Ysr,
-            swan.Swan,
-            conners3.Conners3,
-            scq.Scq,
-            gars.Gars,
+            # grooved_pegboard.GroovedPegboard,
+            # academic_achievement.AcademicAchievement,
+            # celf5.Celf5,
+            # language.Language,
+            # ctopp_2.Ctopp2,
+            # cbcl_ysr.Cbcl,
+            # cbcl_ysr.Ysr,
+            # swan.Swan,
+            # conners3.Conners3,
+            # scq.Scq,
+            # gars.Gars,
             srs.Srs,
-            mfq.Mfq,
-            scared.Scared,
+            # mfq.Mfq,
+            # scared.Scared,
         )
 
         for assessment_class in assessment_classes:
             table = assessment_class(eid=self._participant.GUID)
-            if table.data:
-                table.add(self.document)
-                self.document.add_paragraph()
+            table.add(self.document)
+            self.document.add_paragraph()
 
         self._replace_participant_information()
 

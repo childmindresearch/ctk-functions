@@ -48,7 +48,7 @@ class GroovedPegboard(base.BaseTable):
         self,
         doc: document.Document,
     ) -> None:
-        """Adds the grooved pegboard tables to the report.
+        """Adds the grooved pegboard tables_old to the report.
 
         Args:
             doc: The Word document.

@@ -1,4 +1,4 @@
-"""Base class definition for all tables."""
+"""Base class definition for all tables_old."""
 
 import abc
 from collections.abc import Callable, Iterable
@@ -209,7 +209,7 @@ class SqlDataSource(Generic[T], pydantic.BaseModel):
 
 
 class WordTable(Generic[T], pydantic.BaseModel):
-    """Creates Word tables.
+    """Creates Word tables_old.
 
     Attributes:
         data_source: The SQL data source to populate the table with.
@@ -279,7 +279,7 @@ class WordTable(Generic[T], pydantic.BaseModel):
 
 
 class BaseTable(abc.ABC):
-    """Abstract base class for all Pyrite tables."""
+    """Abstract base class for all Pyrite tables_old."""
 
     def __init__(self, eid: str) -> None:
         """Initialize the table with an EID.

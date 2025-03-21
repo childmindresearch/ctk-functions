@@ -300,7 +300,7 @@ class ReportWriter:
         text = f"""
             {prenatal_sentence} {birth_sentence} {patient.first_name} had
             {development.adaptability} during infancy and was
-            {development.soothing_difficulty.name} to soothe.
+            {development.soothing_difficulty.subscale} to soothe.
         """
 
         text = string_utils.remove_excess_whitespace(text)
@@ -458,7 +458,7 @@ class ReportWriter:
         table = self.report.document.add_table(7, 4)
         self.insert_before._p.addprevious(table._tbl)  # noqa: SLF001
         table.style = "Table Grid"
-        header_row = table.rows[0].cells
+        header_row = table.template_rows[0].cells
 
         header_texts = [
             "Domain/Index/Subtest",
@@ -478,7 +478,7 @@ class ReportWriter:
                     background_rgb=(217, 217, 217),
                 ),
             )
-        for row in table.rows:
+        for row in table.template_rows:
             row.height = 1
             row.height_rule = enum_table.WD_ROW_HEIGHT_RULE.EXACTLY
             for cell in row.cells:
@@ -650,7 +650,7 @@ class ReportWriter:
                 city=household.city,
                 state=household.state,
                 functioning=household.home_functioning,
-                languages=", ".join([lang.name for lang in household.languages]),
+                languages=", ".join([lang.subscale for lang in household.languages]),
             )
             + "Child Languages:\n"
             + "\n\n".join([str(lang) for lang in patient.languages])
@@ -669,8 +669,8 @@ class ReportWriter:
                 this patient.
 
                 Languages spoken in the household are as follows:
-                {string_utils.join_with_oxford_comma([language.name for language in
-                                                       household.languages])}.
+                {string_utils.join_with_oxford_comma([language.subscale for language in
+                                                      household.languages])}.
 
                 What follows is an example output:
 
