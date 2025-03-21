@@ -2,7 +2,6 @@
 
 import io
 import pathlib
-from typing import Any
 
 import cmi_docx
 import docx
@@ -11,7 +10,7 @@ import sqlalchemy
 from fastapi import status
 
 from ctk_functions.core import config
-from ctk_functions.microservices.sql import client, models_autogen
+from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import (
     srs,
     wisc_subtest,
@@ -37,7 +36,6 @@ def get_pyrite_report(mrn: str) -> bytes:
     report.create()
 
     logger.debug("Successfully generated Pyrite report.")
-    report.document.save("/Users/reinder.vosdewael/Desktop/pyrite_report.docx")
     out = io.BytesIO()
     report.document.save(out)
     return out.getvalue()
@@ -59,7 +57,7 @@ class PyriteReport:
         self.document = docx.Document(str(DATA_DIR / "pyrite_template.docx"))
         self._participant = self._get_participant()
 
-    def _get_participant(self) -> sqlalchemy.Row[tuple[Any, ...]]:
+    def _get_participant(self) -> models.CmiHbnIdTrack:
         """Fetches the participant's data from the SQL database.
 
         Returns:
@@ -68,10 +66,10 @@ class PyriteReport:
         logger.debug("Fetching participant %s.", self._mrn)
         with client.get_session() as session:
             participant = session.execute(
-                sqlalchemy.select(models_autogen.t_CMI_HBN_IDTrack_t).where(
-                    self._mrn == models_autogen.t_CMI_HBN_IDTrack_t.c.MRN,  # type: ignore[arg-type]
+                sqlalchemy.select(models.CmiHbnIdTrack).where(
+                    models.CmiHbnIdTrack.MRN == self._mrn,
                 ),
-            ).fetchone()
+            ).scalar_one_or_none()
 
         if not participant:
             raise fastapi.HTTPException(

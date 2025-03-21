@@ -8,6 +8,62 @@ class Base(orm.DeclarativeBase):
     """Base class for all tables."""
 
 
+class CmiHbnIdTrack(Base):
+    """SQLAlchemy model representing the CMI_HBN_IDTrack_t table in the nextgen schema.
+
+    This table stores participant identification and tracking information for the
+    Child Mind Institute Healthy Brain Network (CMI-HBN) study, including participant
+    identifiers, personal information, and demographic data.
+    """
+
+    __tablename__ = "CMI_HBN_IDTrack_t"
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+
+    # Primary identification fields
+    person_nbr = orm.mapped_column(
+        sqlalchemy.CHAR(12, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+        primary_key=True,
+    )
+    person_id = orm.mapped_column(sqlalchemy.Uuid, nullable=False)
+    create_timestamp = orm.mapped_column(sqlalchemy.DateTime, nullable=False)
+
+    # Alternative identifiers
+    GUID = orm.mapped_column(
+        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    person_number = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Rand_ID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    MRN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Personal information
+    last_name = orm.mapped_column(
+        sqlalchemy.String(60, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+    )
+    first_name = orm.mapped_column(
+        sqlalchemy.String(60, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+    )
+    sex = orm.mapped_column(
+        sqlalchemy.CHAR(1, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+
+    # Age and date information
+    Age = orm.mapped_column(sqlalchemy.Numeric(17, 6), nullable=True)
+    Age_Today = orm.mapped_column(sqlalchemy.Numeric(17, 6), nullable=True)
+    DOB = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+    # Site information
+    Study_Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    site_txt = orm.mapped_column(
+        sqlalchemy.String(50, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+
+
 class Wisc5(Base):
     """SQLAlchemy model representing I2B2_Export_WISC_V_t in the nextgen schema.
 
