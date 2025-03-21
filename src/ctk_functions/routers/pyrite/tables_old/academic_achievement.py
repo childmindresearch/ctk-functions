@@ -134,7 +134,7 @@ ACADEMIC_ROW_LABELS = (
 )
 
 
-class AcademicAchievement(base.BaseTable):
+class AcademicAchievement(base.BaseTable[sqlalchemy.Row[tuple[Any, ...]]]):
     """Fetches and creates the academic achievement table."""
 
     _title = "Academic Achievement"
@@ -143,15 +143,17 @@ class AcademicAchievement(base.BaseTable):
     def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
         return (
             sqlalchemy.select(
-                models.t_I2B2_Export_WIAT_t,
-                models.t_I2B2_Export_TOWRE_t,
+                models.Towre,
             )
             .where(
-                self.eid == models.t_I2B2_Export_WIAT_t.c.EID,  # type: ignore[arg-type]
+                self.eid == models.Wiat.EID,  # type: ignore[arg-type]
             )
-            .outerjoin(
-                models.t_I2B2_Export_TOWRE_t,
-                models.t_I2B2_Export_WIAT_t.c.EID == models.t_I2B2_Export_TOWRE_t.c.EID,
+            .select_from(
+                sqlalchemy.join(
+                    models.Towre,
+                    models.Wiat,
+                    models.Wiat.EID == models.Towre.EID,
+                ),
             )
         )
 
@@ -179,7 +181,7 @@ class AcademicAchievement(base.BaseTable):
         for index, label in enumerate(ACADEMIC_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
             utils.set_index_column_name_or_merge(table, label.domain, index)
-            row = table.rows[index].cells
+            row = table.template_rows[index].cells
             row[1].text = label.subtest
             if label.score == "XXX":
                 continue

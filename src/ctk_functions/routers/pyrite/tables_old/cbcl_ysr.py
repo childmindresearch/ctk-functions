@@ -5,7 +5,6 @@ from typing import Any
 import cmi_docx
 import sqlalchemy
 
-from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 # There are two sets of thresholds for clinical relevance.

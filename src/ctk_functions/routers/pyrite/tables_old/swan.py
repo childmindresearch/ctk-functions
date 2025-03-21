@@ -6,7 +6,6 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -68,7 +67,7 @@ class Swan(base.BaseTable):
         ]
 
         for index, label in enumerate(SWAN_ROW_LABELS):
-            row = table.rows[index + 1]
+            row = table.template_rows[index + 1]
             row.cells[0].text = label.name
             row.cells[1].text = f"{scores[index]:.2f}"
             row.cells[2].text = label.relevance

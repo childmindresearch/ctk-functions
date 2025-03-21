@@ -1,7 +1,6 @@
 """Module for the WISC tables."""
 
 import dataclasses
-from typing import Any
 
 import sqlalchemy
 from docx import document
@@ -34,15 +33,15 @@ WISC_COMPOSITE_ROW_LABELS = (
 )
 
 
-class WiscComposite(base.BaseTable):
+class WiscComposite(base.BaseTable[models.Wisc5]):
     """Fetches data for and creates the WISC composite table."""
 
     _title = "The Wechsler Intelligence Scale for Children-Fifth Edition (WISC-V)"
 
     @property
-    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
-        return sqlalchemy.select(models.t_I2B2_Export_WISC_V_t).where(
-            self.eid == models.t_I2B2_Export_WISC_V_t.c.EID,  # type: ignore[arg-type]
+    def _statement(self) -> sqlalchemy.Select[tuple[models.Wisc5]]:
+        return sqlalchemy.select(models.Wisc5).where(
+            self.eid == models.Wisc5.EID,  # type: ignore[arg-type]
         )
 
     def _add(
@@ -62,7 +61,7 @@ class WiscComposite(base.BaseTable):
 
         for index, label in enumerate(WISC_COMPOSITE_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
-            row = table.rows[index].cells
+            row = table.template_rows[index].cells
             row[0].text = f"{label.name} ({label.acronym})"
             score = getattr(self.data_no_none, f"WISC_{label.acronym}")
 

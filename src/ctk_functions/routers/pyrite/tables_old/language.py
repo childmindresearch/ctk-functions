@@ -6,7 +6,6 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -148,7 +147,7 @@ class Language(base.BaseTable):
 
         for index, label in enumerate(LANGUAGE_ROW_LABELS):
             index += 1  # noqa: PLW2901 # Adjust for header row.
-            row = table.rows[index].cells
+            row = table.template_rows[index].cells
             utils.set_index_column_name_or_merge(
                 table,
                 label.test,

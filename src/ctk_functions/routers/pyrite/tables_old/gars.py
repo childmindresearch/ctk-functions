@@ -5,7 +5,6 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -38,7 +37,7 @@ class Gars(base.BaseTable):
         table.style = utils.TABLE_STYLE
         utils.add_header(table, header_texts)
 
-        row = table.rows[1]
+        row = table.template_rows[1]
         row.cells[0].text = str(self.data_no_none.GARS_AI)
         row.cells[1].text = str(self.data_no_none.GARS_AI_Perc)
         row.cells[2].text = (

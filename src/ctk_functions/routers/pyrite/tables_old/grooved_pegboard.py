@@ -8,7 +8,6 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -66,7 +65,7 @@ class GroovedPegboard(base.BaseTable):
 
         for index, label in enumerate(PEGBOARD_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
-            row = table.rows[index].cells
+            row = table.template_rows[index].cells
             row[0].text = f"{label.name}"
             score = getattr(self.data_no_none, f"peg_z_{label.acronym}")
             percentile = _zscore_to_percentile(score)

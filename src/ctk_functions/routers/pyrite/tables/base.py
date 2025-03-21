@@ -1,22 +1,281 @@
 """Base class definition for all tables."""
 
 import abc
-import dataclasses
-from collections.abc import Sequence
-from typing import Any
+from collections.abc import Callable, Iterable
+from typing import Generic, TypeVar
 
 import cmi_docx
-import fastapi
+import pydantic
 import sqlalchemy
-from docx import document
-from fastapi import status
+from docx import document, table
 
 from ctk_functions.microservices.sql import client
-from ctk_functions.routers.pyrite.tables import utils
+
+T = TypeVar("T")
 
 
 class TableDataNotFoundError(Exception):
-    """Error raised when table data cannot be found."""
+    """Thrown when a table's data is not found."""
+
+
+class ConditionalStyle(pydantic.BaseModel):
+    """Applies a style conditional upon a cell's contents.
+
+    Args:
+        condition: The condition, if it evaluates to True then the style
+            will be applied.
+        style: The style to apply.
+    """
+
+    condition: Callable[[str], bool]
+    style: cmi_docx.TableStyle
+
+    def apply(self, cells: table._Cell | Iterable[table._Cell]) -> None:
+        """Applies the style to the cell if the condition is met.
+
+        Args:
+            cells: The cells to apply the style to.
+
+        """
+        if isinstance(cells, table._Cell):
+            cells = (cells,)
+
+        for cell in cells:
+            if self.condition(cell.text):
+                cmi_docx.ExtendCell(cell).format(self.style)
+
+
+class ClinicalRelevance(pydantic.BaseModel):
+    """Stores the score ranges for clinical relevance.
+
+    Attributes:
+        low: Minimum (exclusive) score for this tier of relevance.
+        high: Maximum (inclusive) score for this tier of relevance.
+        label: Label for this tier of relevance.
+        style: Custom cell styling for this tier of relevance.
+    """
+
+    low: int | None
+    high: int | None
+    label: str | None
+    style: cmi_docx.TableStyle
+
+    def in_range(self, value: float | str) -> bool:
+        """Checks if value is within the valid range.
+
+        Excludes low value, includes high value.
+        """
+        value = float(value)
+        if not self.high:
+            return value > self.low  # type: ignore[operator]
+        if not self.low:
+            return value <= self.high
+        return self.low < value <= self.high
+
+    def __str__(self) -> str:
+        """String representation of the clinical relevance.
+
+        Returns:
+            A string denoting the range for this tier's relevance.
+
+        Example outputs:
+            "<65 = LABEL" if low is 65, high is not set.
+            ">65 = LABEL" if low is not set and high is 65.
+            "65-65 = LABEL" if low is 65 and high is 75.
+        """
+        if self.low is None:
+            value = f"<{self.high}"
+
+        elif self.high is None:
+            value = f">{self.low}"
+        else:
+            value = f"{self.low}-{self.high}"
+
+        if self.label:
+            return f"{value} = {self.label}"
+        return value
+
+
+class Formatter(pydantic.BaseModel):
+    """Formatter for table cells.
+
+    Attributes:
+        conditional_styles: A tuple of styles to apply, conditional on cell contents.
+        merge_top: If True, merges cells with identical cells above them.
+        merge_right: If True, merges cells with identical cells right of them.
+
+    """
+
+    conditional_styles: list[ConditionalStyle] = pydantic.Field(
+        default_factory=list,
+    )
+    merge_top: bool = pydantic.Field(default=False)
+    merge_right: bool = pydantic.Field(default=False)
+
+    def format(self, tbl: table.Table, row_index: int, col_index: int) -> None:
+        """Formats the cell content for a table.
+
+        Args:
+            tbl: The table to format.
+            row_index: The row index of the target cell.
+            col_index: The column index of the target cell.
+        """
+        if row_index == 0 and self.merge_top:
+            msg = "Cannot merge top row upwards."
+            raise ValueError(msg)
+        if col_index == len(tbl.rows[0].cells) and self.merge_right:
+            msg = "Cannot merge right row rightwards."
+            raise ValueError(msg)
+
+        cell = tbl.rows[row_index].cells[col_index]
+        for style in self.conditional_styles:
+            style.apply(cell)
+
+        if self.merge_top:
+            prev_cell = tbl.rows[row_index - 1].cells[col_index]
+            current_text = cell.text
+
+            if prev_cell.text == cell.text:
+                prev_cell.merge(cell)
+                prev_cell.text = current_text
+
+        if self.merge_right:
+            next_cell = tbl.rows[row_index].cells[col_index + 1]
+            current_text = cell.text
+            if next_cell.text == cell.text:
+                next_cell.merge(cell)
+                cell.text = current_text
+
+
+class TableCell(Generic[T], pydantic.BaseModel):
+    """Definition of a cell in a table.
+
+    Attributes:
+        content: If a string, the cell contents will be that string. If
+            a Callable, the Callable will be used to dynamically get the
+            contents from a data dictionary.
+        formatter: Styling for the cell.
+    """
+
+    content: str | Callable[[T], str]
+    formatter: Formatter = Formatter()
+
+    def render(self, row_data: T | None = None) -> str:
+        """Render the content based on the data.
+
+        Args:
+            row_data: Dictionary containing the SQL query result for a row.
+                If self.content is a Callable, the Callable will be called on
+                this.
+
+        Returns:
+            The cell contents.
+        """
+        if callable(self.content):
+            if row_data is None:
+                msg = "Row data required for callable content"
+                raise ValueError(msg)
+            return str(self.content(row_data))
+        return str(self.content)
+
+
+class SqlDataSource(Generic[T], pydantic.BaseModel):
+    """SQL data source configuration for retrieving data."""
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
+    query: sqlalchemy.Select[tuple[T, ...]]
+    _data: T | None = None
+    _has_fetched_data: bool = False
+
+    def fetch_data(
+        self,
+    ) -> T | None:
+        """Execute the SQL query and return the results.
+
+        This assumes that there is only one row of interest.
+
+        Returns:
+            Query results.
+        """
+        if self._has_fetched_data:
+            return self._data
+
+        with client.get_session() as session:
+            self._data = session.execute(self.query).scalar_one_or_none()
+        self._has_fetched_data = True
+
+        return self._data
+
+
+class WordTable(Generic[T], pydantic.BaseModel):
+    """Creates Word tables.
+
+    Attributes:
+        data_source: The SQL data source to populate the table with.
+        template_rows: Templates containing the instructions to populate the table.
+        title: The title of the table.
+        table_style: The name of the Word table style to use.
+    """
+
+    data_source: SqlDataSource[T]
+    template_rows: list[list[TableCell[T]]]
+    title: str | None = None
+    table_style: str = "Grid Table 7 Colorful"
+
+    def add(self, doc: document.Document) -> None:
+        """Adds the table to the document.
+
+        Arguments:
+            doc: The document to add the table to.
+        """
+        built_rows = self._build()
+        self._insert(doc, built_rows)
+
+    def _build(self) -> list[list[TableCell[T]]]:
+        """Build the Word table."""
+        data = self.data_source.fetch_data()
+        if data is None:
+            msg = "No data available."
+            raise TableDataNotFoundError(msg)
+
+        built_table = []
+        for row in self.template_rows:
+            built_row: list[TableCell[T]] = [
+                TableCell(content=cell.render(data), formatter=cell.formatter)
+                for cell in row
+            ]
+            built_table.append(built_row)
+        return built_table
+
+    def _insert(
+        self,
+        doc: document.Document,
+        rows: list[list[TableCell[T]]],
+    ) -> None:
+        """Adds the Word table to the document.
+
+        Args:
+            doc: The Word document.
+            rows: An array of an array of cell contents, where the outer array
+                denotes rows, and the inner arrays denote columns.
+        """
+        if self.title:
+            doc.add_heading(
+                text=self.title,
+                level=1,
+            )
+
+        n_rows = len(rows)
+        n_cols = len(rows[0])
+
+        tbl = doc.add_table(n_rows, n_cols)
+        tbl.style = self.table_style
+
+        for row_index, row in enumerate(tbl.rows):
+            for col_index, cell in enumerate(row.cells):
+                cell.text = rows[row_index][col_index].render()
+                rows[row_index][col_index].formatter.format(tbl, row_index, col_index)
 
 
 class BaseTable(abc.ABC):
@@ -30,182 +289,10 @@ class BaseTable(abc.ABC):
         """
         self.eid = eid
 
-        self._data: sqlalchemy.Row[tuple[Any, ...]] | None = None
-        self._has_fetched_data = False
-
-    def add(self, doc: document.Document) -> None:
-        """Adds the table to the document with the title."""
-        if self._title:
-            doc.add_heading(
-                text=self._title,
-                level=1,
-            )
-        self._add(doc)
-
     @abc.abstractmethod
-    def _add(
-        self,
-        doc: document.Document,
-    ) -> None:
+    def add(self, doc: document.Document) -> None:
         """Adds the table to the document.
 
         Args:
-            doc: The Word document.
+            doc: The document to add the table to.
         """
-
-    @property
-    @abc.abstractmethod
-    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
-        """The SQL statement for fetching the data."""
-
-    @property
-    @abc.abstractmethod
-    def _title(self) -> str | None:
-        """The title of the table."""
-
-    @property
-    def data(self) -> sqlalchemy.Row[tuple[Any, ...]] | None:
-        """Fetches the data if it has not been fetched yet."""
-        if self._has_fetched_data:
-            return self._data
-
-        with client.get_session() as session:
-            rows = session.execute(self._statement).fetchall()
-
-        self._has_fetched_data = True
-        if len(rows) > 1:
-            raise fastapi.HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Found multiple selected rows.",
-            )
-        if len(rows) == 1:
-            self._data = rows[0]
-        return self._data
-
-    @property
-    def data_no_none(self) -> sqlalchemy.Row[tuple[Any, ...]]:
-        """Copy of the data that raises an error on None.
-
-        Used to coalesce None checks in one place.
-        """
-        if self.data is None:
-            msg = "Data is None, cannot use this table."
-            raise TableDataNotFoundError(msg)
-        return self.data
-
-
-@dataclasses.dataclass
-class TScoreRow:
-    """Defines the rows of the t-score table.
-
-    Attributes:
-        name: Name of the score, used in the first column.
-        column: Column name, used for accessing the SQL data.
-        relevance: A clinical relevance scoring. Used both as the third column
-            as well as for styling the second column.
-    """
-
-    name: str
-    column: str
-    relevance: Sequence[utils.ClinicalRelevance]
-
-
-class TScoreTable(BaseTable, abc.ABC):
-    """Template for a standard t-score table."""
-
-    @property
-    @abc.abstractmethod
-    def _row_labels(self) -> tuple[TScoreRow, ...]:
-        """The definitions of the table rows."""
-
-    def _add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds the t-score table with clinical relevance to the document.
-
-        Args:
-            doc: The Word document.
-        """
-        header_texts = [
-            "Subscale",
-            "T-Score",
-            "Clinical Relevance",
-        ]
-        table = doc.add_table(len(self._row_labels) + 1, len(header_texts))
-        table.style = utils.TABLE_STYLE
-        utils.add_header(table, header_texts)
-
-        for index, label in enumerate(self._row_labels):
-            row = table.rows[index + 1]
-            row.cells[0].text = label.name
-            score = getattr(self.data_no_none, label.column)
-            row.cells[1].text = str(score)
-            for relevance in label.relevance:
-                if relevance.in_range(score):
-                    extended_cell = cmi_docx.ExtendCell(table.rows[index + 1].cells[1])
-                    extended_cell.format(relevance.style)
-                    break
-
-            relevance_text = "\n".join(
-                [str(relevance) for relevance in label.relevance],
-            )
-            utils.set_index_column_name_or_merge(
-                table,
-                relevance_text,
-                row_index=index + 1,
-                col_index=2,
-            )
-
-
-@dataclasses.dataclass
-class ParentChildRow:
-    """Row definitions for the SCARED table."""
-
-    subscale: str
-    parent_column: str
-    child_column: str
-    relevance: utils.ClinicalRelevance
-
-
-class ParentChildTable(BaseTable, abc.ABC):
-    """Template for a table scoring parent and child responses."""
-
-    @property
-    @abc.abstractmethod
-    def _row_labels(self) -> tuple[ParentChildRow, ...]:
-        """The definitions of the table rows."""
-
-    def _add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds a table with both parent and child columns to the document.
-
-        Args:
-            doc: The Word document.
-        """
-        header_texts = [
-            "Subscales",
-            "Parent",
-            "Child",
-            "Clinical Relevance",
-        ]
-        table = doc.add_table(len(self._row_labels) + 1, len(header_texts))
-        table.style = utils.TABLE_STYLE
-        utils.add_header(table, header_texts)
-
-        for index, label in enumerate(self._row_labels):
-            row = table.rows[index + 1].cells
-            row[0].text = label.subscale
-            parent_score = getattr(self.data_no_none, label.parent_column)
-            child_score = getattr(self.data_no_none, label.child_column)
-            row[1].text = str(parent_score)
-            row[2].text = str(child_score)
-            row[3].text = str(label.relevance)
-
-            if parent_score and label.relevance.in_range(parent_score):
-                cmi_docx.ExtendCell(row[1]).format(label.relevance.style)
-
-            if child_score and label.relevance.in_range(child_score):
-                cmi_docx.ExtendCell(row[2]).format(label.relevance.style)

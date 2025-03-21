@@ -6,7 +6,6 @@ from typing import Any
 import sqlalchemy
 from docx import document
 
-from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -62,7 +61,7 @@ class Ctopp2(base.BaseTable):
 
         for index, label in enumerate(CTOPP2_ROW_LABELS):
             index += 1  # Offset for the header row.  # noqa: PLW2901
-            row = table.rows[index].cells
+            row = table.template_rows[index].cells
             row[0].text = f"{label.name}"
             score = getattr(self.data_no_none, f"CTOPP_{label.acronym}_S")
             if not score:
