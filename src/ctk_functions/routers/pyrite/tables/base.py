@@ -37,7 +37,7 @@ class ConditionalStyle(pydantic.BaseModel):
             cells: The cells to apply the style to.
 
         """
-        if isinstance(cells, table._Cell):
+        if isinstance(cells, table._Cell):  # noqa: SLF001
             cells = (cells,)
 
         for cell in cells:
@@ -209,7 +209,7 @@ class SqlDataSource(Generic[T], pydantic.BaseModel):
 
 
 class WordTable(Generic[T], pydantic.BaseModel):
-    """Creates Word tables_old.
+    """Creates Word tables.
 
     Attributes:
         data_source: The SQL data source to populate the table with.

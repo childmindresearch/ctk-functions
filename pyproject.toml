@@ -92,7 +92,7 @@ preview = false
 select = ["ALL"]
 ignore = [
     "PYI063", # Preview rule not correctly ignored.
-    "SIM300" # Can cause mypy issues in SQLAlchemy where statements.
+    "SIM300"  # Can cause mypy issues in SQLAlchemy where statements.
 ]
 fixable = ["ALL"]
 unfixable = []

@@ -1,9 +1,11 @@
+"""Supports the creation of any t-score table."""
+
 import dataclasses
 import functools
 from collections.abc import Callable, Sequence
 from typing import TypeVar
 
-from ctk_functions.routers.pyrite.tables2 import base
+from ctk_functions.routers.pyrite.tables import base
 
 T = TypeVar("T")
 

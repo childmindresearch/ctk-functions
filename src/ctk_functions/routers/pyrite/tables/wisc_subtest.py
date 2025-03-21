@@ -2,7 +2,7 @@
 
 import dataclasses
 import functools
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import fastapi
 import sqlalchemy
@@ -10,7 +10,10 @@ from docx import document
 from starlette import status
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables2 import base
+from ctk_functions.routers.pyrite.tables import base
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @dataclasses.dataclass

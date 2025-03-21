@@ -1,20 +1,22 @@
+"""Definitions of the used tables in the SQL Database."""
+
 import sqlalchemy
 from sqlalchemy import orm
 
 
 class Base(orm.DeclarativeBase):
-    """Base class for all tables_old."""
+    """Base class for all tables."""
 
 
 class Wisc5(Base):
-    """SQLAlchemy model representing the I2B2_Export_WISC_V_t table in the nextgen schema.
+    """SQLAlchemy model representing I2B2_Export_WISC_V_t in the nextgen schema.
 
     This table stores Wechsler Intelligence Scale for Children (WISC-V) assessment data,
     including raw scores, scaled scores, indexes, and percentiles.
     """
 
     __tablename__ = "I2B2_Export_WISC_V_t"
-    __table_args__ = {"schema": "nextgen"}
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -118,14 +120,14 @@ class Wisc5(Base):
 
 
 class Towre(Base):
-    """SQLAlchemy model representing the I2B2_Export_TOWRE_t table in the nextgen schema.
+    """SQLAlchemy model representing I2B2_Export_TOWRE_t in the nextgen schema.
 
     This table stores Test of Word Reading Efficiency (TOWRE) assessment data,
     including raw scores, scaled scores, percentiles, and age/grade equivalents.
     """
 
     __tablename__ = "I2B2_Export_TOWRE_t"
-    __table_args__ = {"schema": "nextgen"}
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -217,7 +219,7 @@ class Wiat(Base):
     """
 
     __tablename__ = "I2B2_Export_WIAT_t"
-    __table_args__ = {"schema": "nextgen"}
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -326,7 +328,7 @@ class Srs(Base):
     """
 
     __tablename__ = "I2B2_Export_SRS_t"
-    __table_args__ = {"schema": "nextgen"}
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),

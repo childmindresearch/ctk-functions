@@ -1,9 +1,11 @@
+"""Definition of the Social Responsiveness Scale table."""
+
 import cmi_docx
 import sqlalchemy
 from docx import document
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables2 import base, tscore
+from ctk_functions.routers.pyrite.tables import base, tscore
 
 CLINICAL_RELEVANCE = [
     base.ClinicalRelevance(
