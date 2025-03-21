@@ -5,52 +5,52 @@ description = "Clinician Toolkit API."
 readme = "README.md"
 requires-python = ">=3.12, <3.13"
 dependencies = [
-  "aiofiles>=24.1.0",
-  "aiohttp>=3.11.11",
-  "fastapi[standard]>=0.115.6",
-  "pycap>=2.6.0",
-  "pydantic>=2.10.4",
-  "pydantic-settings>=2.7.0",
-  "pypandoc-binary>=1.14",
-  "python-dateutil>=2.9.0.post0",
-  "pytz>=2024.2",
-  "spacy>=3.8.3",
-  "en-core-web-sm",
-  "jsonpickle>=4.0.1",
-  "tenacity>=9.0.0",
-  "cmi-docx>=0.3.11",
-  "sqlalchemy>=2.0.39",
-  "pyodbc>=5.2.0"
+    "aiofiles>=24.1.0",
+    "aiohttp>=3.11.11",
+    "fastapi[standard]>=0.115.6",
+    "pycap>=2.6.0",
+    "pydantic>=2.10.4",
+    "pydantic-settings>=2.7.0",
+    "pypandoc-binary>=1.14",
+    "python-dateutil>=2.9.0.post0",
+    "pytz>=2024.2",
+    "spacy>=3.8.3",
+    "en-core-web-sm",
+    "jsonpickle>=4.0.1",
+    "tenacity>=9.0.0",
+    "cmi-docx>=0.3.11",
+    "sqlalchemy>=2.0.39",
+    "pyodbc>=5.2.0"
 ]
 
 [tool.uv]
 dev-dependencies = [
-  "mypy>=1.14.0",
-  "pre-commit>=4.0.1",
-  "pytest>=8.3.4",
-  "pytest-asyncio>=0.25.0",
-  "pytest-cov>=6.0.0",
-  "pytest-dotenv>=0.5.2",
-  "pytest-mock>=3.14.0",
-  "ruff>=0.8.4",
-  "types-aiofiles>=24.1.0.20241221",
-  "types-python-dateutil>=2.9.0.20241206",
-  "types-pytz>=2024.2.0.20241221",
-  "types-requests>=2.32.0.20241016"
+    "mypy>=1.14.0",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "pytest-dotenv>=0.5.2",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.8.4",
+    "types-aiofiles>=24.1.0.20241221",
+    "types-python-dateutil>=2.9.0.20241206",
+    "types-pytz>=2024.2.0.20241221",
+    "types-requests>=2.32.0.20241016"
 ]
 
 [tool.uv.sources]
-en-core-web-sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz"}
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ctk_functions"]
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "src"
+    "src"
 ]
 testpaths = [
-  "tests"
+    "tests"
 ]
 
 [tool.mypy]
@@ -60,27 +60,27 @@ plugins = ["pydantic.mypy"]
 
 [tool.ruff]
 exclude = [
-  ".bzr",
-  ".direnv",
-  ".eggs",
-  ".git",
-  ".git-rewrite",
-  ".hg",
-  ".mypy_cache",
-  ".nox",
-  ".pants.d",
-  ".pytype",
-  ".ruff_cache",
-  ".svn",
-  ".tox",
-  ".venv",
-  "__pypackages__",
-  "_build",
-  "buck-out",
-  "build",
-  "dist",
-  "node_modules",
-  "venv"
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv"
 ]
 line-length = 88
 indent-width = 4
@@ -91,7 +91,8 @@ target-version = "py311"
 preview = false
 select = ["ALL"]
 ignore = [
-  "PYI063"  # Preview rule not correctly ignored.
+    "PYI063", # Preview rule not correctly ignored.
+    "SIM300" # Can cause mypy issues in SQLAlchemy where statements.
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -102,9 +103,9 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-  "S101",  # asserts should be used in pytest
-  "SLF001",  # accessing private members in tests is fine
-  "INP001"  # tests should not be a module
+    "S101", # asserts should be used in pytest
+    "SLF001", # accessing private members in tests is fine
+    "INP001"  # tests should not be a module
 ]
 "local/**/*" = ["ALL"]
 
