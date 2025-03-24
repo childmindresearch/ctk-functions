@@ -1,11 +1,9 @@
 """Definition of the Social Responsiveness Scale table."""
 
 import cmi_docx
-import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, tscore
+from ctk_functions.routers.pyrite.tables import base, tscore, utils
 
 CLINICAL_RELEVANCE = [
     base.ClinicalRelevance(
@@ -66,22 +64,17 @@ SRS_ROW_LABELS = (
 )
 
 
-class Srs(base.PyriteBaseTable):
-    """Generates a table displaying Social Responsiveness Scale results."""
+class SrsDataSource(base.DataProducer):
+    """Fetches the data for the SRS table."""
 
-    def add(self, doc: document.Document) -> None:
-        """Add the SRS table to the provided document.
+    def fetch(self, mrn: str) -> base.WordTableMarkup:
+        """Fetches SRS data for the given mrn.
 
         Args:
-            doc: The Word document to which the table will be added.
-        """
-        data_source: base.SqlDataSource[models.Srs] = base.SqlDataSource(
-            query=sqlalchemy.select(models.Srs).where(models.Srs.EID == self.eid),
-        )
+            mrn: The participant's unique identifier.
 
-        tbl = tscore.build_tscore_table(
-            data_source,
-            SRS_ROW_LABELS,
-            title="Social Responsiveness Scale",
-        )
-        tbl.add(doc)
+        Returns:
+            The markup for the Word table.
+        """
+        data = utils.fetch_participant_row(mrn, models.Srs)
+        return tscore.build_tscore_table(data, SRS_ROW_LABELS)
