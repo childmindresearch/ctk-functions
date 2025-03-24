@@ -2,7 +2,7 @@
 
 import abc
 from collections.abc import Callable, Iterable
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import cmi_docx
 import pydantic
@@ -156,11 +156,12 @@ class TableCell(pydantic.BaseModel, Generic[T]):
     Attributes:
         content: If a string, the cell contents will be that string. If
             a Callable, the Callable will be used to dynamically get the
-            contents from a data dictionary.
+            contents from a data dictionary. Whatever the output of the
+            callable, str() will be called on it to convert it to a string.
         formatter: Styling for the cell.
     """
 
-    content: str | Callable[[T], str]
+    content: str | Callable[[T], Any]
     formatter: Formatter = Formatter()
 
     def render(self, row_data: T | None = None) -> str:
@@ -179,7 +180,7 @@ class TableCell(pydantic.BaseModel, Generic[T]):
                 msg = "Row data required for callable content"
                 raise ValueError(msg)
             return str(self.content(row_data))
-        return str(self.content)
+        return self.content
 
 
 class SqlDataSource(pydantic.BaseModel, Generic[T]):
@@ -233,53 +234,28 @@ class WordDocumentTableRenderer(pydantic.BaseModel, Generic[T]):
         Arguments:
             doc: The document to add the table to.
         """
-        built_rows = self._build()
-        self._insert(doc, built_rows)
-
-    def _build(self) -> list[list[TableCell[T]]]:
-        """Build the Word table."""
         data = self.data_source.fetch_data()
         if data is None:
             msg = "No data available."
             raise TableDataNotFoundError(msg)
 
-        built_table = []
-        for row in self.template_rows:
-            built_row: list[TableCell[T]] = [
-                TableCell(content=cell.render(data), formatter=cell.formatter)
-                for cell in row
-            ]
-            built_table.append(built_row)
-        return built_table
-
-    def _insert(
-        self,
-        doc: document.Document,
-        rows: list[list[TableCell[T]]],
-    ) -> None:
-        """Adds the Word table to the document.
-
-        Args:
-            doc: The Word document.
-            rows: An array of an array of cell contents, where the outer array
-                denotes rows, and the inner arrays denote columns.
-        """
         if self.title:
             doc.add_heading(
                 text=self.title,
                 level=1,
             )
 
-        n_rows = len(rows)
-        n_cols = len(rows[0])
-
+        n_rows = len(self.template_rows)
+        n_cols = len(self.template_rows[0])
         tbl = doc.add_table(n_rows, n_cols)
         tbl.style = self.table_style
 
-        for row_index, row in enumerate(tbl.rows):
-            for col_index, cell in enumerate(row.cells):
-                cell.text = rows[row_index][col_index].render()
-                rows[row_index][col_index].formatter.format(tbl, row_index, col_index)
+        for row_index in range(n_rows):
+            for col_index in range(n_cols):
+                table_cell = tbl.rows[row_index].cells[col_index]
+                template_cell = self.template_rows[row_index][col_index]
+                table_cell.text = template_cell.render(data)
+                template_cell.formatter.format(tbl, row_index, col_index)
 
 
 class PyriteBaseTable(pydantic.BaseModel, abc.ABC):
