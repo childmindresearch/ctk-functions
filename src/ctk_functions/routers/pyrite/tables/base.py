@@ -9,9 +9,12 @@ import pydantic
 import sqlalchemy
 from docx import document, table
 
+from ctk_functions.core import config
 from ctk_functions.microservices.sql import client
 
 T = TypeVar("T")
+
+logger = config.get_logger()
 
 
 class TableDataNotFoundError(Exception):
@@ -202,6 +205,7 @@ class SqlDataSource(Generic[T], pydantic.BaseModel):
             return self._data
 
         with client.get_session() as session:
+            logger.debug("Fetching data with '%s'.", self.query)
             self._data = session.execute(self.query).scalar_one_or_none()
         self._has_fetched_data = True
 
@@ -279,7 +283,7 @@ class WordTable(Generic[T], pydantic.BaseModel):
 
 
 class BaseTable(abc.ABC):
-    """Abstract base class for all Pyrite tables_old."""
+    """Abstract base class for all Pyrite tables."""
 
     def __init__(self, eid: str) -> None:
         """Initialize the table with an EID.

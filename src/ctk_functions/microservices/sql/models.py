@@ -8,6 +8,243 @@ class Base(orm.DeclarativeBase):
     """Base class for all tables."""
 
 
+class Cbcl(Base):
+    """SQLAlchemy model representing the I2B2_Export_CBCL_t table in the nextgen schema.
+
+    This table stores the Child Behavior Checklist (CBCL) assessment data.
+    """
+
+    __tablename__ = "I2B2_Export_CBCL_t"
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+
+    URSI = orm.mapped_column(
+        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    SiteID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RaterID = orm.mapped_column(
+        sqlalchemy.String(4, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    SourceType = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    AssessmentStartDate = orm.mapped_column(
+        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    AssessmentStartTime = orm.mapped_column(
+        sqlalchemy.String(5, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    Successful = orm.mapped_column(
+        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    EID = orm.mapped_column(
+        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    START_DATE = orm.mapped_column(
+        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+        primary_key=True,
+    )
+    Study = orm.mapped_column(
+        sqlalchemy.String(3, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Days_Baseline = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Year = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Season = orm.mapped_column(
+        sqlalchemy.String(6, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+    )
+
+    # Individual CBCL item scores (1-112)
+    CBCL_01 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_02 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_03 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_04 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_05 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_06 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_07 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_08 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_09 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_10 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_11 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_12 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_13 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_14 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_15 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_16 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_17 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_18 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_19 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_20 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_21 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_22 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_23 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_24 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_25 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_26 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_27 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_28 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_29 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_30 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_31 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_32 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_33 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_34 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_35 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_36 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_37 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_38 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_39 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_40 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_41 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_42 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_43 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_44 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_45 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_46 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_47 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_48 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_49 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_50 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_51 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_52 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_53 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_54 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_55 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Item 56 has multiple sub-items (a-h)
+    CBCL_56A = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56B = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56C = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56D = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56E = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56F = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56G = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_56H = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Continuing individual items
+    CBCL_57 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_58 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_59 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_60 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_61 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_62 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_63 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_64 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_65 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_66 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_67 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_68 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_69 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_70 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_71 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_72 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_73 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_74 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_75 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_76 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_77 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_78 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_79 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_80 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_81 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_82 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_83 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_84 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_85 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_86 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_87 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_88 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_89 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_90 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_91 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_92 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_93 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_94 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_95 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_96 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_97 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_98 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_99 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_100 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_101 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_102 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_103 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_104 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_105 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_106 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_107 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_108 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_109 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_110 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_111 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_112 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Item 113 has multiple sub-items
+    CBCL_113A = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_113B = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_113C = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Syndrome scales
+
+    # Anxious/Depressed scale
+    CBCL_AD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_AD_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Withdrawn/Depressed scale
+    CBCL_WD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_WD_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Somatic Complaints scale
+    CBCL_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_SC_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Social Problems scale
+    CBCL_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_SP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Thought Problems scale
+    CBCL_TP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_TP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Attention Problems scale
+    CBCL_AP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_AP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Rule-Breaking Behavior scale
+    CBCL_RBB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_RBB_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Aggressive Behavior scale
+    CBCL_AB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_AB_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Other Problems scale
+    CBCL_OP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Composite scales
+
+    # Internalizing Problems
+    CBCL_Int = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_Int_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Externalizing Problems
+    CBCL_Ext = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_Ext_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Competence score
+    CBCL_C = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Total Problems
+    CBCL_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_Total_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+
 class CmiHbnIdTrack(Base):
     """SQLAlchemy model representing the CMI_HBN_IDTrack_t table in the nextgen schema.
 
@@ -60,6 +297,132 @@ class CmiHbnIdTrack(Base):
     Study_Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
     site_txt = orm.mapped_column(
         sqlalchemy.String(50, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+
+
+class Conners3(Base):
+    """SQLAlchemy model representing the I2B2_Export_C3SR_t table in the nextgen schema.
+
+    This table stores the Conners-3 Self-Report Scale (C3SR) assessment data.
+    """
+
+    __tablename__ = "I2B2_Export_C3SR_t"
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+
+    URSI = orm.mapped_column(
+        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    SiteID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RaterID = orm.mapped_column(
+        sqlalchemy.String(4, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    SourceType = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    AssessmentStartDate = orm.mapped_column(
+        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    AssessmentStartTime = orm.mapped_column(
+        sqlalchemy.String(5, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    Successful = orm.mapped_column(
+        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    EID = orm.mapped_column(
+        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    START_DATE = orm.mapped_column(
+        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+        primary_key=True,
+    )
+    Study = orm.mapped_column(
+        sqlalchemy.String(3, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Days_Baseline = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Year = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Season = orm.mapped_column(
+        sqlalchemy.String(6, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+    )
+
+    # Individual C3SR item scores (1-39)
+    C3SR_01 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_02 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_03 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_04 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_05 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_06 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_07 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_08 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_09 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_10 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_11 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_12 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_13 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_14 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_15 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_16 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_17 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_18 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_19 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_20 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_21 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_22 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_23 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_24 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_25 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_26 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_27 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_28 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_29 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_30 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_31 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_32 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_33 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_34 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_35 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_36 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_37 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_38 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_39 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Subscale scores and T-scores
+
+    # Aggression subscale
+    C3SR_AG = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_AG_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Family Relations subscale
+    C3SR_FR = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_FR_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Hyperactivity/Impulsivity subscale
+    C3SR_HY = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_HY_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Inattention subscale
+    C3SR_IN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_IN_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Learning Problems subscale
+    C3SR_LP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_LP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Validity indicators
+    C3SR_NI = orm.mapped_column(
+        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    C3SR_PI = orm.mapped_column(
+        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
         nullable=True,
     )
 
@@ -527,3 +890,235 @@ class Srs(Base):
     # SRS Total Score
     SRS_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
     SRS_Total_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+
+class Ysr(Base):
+    """SQLAlchemy model representing the I2B2_Export_YSR_t table in the nextgen schema.
+
+    This table stores the Youth Self-Report (YSR) assessment data.
+    """
+
+    __tablename__ = "I2B2_Export_YSR_t"
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+
+    URSI = orm.mapped_column(
+        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    SiteID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RaterID = orm.mapped_column(
+        sqlalchemy.String(4, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    SourceType = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    AssessmentStartDate = orm.mapped_column(
+        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    AssessmentStartTime = orm.mapped_column(
+        sqlalchemy.String(5, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    Successful = orm.mapped_column(
+        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    EID = orm.mapped_column(
+        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    START_DATE = orm.mapped_column(
+        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+        primary_key=True,
+    )
+    Study = orm.mapped_column(
+        sqlalchemy.String(3, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=True,
+    )
+    Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Days_Baseline = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Year = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Season = orm.mapped_column(
+        sqlalchemy.String(6, "SQL_Latin1_General_CP1_CI_AS"),
+        nullable=False,
+    )
+
+    # Individual YSR item scores (1-55)
+    YSR_01 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_02 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_03 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_04 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_05 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_06 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_07 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_08 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_09 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_10 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_11 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_12 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_13 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_14 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_15 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_16 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_17 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_18 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_19 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_20 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_21 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_22 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_23 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_24 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_25 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_26 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_27 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_28 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_29 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_30 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_31 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_32 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_33 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_34 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_35 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_36 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_37 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_38 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_39 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_40 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_41 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_42 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_43 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_44 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_45 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_46 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_47 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_48 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_49 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_50 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_51 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_52 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_53 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_54 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_55 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Item 56 has multiple sub-items (a-h)
+    YSR_56a = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56b = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56c = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56d = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56e = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56f = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56g = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_56h = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Continuing individual items (57-112)
+    YSR_57 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_58 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_59 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_60 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_61 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_62 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_63 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_64 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_65 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_66 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_67 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_68 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_69 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_70 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_71 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_72 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_73 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_74 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_75 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_76 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_77 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_78 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_79 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_80 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_81 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_82 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_83 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_84 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_85 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_86 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_87 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_88 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_89 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_90 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_91 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_92 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_93 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_94 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_95 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_96 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_97 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_98 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_99 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_100 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_101 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_102 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_103 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_104 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_105 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_106 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_107 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_108 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_109 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_110 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_111 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_112 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Syndrome scales
+
+    # Aggressive Behavior scale
+    YSR_AB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_AB_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Anxious/Depressed scale
+    YSR_AD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_AD_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Attention Problems scale
+    YSR_AP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_AP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Withdrawn/Depressed scale
+    YSR_WD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_WD_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Rule-Breaking Behavior scale
+    YSR_RBB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_RBB_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Somatic Complaints scale
+    YSR_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_SC_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Social Problems scale
+    YSR_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_SP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Thought Problems scale
+    YSR_TP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_TP_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Composite scales
+
+    # Externalizing Problems
+    YSR_Ext = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_Ext_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Internalizing Problems
+    YSR_Int = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_Int_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Other Problems scale
+    YSR_OP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Competence score
+    YSR_C = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Total Problems
+    YSR_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_Total_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
