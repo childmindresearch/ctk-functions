@@ -150,7 +150,7 @@ class Formatter(pydantic.BaseModel):
                 cell.text = current_text
 
 
-class TableCell(Generic[T], pydantic.BaseModel):
+class TableCell(pydantic.BaseModel, Generic[T]):
     """Definition of a cell in a table.
 
     Attributes:
@@ -182,7 +182,7 @@ class TableCell(Generic[T], pydantic.BaseModel):
         return str(self.content)
 
 
-class SqlDataSource(Generic[T], pydantic.BaseModel):
+class SqlDataSource(pydantic.BaseModel, Generic[T]):
     """SQL data source configuration for retrieving data."""
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
@@ -212,7 +212,7 @@ class SqlDataSource(Generic[T], pydantic.BaseModel):
         return self._data
 
 
-class WordTable(Generic[T], pydantic.BaseModel):
+class WordTable(pydantic.BaseModel, Generic[T]):
     """Creates Word tables.
 
     Attributes:
@@ -282,16 +282,10 @@ class WordTable(Generic[T], pydantic.BaseModel):
                 rows[row_index][col_index].formatter.format(tbl, row_index, col_index)
 
 
-class BaseTable(abc.ABC):
+class BaseTable(pydantic.BaseModel, abc.ABC):
     """Abstract base class for all Pyrite tables."""
 
-    def __init__(self, eid: str) -> None:
-        """Initialize the table with an EID.
-
-        Args:
-            eid: The unique identifier of the participant.
-        """
-        self.eid = eid
+    eid: str
 
     @abc.abstractmethod
     def add(self, doc: document.Document) -> None:
