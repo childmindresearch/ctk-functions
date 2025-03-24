@@ -2,23 +2,14 @@
 
 import abc
 from collections.abc import Callable, Iterable
-from typing import Any, Generic, TypeVar
 
 import cmi_docx
 import pydantic
-import sqlalchemy
 from docx import document, table
 
 from ctk_functions.core import config
-from ctk_functions.microservices.sql import client
-
-T = TypeVar("T")
 
 logger = config.get_logger()
-
-
-class TableDataNotFoundError(Exception):
-    """Thrown when a table's data is not found."""
 
 
 class ConditionalStyle(pydantic.BaseModel):
@@ -150,128 +141,84 @@ class Formatter(pydantic.BaseModel):
                 cell.text = current_text
 
 
-class TableCell(pydantic.BaseModel, Generic[T]):
-    """Definition of a cell in a table.
+class WordTableCell(pydantic.BaseModel):
+    """Definition of a cell in a Word table.
 
     Attributes:
-        content: If a string, the cell contents will be that string. If
-            a Callable, the Callable will be used to dynamically get the
-            contents from a data dictionary. Whatever the output of the
-            callable, str() will be called on it to convert it to a string.
+        content: The contents of the cell.
         formatter: Styling for the cell.
     """
 
-    content: str | Callable[[T], Any]
+    content: str = pydantic.Field(..., coerce_numbers_to_str=True)
     formatter: Formatter = Formatter()
 
-    def render(self, row_data: T | None = None) -> str:
-        """Render the content based on the data.
 
-        Args:
-            row_data: Dictionary containing the SQL query result for a row.
-                If self.content is a Callable, the Callable will be called on
-                this.
+class WordTableMarkup(pydantic.BaseModel):
+    """Definition of a Word table.
 
-        Returns:
-            The cell contents.
-        """
-        if callable(self.content):
-            if row_data is None:
-                msg = "Row data required for callable content"
-                raise ValueError(msg)
-            return str(self.content(row_data))
-        return self.content
+    Attributes:
+        rows: The rows of the table.
+    """
 
+    model_config = pydantic.ConfigDict(frozen=True)
 
-class SqlDataSource(pydantic.BaseModel, Generic[T]):
-    """SQL data source configuration for retrieving data."""
+    rows: tuple[tuple[WordTableCell, ...], ...]
 
-    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
-
-    query: sqlalchemy.Select[tuple[T, ...]]
-    _data: T | None = None
-    _has_fetched_data: bool = False
-
-    def fetch_data(
-        self,
-    ) -> T | None:
-        """Execute the SQL query and return the results.
-
-        This assumes that there is only one row of interest.
-
-        Returns:
-            Query results.
-        """
-        if self._has_fetched_data:
-            return self._data
-
-        with client.get_session() as session:
-            logger.debug("Fetching data with '%s'.", self.query)
-            self._data = session.execute(self.query).scalar_one_or_none()
-        self._has_fetched_data = True
-
-        return self._data
+    @pydantic.field_validator("rows")
+    @classmethod
+    def _rows_are_same_size(
+        cls,
+        rows: tuple[tuple[WordTableCell, ...], ...],
+    ) -> tuple[tuple[WordTableCell, ...], ...]:
+        """Checks that the rows form a valid 2D array."""
+        if not all(len(row) == len(rows[0]) for row in rows):
+            msg = "All rows must have the same length."
+            raise ValueError(msg)
+        return rows
 
 
-class WordDocumentTableRenderer(pydantic.BaseModel, Generic[T]):
+class DataProducer(abc.ABC):
+    """Abstract data producer for Word tables."""
+
+    @abc.abstractmethod
+    def fetch(self, mrn: str) -> WordTableMarkup:
+        """Abstract data fetcher."""
+
+
+class WordDocumentTableRenderer(pydantic.BaseModel):
     """Creates Word tables.
 
     Attributes:
-        data_source: The SQL data source to populate the table with.
-        template_rows: Templates containing the instructions to populate the table.
+        mark_up: The markup for the Word table.
         title: The title of the table.
         table_style: The name of the Word table style to use.
     """
 
-    data_source: SqlDataSource[T]
-    template_rows: list[list[TableCell[T]]]
+    mark_up: WordTableMarkup
     title: str | None = None
     table_style: str = "Grid Table 7 Colorful"
 
-    def add(self, doc: document.Document) -> None:
+    def add_to(self, doc: document.Document) -> None:
         """Adds the table to the document.
 
         Arguments:
             doc: The document to add the table to.
         """
-        data = self.data_source.fetch_data()
-        if data is None:
-            msg = "No data available."
-            raise TableDataNotFoundError(msg)
-
         if self.title:
             doc.add_heading(
                 text=self.title,
                 level=1,
             )
 
-        n_rows = len(self.template_rows)
-        n_cols = len(self.template_rows[0])
+        n_rows = len(self.mark_up.rows)
+        n_cols = len(self.mark_up.rows[0])
         tbl = doc.add_table(n_rows, n_cols)
         tbl.style = self.table_style
 
         for row_index in range(n_rows):
             for col_index in range(n_cols):
-                table_cell = tbl.rows[row_index].cells[col_index]
-                template_cell = self.template_rows[row_index][col_index]
-                table_cell.text = template_cell.render(data)
+                document_cell = tbl.rows[row_index].cells[col_index]
+                template_cell = self.mark_up.rows[row_index][col_index]
+
+                document_cell.text = template_cell.content
                 template_cell.formatter.format(tbl, row_index, col_index)
-
-
-class PyriteBaseTable(pydantic.BaseModel, abc.ABC):
-    """Abstract base class for all Pyrite tables.
-
-    Attributes:
-        eid: The unique identifier of the participant.
-
-    """
-
-    eid: str = pydantic.Field(..., description="Unique identifier of the participant.")
-
-    @abc.abstractmethod
-    def add(self, doc: document.Document) -> None:
-        """Adds the table to the document.
-
-        Args:
-            doc: The document to add the table to.
-        """

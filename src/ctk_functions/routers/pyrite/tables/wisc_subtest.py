@@ -1,19 +1,12 @@
 """Module for the WISC subtest table."""
 
 import dataclasses
-import functools
-from typing import TYPE_CHECKING
 
 import fastapi
-import sqlalchemy
-from docx import document
 from starlette import status
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
@@ -85,61 +78,51 @@ WISC_SUBTEST_ROW_LABELS = (
 )
 
 
-class WiscSubtest(base.PyriteBaseTable):
-    """The WISC subtest table."""
+class WiscSubtestDataSource(base.DataProducer):
+    """Fetches the data for the SRS table."""
 
-    def add(self, doc: document.Document) -> None:
-        """Adds the WISC subtest table to the document.
+    def fetch(self, mrn: str) -> base.WordTableMarkup:
+        """Fetches the WISC data for a given mrn.
 
         Args:
-            doc: The Word document.
+            mrn: The participant's unique identifier.
+
+        Returns:
+            The markup for the Word table.
         """
-        data_source: base.SqlDataSource[models.Wisc5] = base.SqlDataSource(
-            query=sqlalchemy.select(models.Wisc5).where(models.Wisc5.EID == self.eid),
-        )
-        header: list[base.TableCell[str]] = [
-            base.TableCell(content="Scale"),
-            base.TableCell(content="Subtest"),
-            base.TableCell(content="Scaled Score"),
-            base.TableCell(content="Percentile"),
-            base.TableCell(content="Range"),
+        data = utils.fetch_participant_row(mrn, models.Wisc5)
+        header = [
+            base.WordTableCell(content="Scale"),
+            base.WordTableCell(content="Subtest"),
+            base.WordTableCell(content="Scaled Score"),
+            base.WordTableCell(content="Percentile"),
+            base.WordTableCell(content="Range"),
         ]
-        content_rows: list[
-            list[base.TableCell[str | Callable[[models.Wisc5], str]]]
-        ] = [
+        content_rows = [
             [
-                base.TableCell(content=label.scale),
-                base.TableCell(content=label.subtest),
-                base.TableCell(
-                    content=functools.partial(
-                        lambda row, lbl: getattr(row, lbl.score_column),
-                        lbl=label,
+                base.WordTableCell(content=label.scale),
+                base.WordTableCell(content=label.subtest),
+                base.WordTableCell(
+                    content=getattr(data, label.score_column),
+                ),
+                base.WordTableCell(
+                    content=str(
+                        _wisc_subtest_scaled_score_to_percentile(
+                            getattr(data, label.score_column),
+                        ),
                     ),
                 ),
-                base.TableCell(
-                    content=functools.partial(
-                        lambda row, lbl: _wisc_subtest_scaled_score_to_percentile(
-                            getattr(row, lbl.score_column),
+                base.WordTableCell(
+                    content=str(
+                        _wisc_subtest_scaled_score_to_qualifier(
+                            getattr(data, label.score_column),
                         ),
-                        lbl=label,
-                    ),
-                ),
-                base.TableCell(
-                    content=functools.partial(
-                        lambda row, lbl: _wisc_subtest_scaled_score_to_qualifier(
-                            getattr(row, lbl.score_column),
-                        ),
-                        lbl=label,
                     ),
                 ),
             ]
             for label in WISC_SUBTEST_ROW_LABELS
         ]
-        template = [header, *content_rows]
-        base.WordDocumentTableRenderer(
-            data_source=data_source,
-            template_rows=template,
-        ).add(doc)
+        return base.WordTableMarkup(rows=[header, *content_rows])
 
 
 def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:

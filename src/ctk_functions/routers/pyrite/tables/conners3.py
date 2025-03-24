@@ -3,11 +3,9 @@
 import dataclasses
 
 import cmi_docx
-import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, tscore
+from ctk_functions.routers.pyrite.tables import base, tscore, utils
 
 
 @dataclasses.dataclass
@@ -76,24 +74,17 @@ CONNERS3_ROW_LABELS = (
 )
 
 
-class Conners3(base.PyriteBaseTable):
-    """Fetches and creates the Conners3 table."""
+class Conners3DataSource(base.DataProducer):
+    """Fetches the data for the Conners3 table."""
 
-    def add(self, doc: document.Document) -> None:
-        """Adds the Conners3 table to the document.
+    def fetch(self, mrn: str) -> base.WordTableMarkup:
+        """Fetches Conners3 data for the given mrn.
 
         Args:
-            doc: The document to add the Conners3 table to.
-        """
-        data_source: base.SqlDataSource[models.Conners3] = base.SqlDataSource(
-            query=sqlalchemy.select(models.Conners3).where(
-                models.Conners3.EID == self.eid,
-            ),
-        )
+            mrn: The participant's unique identifier.
 
-        tbl = tscore.build_tscore_table(
-            data_source,
-            CONNERS3_ROW_LABELS,
-            title="Social Responsiveness Scale",
-        )
-        tbl.add(doc)
+        Returns:
+            The markup for the Word table.
+        """
+        data = utils.fetch_participant_row(mrn, models.Conners3)
+        return tscore.build_tscore_table(data, CONNERS3_ROW_LABELS)

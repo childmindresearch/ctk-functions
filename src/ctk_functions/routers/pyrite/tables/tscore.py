@@ -1,13 +1,10 @@
 """Supports the creation of any t-score table."""
 
 import dataclasses
-import functools
-from collections.abc import Callable, Sequence
-from typing import TypeVar
+from collections.abc import Sequence
 
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base
-
-T = TypeVar("T")
 
 
 @dataclasses.dataclass
@@ -56,46 +53,37 @@ def _label_to_conditional_styles(label: TScoreRowLabel) -> list[base.Conditional
 
 
 def build_tscore_table(
-    data_source: base.SqlDataSource[T],
-    rows: Sequence[TScoreRowLabel],
-    title: str | None = None,
-) -> base.WordDocumentTableRenderer[T]:
+    data: models.Base,
+    row_labels: Sequence[TScoreRowLabel],
+) -> base.WordTableMarkup:
     """Add the SRS table to the provided document.
 
     Args:
-        data_source: The Sql data source from which to pull the data.
-        rows: The rows to include in the table.
-        title: The title of the table.
+        data: A row of SQL data to pull the table information from.
+        row_labels: Definitions of the table rows, header excluded.
 
     """
-    header: list[base.TableCell[str]] = [
-        base.TableCell(content="Subscale"),
-        base.TableCell(content="T-Score"),
-        base.TableCell(content="Clinical Relevance"),
+    header = [
+        base.WordTableCell(content="Subscale"),
+        base.WordTableCell(content="T-Score"),
+        base.WordTableCell(content="Clinical Relevance"),
     ]
-    content_rows: list[list[base.TableCell[str | Callable[[T], str]]]] = [
+    content_rows = [
         [
-            base.TableCell(content=label.subscale),
-            base.TableCell(
-                content=functools.partial(
-                    lambda row, lbl: getattr(row, lbl.score_column),
-                    lbl=label,
-                ),
+            base.WordTableCell(content=label.subscale),
+            base.WordTableCell(
+                content=getattr(data, label.score_column),
                 formatter=base.Formatter(
                     conditional_styles=_label_to_conditional_styles(label),
                 ),
             ),
-            base.TableCell(
+            base.WordTableCell(
                 content=_label_to_relevance_text(label),
                 formatter=base.Formatter(merge_top=True),
             ),
         ]
-        for label in rows
+        for label in row_labels
     ]
     template_rows = [header, *content_rows]
 
-    return base.WordDocumentTableRenderer(
-        data_source=data_source,
-        template_rows=template_rows,
-        title=title,
-    )
+    return base.WordTableMarkup(rows=template_rows)

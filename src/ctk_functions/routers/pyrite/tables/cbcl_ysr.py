@@ -1,11 +1,9 @@
 """Module for inserting the CBCL and YSR tables."""
 
 import cmi_docx
-import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, tscore
+from ctk_functions.routers.pyrite.tables import base, tscore, utils
 
 # There are two sets of thresholds for clinical relevance.
 # The one with higher scores is denoted as "HIGH", the other as "LOW".
@@ -119,42 +117,33 @@ CBCL_YSR_ROW_LABELS = {
 }
 
 
-class Cbcl(base.PyriteBaseTable):
-    """Fetches and creates the Child Behavior Checklist table."""
+class CbclDataSource(base.DataProducer):
+    """Fetches the data for the CBCL table."""
 
-    def add(self, doc: document.Document) -> None:
-        """Add the CBCL table to the provided document.
-
-        Args:
-            doc: The Word document to which the table will be added.
-        """
-        data_source: base.SqlDataSource[models.Cbcl] = base.SqlDataSource(
-            query=sqlalchemy.select(models.Cbcl).where(models.Cbcl.EID == self.eid),
-        )
-
-        tbl = tscore.build_tscore_table(
-            data_source,
-            CBCL_YSR_ROW_LABELS["CBCL"],
-            title="Child Behavior Checklist - Parent Report Form (CBCL)",
-        )
-        tbl.add(doc)
-
-
-class Ysr(base.PyriteBaseTable):
-    """Fetches and creates the Youth Self Report table."""
-
-    def add(self, doc: document.Document) -> None:
-        """Add the YSR table to the provided document.
+    def fetch(self, mrn: str) -> base.WordTableMarkup:
+        """Fetches CBCL data for the given mrn.
 
         Args:
-            doc: The Word document to which the table will be added.
+            mrn: The participant's unique identifier.
+
+        Returns:
+            The markup for the Word table.
         """
-        data_source: base.SqlDataSource[models.Cbcl] = base.SqlDataSource(
-            query=sqlalchemy.select(models.Cbcl).where(models.Cbcl.EID == self.eid),
-        )
-        tbl = tscore.build_tscore_table(
-            data_source,
-            CBCL_YSR_ROW_LABELS["YSR"],
-            title="Child Behavior Checklist - Youth Self Report (YSR)",
-        )
-        tbl.add(doc)
+        data = utils.fetch_participant_row(mrn, models.Cbcl)
+        return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["CBCL"])
+
+
+class YsrDataSource(base.DataProducer):
+    """Fetches the data for the YSR table."""
+
+    def fetch(self, mrn: str) -> base.WordTableMarkup:
+        """Fetches YSR data for the given mrn.
+
+        Args:
+            mrn: The participant's unique identifier.
+
+        Returns:
+            The markup for the Word table.
+        """
+        data = utils.fetch_participant_row(mrn, models.Ysr)
+        return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["YSR"])

@@ -12,6 +12,7 @@ from fastapi import status
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import (
+    base,
     srs,
     wisc_subtest,
 )
@@ -83,7 +84,7 @@ class PyriteReport:
         """Creates the Pyrite report."""
         assessment_classes = (
             # wisc_composite.WiscComposite,
-            wisc_subtest.WiscSubtest,
+            wisc_subtest.WiscSubtestDataSource,
             # grooved_pegboard.GroovedPegboard,
             # academic_achievement.AcademicAchievement,
             # celf5.Celf5,
@@ -95,14 +96,14 @@ class PyriteReport:
             # conners3.Conners3,
             # scq.Scq,
             # gars.Gars,
-            srs.Srs,
+            srs.SrsDataSource,
             # mfq.Mfq,
             # scared.Scared,
         )
 
         for assessment_class in assessment_classes:
-            table = assessment_class(eid=self._participant.GUID)
-            table.add(self.document)
+            mark_up = assessment_class().fetch(mrn=self._mrn)
+            base.WordDocumentTableRenderer(mark_up=mark_up).add_to(self.document)
             self.document.add_paragraph()
 
         self._replace_participant_information()
