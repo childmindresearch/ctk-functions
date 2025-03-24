@@ -59,7 +59,7 @@ def build_tscore_table(
     data_source: base.SqlDataSource[T],
     rows: Sequence[TScoreRowLabel],
     title: str | None = None,
-) -> base.WordTable[T]:
+) -> base.WordDocumentTableRenderer[T]:
     """Add the SRS table to the provided document.
 
     Args:
@@ -94,7 +94,7 @@ def build_tscore_table(
     ]
     template_rows = [header, *content_rows]
 
-    return base.WordTable(
+    return base.WordDocumentTableRenderer(
         data_source=data_source,
         template_rows=template_rows,
         title=title,

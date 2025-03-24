@@ -76,7 +76,7 @@ CONNERS3_ROW_LABELS = (
 )
 
 
-class Conners3(base.BaseTable):
+class Conners3(base.PyriteBaseTable):
     """Fetches and creates the Conners3 table."""
 
     def add(self, doc: document.Document) -> None:

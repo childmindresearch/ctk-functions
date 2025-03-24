@@ -66,7 +66,7 @@ SRS_ROW_LABELS = (
 )
 
 
-class Srs(base.BaseTable):
+class Srs(base.PyriteBaseTable):
     """Generates a table displaying Social Responsiveness Scale results."""
 
     def add(self, doc: document.Document) -> None:

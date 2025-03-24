@@ -119,7 +119,7 @@ CBCL_YSR_ROW_LABELS = {
 }
 
 
-class Cbcl(base.BaseTable):
+class Cbcl(base.PyriteBaseTable):
     """Fetches and creates the Child Behavior Checklist table."""
 
     def add(self, doc: document.Document) -> None:
@@ -140,7 +140,7 @@ class Cbcl(base.BaseTable):
         tbl.add(doc)
 
 
-class Ysr(base.BaseTable):
+class Ysr(base.PyriteBaseTable):
     """Fetches and creates the Youth Self Report table."""
 
     def add(self, doc: document.Document) -> None:

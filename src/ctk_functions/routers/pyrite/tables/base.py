@@ -1,4 +1,4 @@
-"""Base class definition for all tables_old."""
+"""Base class definition for all tables."""
 
 import abc
 from collections.abc import Callable, Iterable
@@ -212,7 +212,7 @@ class SqlDataSource(pydantic.BaseModel, Generic[T]):
         return self._data
 
 
-class WordTable(pydantic.BaseModel, Generic[T]):
+class WordDocumentTableRenderer(pydantic.BaseModel, Generic[T]):
     """Creates Word tables.
 
     Attributes:
@@ -282,10 +282,15 @@ class WordTable(pydantic.BaseModel, Generic[T]):
                 rows[row_index][col_index].formatter.format(tbl, row_index, col_index)
 
 
-class BaseTable(pydantic.BaseModel, abc.ABC):
-    """Abstract base class for all Pyrite tables."""
+class PyriteBaseTable(pydantic.BaseModel, abc.ABC):
+    """Abstract base class for all Pyrite tables.
 
-    eid: str
+    Attributes:
+        eid: The unique identifier of the participant.
+
+    """
+
+    eid: str = pydantic.Field(..., description="Unique identifier of the participant.")
 
     @abc.abstractmethod
     def add(self, doc: document.Document) -> None:

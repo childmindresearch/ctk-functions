@@ -85,7 +85,7 @@ WISC_SUBTEST_ROW_LABELS = (
 )
 
 
-class WiscSubtest(base.BaseTable):
+class WiscSubtest(base.PyriteBaseTable):
     """The WISC subtest table."""
 
     def add(self, doc: document.Document) -> None:
@@ -136,7 +136,7 @@ class WiscSubtest(base.BaseTable):
             for label in WISC_SUBTEST_ROW_LABELS
         ]
         template = [header, *content_rows]
-        base.WordTable(
+        base.WordDocumentTableRenderer(
             data_source=data_source,
             template_rows=template,
         ).add(doc)
