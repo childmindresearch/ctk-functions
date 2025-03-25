@@ -3,7 +3,8 @@
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, tscore, utils
+from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite.tables.generic import tscore
 
 # There are two sets of thresholds for clinical relevance.
 # The one with higher scores is denoted as "HIGH", the other as "LOW".

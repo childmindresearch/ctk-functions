@@ -79,7 +79,7 @@ WISC_SUBTEST_ROW_LABELS = (
 
 
 class WiscSubtestDataSource(base.DataProducer):
-    """Fetches the data for the SRS table."""
+    """Fetches the data for the WISC table."""
 
     def fetch(self, mrn: str) -> base.WordTableMarkup:
         """Fetches the WISC data for a given mrn.

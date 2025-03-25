@@ -2,6 +2,7 @@
 
 import abc
 from collections.abc import Callable, Iterable
+from typing import Self
 
 import cmi_docx
 import pydantic
@@ -47,24 +48,32 @@ class ClinicalRelevance(pydantic.BaseModel):
         high: Maximum (inclusive) score for this tier of relevance.
         label: Label for this tier of relevance.
         style: Custom cell styling for this tier of relevance.
+        low_inclusive: Whether to include exact equality with the low.
+        high_inclusive: Whether to include exact equality with the high.
     """
 
-    low: int | None
-    high: int | None
+    low: float | None
+    high: float | None
     label: str | None
     style: cmi_docx.TableStyle
+    low_inclusive: bool = False
+    high_inclusive: bool = True
 
     def in_range(self, value: float | str) -> bool:
         """Checks if value is within the valid range.
 
         Excludes low value, includes high value.
         """
-        value = float(value)
+        if self.low is not None:
+            low_check = self.low.__ge__ if self.low_inclusive else self.low.__gt__
+        if self.high is not None:
+            high_check = self.high.__le__ if self.high_inclusive else self.high.__lt__
+
         if not self.high:
-            return value > self.low  # type: ignore[operator]
+            return low_check(float(value))
         if not self.low:
-            return value <= self.high
-        return self.low < value <= self.high
+            return high_check(float(value))
+        return low_check(float(value)) and high_check(float(value))
 
     def __str__(self) -> str:
         """String representation of the clinical relevance.
@@ -77,17 +86,27 @@ class ClinicalRelevance(pydantic.BaseModel):
             ">65 = LABEL" if low is not set and high is 65.
             "65-65 = LABEL" if low is 65 and high is 75.
         """
+        high_symbol = "<=" if self.high_inclusive else "<"
+        low_symbol = ">=" if self.low_inclusive else "<"
+
         if self.low is None:
-            value = f"<{self.high}"
+            value = f"{high_symbol}{self.high}"
 
         elif self.high is None:
-            value = f">{self.low}"
+            value = f"{low_symbol}{self.low}"
         else:
-            value = f"{self.low}-{self.high}"
+            value = f"{low_symbol}{self.low}, {high_symbol}{self.high}"
 
         if self.label:
             return f"{value} = {self.label}"
         return value
+
+    @pydantic.model_validator(mode="after")
+    def _is_low_or_high_defined(self) -> Self:
+        if self.high is None and self.low is None:
+            msg = "Low or high must be defined."
+            raise ValueError(msg)
+        return self
 
 
 class Formatter(pydantic.BaseModel):

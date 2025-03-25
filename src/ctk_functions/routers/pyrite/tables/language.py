@@ -1,11 +1,10 @@
 """Module for inserting the language table."""
 
 import dataclasses
-from typing import Any
 
 import sqlalchemy
-from docx import document
 
+from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -107,64 +106,79 @@ LANGUAGE_ROW_LABELS = (
 )
 
 
-class Language(base.BaseTable):
-    """Fetches and creates the Langauge table."""
+class LanguageDataSource(base.DataProducer):
+    """Fetches the data for the Language table."""
 
-    _title = None
+    def fetch(self, mrn: str) -> base.WordTableMarkup:
+        """Fetches the Language data for a given mrn.
 
-    @property
-    def _statement(self) -> sqlalchemy.Select[tuple[Any, ...]]:
-        return (
-            sqlalchemy.select(models.t_I2B2_Export_WIAT_t, models.t_I2B2_Export_CTOPP_t)
+        Args:
+            mrn: The participant's unique identifier.
+
+        Returns:
+            The markup for the Word table.
+        """
+        eid = utils.mrn_to_eid(mrn)
+        statement = (
+            sqlalchemy.select(models.Wiat, models.Ctopp2)
             .where(
-                self.eid == models.t_I2B2_Export_WIAT_t.c.EID,  # type: ignore[arg-type]
+                models.Wiat.EID == eid,
             )
             .outerjoin(
-                models.t_I2B2_Export_CTOPP_t,
-                models.t_I2B2_Export_WIAT_t.c.EID == models.t_I2B2_Export_CTOPP_t.c.EID,
+                models.Ctopp2,
+                models.Wiat.EID == models.Ctopp2.EID,
             )
         )
 
-    def _add(
-        self,
-        doc: document.Document,
-    ) -> None:
-        """Adds the Language table to the report.
+        with client.get_session() as session:
+            data = session.execute(statement).fetchone()
 
-        Args:
-            doc: The Word document.
-        """
-        header_texts = [
-            "Test",
-            "Subtest",
-            "Standard Score",
-            "Percentile",
-            "Range",
+        header = [
+            base.WordTableCell(content="Test"),
+            base.WordTableCell(content="Subtest"),
+            base.WordTableCell(content="Standard Score"),
+            base.WordTableCell(content="Percentile"),
+            base.WordTableCell(content="Range"),
         ]
-        table = doc.add_table(len(LANGUAGE_ROW_LABELS) + 1, len(header_texts))
-        table.style = utils.TABLE_STYLE
-        utils.add_header(table, header_texts)
 
-        for index, label in enumerate(LANGUAGE_ROW_LABELS):
-            index += 1  # noqa: PLW2901 # Adjust for header row.
-            row = table.template_rows[index].cells
-            utils.set_index_column_name_or_merge(
-                table,
-                label.test,
-                row_index=index,
-                col_index=0,
+        content_rows = []
+        for label in LANGUAGE_ROW_LABELS:
+            test_cell = base.WordTableCell(
+                content=label.test,
+                formatter=base.Formatter(merge_top=True),
             )
-            row[1].text = label.subtest
-            if label.score_column and getattr(self.data_no_none, label.score_column):
-                score = int(getattr(self.data_no_none, label.score_column))
-                row[2].text = str(score) if score else "N/A"
-                row[3].text = (
-                    str(utils.standard_score_to_percentile(score)) if score else "N/A"
-                )
-                row[4].text = (
-                    utils.standard_score_to_qualifier(score) if score else "N/A"
-                )
+            subtest_cell = base.WordTableCell(content=label.subtest)
+
+            if label.score_column is None:
+                # TODO: Remove this once the correct column is found.
+                # Must set data_index, but the value doesn't matter in this case.
+                data_index = 0
             else:
-                row[2].text = "N/A"
-                row[3].text = "N/A"
-                row[4].text = "N/A"
+                data_index = int(label.score_column.startswith("CTOPP_"))
+
+            if not label.score_column or not getattr(
+                data[data_index],  # type: ignore[index]
+                label.score_column,
+            ):
+                score_cell = base.WordTableCell(content="N/A")
+                percentile_cell = base.WordTableCell(content="N/A")
+                range_cell = base.WordTableCell(content="N/A")
+            else:
+                score = float(getattr(data[data_index], label.score_column))  # type: ignore[index]
+                percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
+                qualifier = utils.standard_score_to_qualifier(score)
+                score_cell = base.WordTableCell(content=str(int(score)))
+                percentile_cell = base.WordTableCell(content=f"{percentile:.0f}")
+                range_cell = base.WordTableCell(content=qualifier)
+
+            content_rows.append(
+                [
+                    test_cell,
+                    subtest_cell,
+                    score_cell,
+                    percentile_cell,
+                    range_cell,
+                ],
+            )
+
+        return base.WordTableMarkup(rows=[header, *content_rows])

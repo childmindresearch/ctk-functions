@@ -5,7 +5,8 @@ import dataclasses
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, tscore, utils
+from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite.tables.generic import tscore
 
 
 @dataclasses.dataclass
