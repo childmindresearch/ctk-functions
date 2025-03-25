@@ -85,21 +85,21 @@ def standard_score_to_qualifier(score: float) -> str:  # noqa: PLR0911
     Returns:
         The corresponding qualifier.
     """
-    if score <= 59:
+    if score <= 59:  # noqa: PLR2004
         return "extremely low"
-    if score <= 69:
+    if score <= 69:  # noqa: PLR2004
         return "very low"
-    if score <= 79:
+    if score <= 79:  # noqa: PLR2004
         return "low"
-    if score <= 89:
+    if score <= 89:  # noqa: PLR2004
         return "low average"
-    if score <= 109:
+    if score <= 109:  # noqa: PLR2004
         return "average"
-    if score <= 119:
+    if score <= 119:  # noqa: PLR2004
         return "high average"
-    if score <= 129:
+    if score <= 129:  # noqa: PLR2004
         return "high"
-    if score <= 139:
+    if score <= 139:  # noqa: PLR2004
         return "very high"
     return "extremely high"
 
