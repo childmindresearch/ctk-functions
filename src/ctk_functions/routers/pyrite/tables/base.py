@@ -65,9 +65,9 @@ class ClinicalRelevance(pydantic.BaseModel):
         Excludes low value, includes high value.
         """
         if self.low is not None:
-            low_check = self.low.__ge__ if self.low_inclusive else self.low.__gt__
+            low_check = self.low.__le__ if self.low_inclusive else self.low.__lt__
         if self.high is not None:
-            high_check = self.high.__le__ if self.high_inclusive else self.high.__lt__
+            high_check = self.high.__ge__ if self.high_inclusive else self.high.__gt__
 
         if not self.high:
             return low_check(float(value))
@@ -86,8 +86,8 @@ class ClinicalRelevance(pydantic.BaseModel):
             ">65 = LABEL" if low is not set and high is 65.
             "65-65 = LABEL" if low is 65 and high is 75.
         """
-        high_symbol = ">=" if self.high_inclusive else ">"
-        low_symbol = "<=" if self.low_inclusive else "<"
+        high_symbol = "<=" if self.high_inclusive else "<"
+        low_symbol = ">=" if self.low_inclusive else ">"
 
         if self.low is None:
             value = f"{high_symbol}{self.high:g}"

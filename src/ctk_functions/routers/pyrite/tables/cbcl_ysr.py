@@ -13,12 +13,14 @@ CLINICAL_RELEVANCE_HIGH = [
     base.ClinicalRelevance(
         low=None,
         high=65,
+        high_inclusive=False,
         label="typical range",
         style=cmi_docx.TableStyle(),
     ),
     base.ClinicalRelevance(
         low=65,
         high=70,
+        low_inclusive=True,
         label="borderline range",
         style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
@@ -36,12 +38,14 @@ CLINICAL_RELEVANCE_LOW = [
     base.ClinicalRelevance(
         low=None,
         high=60,
+        high_inclusive=False,
         label="typical range",
         style=cmi_docx.TableStyle(),
     ),
     base.ClinicalRelevance(
         low=60,
         high=65,
+        low_inclusive=True,
         label="borderline range",
         style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
