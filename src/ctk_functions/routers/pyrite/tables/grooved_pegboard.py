@@ -2,6 +2,8 @@
 
 import dataclasses
 
+from docx import document
+
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -51,6 +53,33 @@ class GroovedPegboardDataSource(base.DataProducer):
         ]
 
         return base.WordTableMarkup(rows=[header, *content_rows])
+
+
+class GroovedPegboardTable(base.WordTableSection):
+    """Renderer for the grooved pegboard table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the grooved pegboard renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = GroovedPegboardDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Abbreviated Neurocognitive Assessment",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the grooved pegboard table to the document."""
+        self.renderer.add_to(doc)
 
 
 def _create_pegboard_content_row(

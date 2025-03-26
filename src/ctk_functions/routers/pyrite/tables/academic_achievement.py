@@ -3,6 +3,7 @@
 import dataclasses
 
 import sqlalchemy
+from docx import document
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -173,7 +174,7 @@ class AcademicAchievementDataSource(base.DataProducer):
         ]
         content_rows = []
         for label in ACADEMIC_ROW_LABELS:
-            domain_cell = base.WordTableCell(content=label.domain)
+            domain_cell = base.WordTableCell(content=label.domain, formatter=base.Formatter(merge_top=True))
             subtest_cell = base.WordTableCell(content=label.subtest)
             if label.score_column == "XXX":
                 # TODO: Remove once all columns are found.
@@ -193,3 +194,31 @@ class AcademicAchievementDataSource(base.DataProducer):
             )
 
         return base.WordTableMarkup(rows=[header, *content_rows])
+
+
+class AcademicAchievementTable(base.WordTableSection):
+    """Renderer for the Academic Achievement composite table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the Academic Achievement renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = AcademicAchievementDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Academic Achievement",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+            base.ParagraphBlock(content="Age Norms:"),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the Academic Achievement table to the document."""
+        self.renderer.add_to(doc)

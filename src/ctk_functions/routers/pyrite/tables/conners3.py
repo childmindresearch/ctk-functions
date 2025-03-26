@@ -3,6 +3,7 @@
 import dataclasses
 
 import cmi_docx
+from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -89,3 +90,30 @@ class Conners3DataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row(mrn, models.Conners3)
         return tscore.build_tscore_table(data, CONNERS3_ROW_LABELS)
+
+
+class Conners3Table(base.WordTableSection):
+    """Renderer for the Conners3 table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the Conners3 renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = Conners3DataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Conners 3 - Child Short Form",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the Conners3 table to the document."""
+        self.renderer.add_to(doc)

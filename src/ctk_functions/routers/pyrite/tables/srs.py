@@ -1,6 +1,7 @@
 """Definition of the Social Responsiveness Scale table."""
 
 import cmi_docx
+from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -79,3 +80,30 @@ class SrsDataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row(mrn, models.Srs)
         return tscore.build_tscore_table(data, SRS_ROW_LABELS)
+
+
+class SrsTable(base.WordTableSection):
+    """Renderer for the Srs table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the Srs renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = SrsDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Social Responsiveness Scale",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the Srs table to the document."""
+        self.renderer.add_to(doc)

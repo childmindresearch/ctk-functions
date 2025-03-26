@@ -3,6 +3,7 @@
 import dataclasses
 
 import sqlalchemy
+from docx import document
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -182,3 +183,24 @@ class LanguageDataSource(base.DataProducer):
             )
 
         return base.WordTableMarkup(rows=[header, *content_rows])
+
+
+class LanguageTable(base.WordTableSection):
+    """Renderer for the language table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the langauge renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = LanguageDataSource().fetch(mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=[],
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the langauge table to the document."""
+        self.renderer.add_to(doc)

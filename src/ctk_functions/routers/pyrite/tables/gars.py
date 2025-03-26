@@ -1,6 +1,7 @@
 """Module for inserting the Gilliam Autism Rating Scale table."""
 
 import cmi_docx
+from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -68,3 +69,40 @@ class GarsDataSource(base.DataProducer):
         ]
 
         return base.WordTableMarkup(rows=[header, content_row])
+
+
+class GarsTable(base.WordTableSection):
+    """Renderer for the Gars table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the Gars renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = GarsDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Gilliam Autism Rating Scale, Third Edition (GARS-3)",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        postamble = [
+            base.ParagraphBlock(
+                content="""*Caution is advised in interpretation of the Autism Index
+score, because individuals with other diagnoses including ADHD, ODD, anxiety, language
+disorder, and intellectual disability, may demonstrate behaviors typical of individuals
+diagnosed with autism. Thus, clinically elevated scores on this assessment are not
+necessarily indicative of an autism diagnosis.""",
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+            postamble=postamble,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the Gars table to the document."""
+        self.renderer.add_to(doc)

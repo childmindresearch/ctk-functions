@@ -11,6 +11,8 @@ from starlette import status
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables.base import logger
 
+TABLE_TITLE_LEVEL = 2
+
 
 class TableDataNotFoundError(Exception):
     """Thrown when a table's data is not found."""

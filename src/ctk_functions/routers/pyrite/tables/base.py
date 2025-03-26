@@ -1,7 +1,7 @@
 """Base class definition for all tables."""
 
 import abc
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from typing import Self
 
 import cmi_docx
@@ -86,16 +86,16 @@ class ClinicalRelevance(pydantic.BaseModel):
             ">65 = LABEL" if low is not set and high is 65.
             "65-65 = LABEL" if low is 65 and high is 75.
         """
-        high_symbol = "<=" if self.high_inclusive else "<"
-        low_symbol = ">=" if self.low_inclusive else "<"
+        high_symbol = ">=" if self.high_inclusive else ">"
+        low_symbol = "<=" if self.low_inclusive else "<"
 
         if self.low is None:
-            value = f"{high_symbol}{self.high}"
+            value = f"{high_symbol}{self.high:g}"
 
         elif self.high is None:
-            value = f"{low_symbol}{self.low}"
+            value = f"{low_symbol}{self.low:g}"
         else:
-            value = f"{low_symbol}{self.low}, {high_symbol}{self.high}"
+            value = f"{low_symbol}{self.low:g}, {high_symbol}{self.high:g}"
 
         if self.label:
             return f"{value} = {self.label}"
@@ -107,6 +107,33 @@ class ClinicalRelevance(pydantic.BaseModel):
             msg = "Low or high must be defined."
             raise ValueError(msg)
         return self
+
+
+class ParagraphBlock(pydantic.BaseModel):
+    """A text block in a Word document.
+
+    Attributes:
+        content: The text content of the paragraph.
+        style: The styling of the paragraph.
+        level: The level of the paragraph (e.g. 1 == Heading 1, 0 == Title, None == Normal style).
+    """
+
+    content: str
+    style: cmi_docx.ParagraphStyle = cmi_docx.ParagraphStyle()
+    level: int | None = None
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the paragraph to the end of a document.
+
+        Args:
+            doc: The document to add the paragraph to.
+        """
+        if self.level:
+            para = doc.add_heading(text=self.content, level=self.level)
+        else:
+            para = doc.add_paragraph(self.content)
+        if self.style:
+            cmi_docx.ExtendParagraph(para).format(self.style)
 
 
 class Formatter(pydantic.BaseModel):
@@ -208,36 +235,76 @@ class WordDocumentTableRenderer(pydantic.BaseModel):
     """Creates Word tables.
 
     Attributes:
-        mark_up: The markup for the Word table.
-        title: The title of the table.
+        markup: The markup for the Word table.
         table_style: The name of the Word table style to use.
     """
 
-    mark_up: WordTableMarkup
-    title: str | None = None
+    markup: WordTableMarkup
     table_style: str = "Grid Table 7 Colorful"
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the table to the document.
 
-        Arguments:
+        Args:
             doc: The document to add the table to.
         """
-        if self.title:
-            doc.add_heading(
-                text=self.title,
-                level=1,
-            )
-
-        n_rows = len(self.mark_up.rows)
-        n_cols = len(self.mark_up.rows[0])
+        n_rows = len(self.markup.rows)
+        n_cols = len(self.markup.rows[0])
         tbl = doc.add_table(n_rows, n_cols)
         tbl.style = self.table_style
 
         for row_index in range(n_rows):
             for col_index in range(n_cols):
                 document_cell = tbl.rows[row_index].cells[col_index]
-                template_cell = self.mark_up.rows[row_index][col_index]
+                template_cell = self.markup.rows[row_index][col_index]
 
                 document_cell.text = template_cell.content
                 template_cell.formatter.format(tbl, row_index, col_index)
+
+
+class WordDocumentTableSectionRenderer(pydantic.BaseModel):
+    """Creates a section around a Word table.
+
+    Many of the Pyrite report tables have inconsistent paragraphs around them.
+    This class is used to handle all these cases.
+
+    Attributes:
+        preamble: Text content to appear before the paragraph.
+        table_renderer: The table renderer.
+        postamble: Text content to appear after the paragraph. Note: if no paragraph
+            appears between two tables, then the tables will be merged.
+    """
+
+    preamble: Sequence[ParagraphBlock]
+    table_renderer: WordDocumentTableRenderer
+    postamble: Sequence[ParagraphBlock] = [ParagraphBlock(content="")]
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the section to the document.
+
+        Args:
+            doc: The document to add the section to.
+        """
+        for pre in self.preamble:
+            pre.add_to(doc)
+
+        self.table_renderer.add_to(doc)
+
+        for post in self.postamble:
+            post.add_to(doc)
+
+
+class WordTableSection(abc.ABC):
+    """Abstract class for adding table sections."""
+
+    @abc.abstractmethod
+    def __init__(self, mrn: str) -> None:
+        """Initialize all properties needed to add the section to the document.."""
+
+    @abc.abstractmethod
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the section to the document.
+
+        Args:
+            doc: The document to add the section to.
+        """

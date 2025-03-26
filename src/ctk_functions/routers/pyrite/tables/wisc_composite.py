@@ -2,6 +2,8 @@
 
 import dataclasses
 
+from docx import document
+
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -72,3 +74,30 @@ def _create_wisc_composite_row(
         base.WordTableCell(content=f"{percentile:.0f}"),
         base.WordTableCell(content=qualifier),
     ]
+
+
+class WiscCompositeTable(base.WordTableSection):
+    """Renderer for the WISC composite table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the WISC renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = WiscCompositeDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="The Wechsler Intelligence Scale for Children-Fifth Edition (WISC-V)",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the WISC Composite table to the document."""
+        self.renderer.add_to(doc)

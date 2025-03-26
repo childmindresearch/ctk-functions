@@ -1,5 +1,7 @@
 """Gets the data for the CELF-5 Table."""
 
+from docx import document
+
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -37,3 +39,30 @@ class Celf5DataSource(base.DataProducer):
         ]
 
         return base.WordTableMarkup(rows=markup)
+
+
+class Celf5Table(base.WordTableSection):
+    """Renderer for the CELF5 table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the CELF5 renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = Celf5DataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Language Screening",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the CELF5 table to the document."""
+        self.renderer.add_to(doc)

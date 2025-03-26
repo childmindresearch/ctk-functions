@@ -1,6 +1,7 @@
 """Module for inserting the CBCL and YSR tables."""
 
 import cmi_docx
+from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -134,6 +135,33 @@ class CbclDataSource(base.DataProducer):
         return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["CBCL"])
 
 
+class CbclTable(base.WordTableSection):
+    """Renderer for the CBCL table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the CBCL renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = CbclDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Child Behavior Checklist - Parent Report Form (CBCL)",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the CBCL table to the document."""
+        self.renderer.add_to(doc)
+
+
 class YsrDataSource(base.DataProducer):
     """Fetches the data for the YSR table."""
 
@@ -148,3 +176,30 @@ class YsrDataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row(mrn, models.Ysr)
         return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["YSR"])
+
+
+class YsrTable(base.WordTableSection):
+    """Renderer for the YSR table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the YSR renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = YsrDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Child Behavior Checklist - Youth Self Report (YSR)",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the YSR table to the document."""
+        self.renderer.add_to(doc)

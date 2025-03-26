@@ -13,7 +13,6 @@ from ctk_functions.core import config
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
-    base,
     cbcl_ysr,
     celf5,
     conners3,
@@ -95,29 +94,42 @@ class PyriteReport:
 
     def create(self) -> None:
         """Creates the Pyrite report."""
-        data_sources = (
-            wisc_composite.WiscCompositeDataSource,
-            wisc_subtest.WiscSubtestDataSource,
-            grooved_pegboard.GroovedPegboardDataSource,
-            academic_achievement.AcademicAchievementDataSource,
-            celf5.Celf5DataSource,
-            language.LanguageDataSource,
-            ctopp_2.Ctopp2DataSource,
-            cbcl_ysr.CbclDataSource,
-            cbcl_ysr.YsrDataSource,
-            swan.SwanDataSource,
-            conners3.Conners3DataSource,
-            scq.ScqDataSource,
-            gars.GarsDataSource,
-            srs.SrsDataSource,
-            mfq.MfqDataSource,
-            scared.ScaredDataSource,
+        self.document.add_heading("General Intellectual Function", level=1)
+        wisc_composite.WiscCompositeTable(mrn=self._mrn).add_to(self.document)
+        wisc_subtest.WiscSubtestTable(mrn=self._mrn).add_to(self.document)
+
+        grooved_pegboard.GroovedPegboardTable(mrn=self._mrn).add_to(self.document)
+        academic_achievement.AcademicAchievementTable(mrn=self._mrn).add_to(
+            self.document
         )
 
-        for source in data_sources:
-            mark_up = source().fetch(mrn=self._mrn)
-            base.WordDocumentTableRenderer(mark_up=mark_up).add_to(self.document)
-            self.document.add_paragraph()
+        celf5.Celf5Table(mrn=self._mrn).add_to(self.document)
+        language.LanguageTable(mrn=self._mrn).add_to(self.document)
+
+        ctopp_2.Ctopp2Table(mrn=self._mrn).add_to(self.document)
+
+        self.document.add_heading(
+            "Social-Emotional and Behavioral Functioning Questionnaires", level=1
+        )
+        self.document.add_heading(
+            "General Emotional and Behavioral Functioning", level=2
+        )
+        cbcl_ysr.CbclTable(mrn=self._mrn).add_to(self.document)
+        cbcl_ysr.YsrTable(mrn=self._mrn).add_to(self.document)
+        self.document.add_heading(
+            "Attention Deficit-Hyperactivity Symptoms and Behaviors"
+        )
+        swan.SwanTable(mrn=self._mrn).add_to(self.document)
+        conners3.Conners3Table(mrn=self._mrn).add_to(self.document)
+
+        self.document.add_heading("Autism Spectrum Symptoms and Behaviors", level=2)
+        scq.ScqTable(mrn=self._mrn).add_to(self.document)
+        gars.GarsTable(mrn=self._mrn).add_to(self.document)
+        srs.SrsTable(mrn=self._mrn).add_to(self.document)
+
+        self.document.add_heading("Depression and Anxiety Symptoms", level=2)
+        mfq.MfqTable(mrn=self._mrn).add_to(self.document)
+        scared.ScaredTable(mrn=self._mrn).add_to(self.document)
 
         self._replace_participant_information()
 

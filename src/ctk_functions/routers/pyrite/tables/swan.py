@@ -3,6 +3,7 @@
 import dataclasses
 
 import cmi_docx
+from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -101,3 +102,30 @@ class SwanDataSource(base.DataProducer):
             for score, label in zip(scores, SWAN_ROW_LABELS, strict=False)
         ]
         return base.WordTableMarkup(rows=[header, *content_rows])
+
+
+class SwanTable(base.WordTableSection):
+    """Renderer for the Swan table."""
+
+    def __init__(self, mrn: str) -> None:
+        """Initializes the Swan renderer.
+
+        Args:
+            mrn: The participant's unique identifier.'
+        """
+        markup = SwanDataSource().fetch(mrn)
+        preamble = [
+            base.ParagraphBlock(
+                content="Strengths and Weaknesses of ADHD Symptoms and Normal Behavior (SWAN)",
+                level=utils.TABLE_TITLE_LEVEL,
+            ),
+        ]
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=preamble,
+            table_renderer=table_renderer,
+        )
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the Swan table to the document."""
+        self.renderer.add_to(doc)
