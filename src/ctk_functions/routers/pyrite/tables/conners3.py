@@ -1,6 +1,7 @@
 """Module for inserting the Conners3 table."""
 
 import dataclasses
+import functools
 
 import cmi_docx
 from docx import document
@@ -79,7 +80,9 @@ CONNERS3_ROW_LABELS = (
 class Conners3DataSource(base.DataProducer):
     """Fetches the data for the Conners3 table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches Conners3 data for the given mrn.
 
         Args:
@@ -101,7 +104,7 @@ class Conners3Table(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = Conners3DataSource().fetch(mrn)
+        markup = Conners3DataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Conners 3 - Child Short Form",

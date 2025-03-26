@@ -1,5 +1,7 @@
 """Module for getting the Scared table."""
 
+import functools
+
 import cmi_docx
 from docx import document
 
@@ -110,7 +112,9 @@ SCARED_ROW_LABELS = (
 class ScaredDataSource(base.DataProducer):
     """Fetches the data for the Scared table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the Scared data for a given mrn.
 
         Args:
@@ -136,7 +140,7 @@ class ScaredTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = ScaredDataSource().fetch(mrn)
+        markup = ScaredDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Screen for Child Anxiety Related Disorders",

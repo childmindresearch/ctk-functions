@@ -1,5 +1,7 @@
 """Module for inserting the Gilliam Autism Rating Scale table."""
 
+import functools
+
 import cmi_docx
 from docx import document
 
@@ -35,7 +37,9 @@ CLINICAL_RELEVANCE = [
 class GarsDataSource(base.DataProducer):
     """Fetches the GARS table data."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the GARS data for a given mrn.
 
         Args:
@@ -80,7 +84,7 @@ class GarsTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = GarsDataSource().fetch(mrn)
+        markup = GarsDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Gilliam Autism Rating Scale, Third Edition (GARS-3)",

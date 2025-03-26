@@ -1,6 +1,7 @@
 """Module for inserting the language table."""
 
 import dataclasses
+import functools
 
 import sqlalchemy
 from docx import document
@@ -110,7 +111,9 @@ LANGUAGE_ROW_LABELS = (
 class LanguageDataSource(base.DataProducer):
     """Fetches the data for the Language table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the Language data for a given mrn.
 
         Args:
@@ -194,7 +197,7 @@ class LanguageTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = LanguageDataSource().fetch(mrn)
+        markup = LanguageDataSource.fetch(mrn)
         table_renderer = base.WordDocumentTableRenderer(markup=markup)
         self.renderer = base.WordDocumentTableSectionRenderer(
             preamble=[],

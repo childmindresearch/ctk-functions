@@ -1,5 +1,7 @@
 """Module for fetching the Social Communication Questionnaire data."""
 
+import functools
+
 import cmi_docx
 from docx import document
 
@@ -10,7 +12,9 @@ from ctk_functions.routers.pyrite.tables import base, utils
 class ScqDataSource(base.DataProducer):
     """Fetches and creates the SCQ table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the Scq data for a given mrn.
 
         Args:
@@ -57,7 +61,7 @@ class ScqTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = ScqDataSource().fetch(mrn)
+        markup = ScqDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Social Communication Questionnaire",

@@ -1,6 +1,7 @@
 """Module for the WISC subtest table."""
 
 import dataclasses
+import functools
 
 import cmi_docx
 import fastapi
@@ -83,7 +84,9 @@ WISC_SUBTEST_ROW_LABELS = (
 class WiscSubtestDataSource(base.DataProducer):
     """Fetches the data for the WISC table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the WISC data for a given mrn.
 
         Args:
@@ -136,7 +139,7 @@ class WiscSubtestTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = WiscSubtestDataSource().fetch(mrn)
+        markup = WiscSubtestDataSource.fetch(mrn)
         postamble = [
             base.ParagraphBlock(
                 content="*Subtests used to derive the Full Scale IQ (FSIQ)",

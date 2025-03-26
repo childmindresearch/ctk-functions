@@ -1,6 +1,7 @@
 """Adds the grooved pegboard table to the document."""
 
 import dataclasses
+import functools
 
 from docx import document
 
@@ -31,7 +32,9 @@ PEGBOARD_ROW_LABELS = (
 class GroovedPegboardDataSource(base.DataProducer):
     """Fetches the data for the Grooved Pegboard table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the Grooved Pegboard data for a given mrn.
 
         Args:
@@ -64,7 +67,7 @@ class GroovedPegboardTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = GroovedPegboardDataSource().fetch(mrn)
+        markup = GroovedPegboardDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Abbreviated Neurocognitive Assessment",

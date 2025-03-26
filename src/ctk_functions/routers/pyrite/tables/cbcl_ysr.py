@@ -1,5 +1,7 @@
 """Module for inserting the CBCL and YSR tables."""
 
+import functools
+
 import cmi_docx
 from docx import document
 
@@ -126,7 +128,9 @@ CBCL_YSR_ROW_LABELS = {
 class CbclDataSource(base.DataProducer):
     """Fetches the data for the CBCL table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches CBCL data for the given mrn.
 
         Args:
@@ -148,7 +152,7 @@ class CbclTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = CbclDataSource().fetch(mrn)
+        markup = CbclDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Child Behavior Checklist - Parent Report Form (CBCL)",
@@ -169,7 +173,9 @@ class CbclTable(base.WordTableSection):
 class YsrDataSource(base.DataProducer):
     """Fetches the data for the YSR table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches YSR data for the given mrn.
 
         Args:
@@ -191,7 +197,7 @@ class YsrTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = YsrDataSource().fetch(mrn)
+        markup = YsrDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Child Behavior Checklist - Youth Self Report (YSR)",

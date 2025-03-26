@@ -1,5 +1,7 @@
 """Gets the data for the CELF-5 Table."""
 
+import functools
+
 from docx import document
 
 from ctk_functions.microservices.sql import models
@@ -9,7 +11,9 @@ from ctk_functions.routers.pyrite.tables import base, utils
 class Celf5DataSource(base.DataProducer):
     """Fetches the data for the Celf5 table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the Celf5 data for a given mrn.
 
         Args:
@@ -50,7 +54,7 @@ class Celf5Table(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = Celf5DataSource().fetch(mrn)
+        markup = Celf5DataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Language Screening",

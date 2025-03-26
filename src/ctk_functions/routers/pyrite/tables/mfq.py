@@ -1,5 +1,7 @@
 """Module for getting the Mood and Feelings Questionnaire table."""
 
+import functools
+
 import cmi_docx
 from docx import document
 
@@ -30,7 +32,9 @@ MFQ_ROW_LABELS = (
 class MfqDataSource(base.DataProducer):
     """Fetches the data for the MFQ table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the MFQ data for a given mrn.
 
         Args:
@@ -56,7 +60,7 @@ class MfqTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = MfqDataSource().fetch(mrn)
+        markup = MfqDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Mood and Feelings Questionnaire (MFQ) - Long Version",

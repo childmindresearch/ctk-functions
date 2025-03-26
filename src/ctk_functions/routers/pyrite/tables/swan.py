@@ -1,6 +1,7 @@
 """Module for inserting the SWAN table."""
 
 import dataclasses
+import functools
 
 import cmi_docx
 from docx import document
@@ -60,7 +61,9 @@ SWAN_ROW_LABELS = (
 class SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the SWAN data for a given mrn.
 
         Args:
@@ -113,7 +116,7 @@ class SwanTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = SwanDataSource().fetch(mrn)
+        markup = SwanDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content=(

@@ -1,6 +1,7 @@
 """Gets the CTOPP-2 data."""
 
 import dataclasses
+import functools
 
 from docx import document
 
@@ -33,7 +34,9 @@ CTOPP2_ROW_LABELS = (
 class Ctopp2DataSource(base.DataProducer):
     """Fetches the data for the CTOPP-2 table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the CTOPP-2 data for a given mrn.
 
         Args:
@@ -67,7 +70,7 @@ class Ctopp2Table(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = Ctopp2DataSource().fetch(mrn)
+        markup = Ctopp2DataSource.fetch(mrn)
         table_renderer = base.WordDocumentTableRenderer(markup=markup)
         self.renderer = base.WordDocumentTableSectionRenderer(
             preamble=[],

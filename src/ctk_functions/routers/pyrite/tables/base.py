@@ -1,6 +1,7 @@
 """Base class definition for all tables."""
 
 import abc
+import functools
 from collections.abc import Callable, Iterable, Sequence
 from typing import Self
 
@@ -227,8 +228,10 @@ class WordTableMarkup(pydantic.BaseModel):
 class DataProducer(abc.ABC):
     """Abstract data producer for Word tables."""
 
+    @classmethod
+    @functools.lru_cache
     @abc.abstractmethod
-    def fetch(self, mrn: str) -> WordTableMarkup:
+    def fetch(cls, mrn: str) -> WordTableMarkup:
         """Abstract data fetcher."""
 
 

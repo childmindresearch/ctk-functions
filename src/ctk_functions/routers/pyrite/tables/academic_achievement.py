@@ -1,6 +1,7 @@
 """Module for inserting the academic achievement table."""
 
 import dataclasses
+import functools
 
 import sqlalchemy
 from docx import document
@@ -136,7 +137,9 @@ ACADEMIC_ROW_LABELS = (
 class AcademicAchievementDataSource(base.DataProducer):
     """Fetches the data for the academic achievement table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the academic achievement data for a given mrn.
 
         Args:
@@ -208,7 +211,7 @@ class AcademicAchievementTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = AcademicAchievementDataSource().fetch(mrn)
+        markup = AcademicAchievementDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Academic Achievement",

@@ -1,6 +1,7 @@
 """Module for the WISC tables_old."""
 
 import dataclasses
+import functools
 
 from docx import document
 
@@ -35,6 +36,8 @@ WISC_COMPOSITE_ROW_LABELS = (
 class WiscCompositeDataSource(base.DataProducer):
     """Fetches data for and creates the WISC composite table."""
 
+    @classmethod
+    @functools.lru_cache
     def fetch(self, mrn: str) -> base.WordTableMarkup:
         """Fetches the academic achievement data for a given mrn.
 
@@ -85,7 +88,7 @@ class WiscCompositeTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = WiscCompositeDataSource().fetch(mrn)
+        markup = WiscCompositeDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content=(

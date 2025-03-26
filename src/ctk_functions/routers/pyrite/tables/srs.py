@@ -1,5 +1,7 @@
 """Definition of the Social Responsiveness Scale table."""
 
+import functools
+
 import cmi_docx
 from docx import document
 
@@ -69,7 +71,9 @@ SRS_ROW_LABELS = (
 class SrsDataSource(base.DataProducer):
     """Fetches the data for the SRS table."""
 
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    @classmethod
+    @functools.lru_cache
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches SRS data for the given mrn.
 
         Args:
@@ -91,7 +95,7 @@ class SrsTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = SrsDataSource().fetch(mrn)
+        markup = SrsDataSource.fetch(mrn)
         preamble = [
             base.ParagraphBlock(
                 content="Social Responsiveness Scale",
