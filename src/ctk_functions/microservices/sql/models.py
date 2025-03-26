@@ -259,7 +259,7 @@ class Celf5(Base):
     """
 
     __tablename__ = "I2B2_Export_CELF_t"
-    __table_args__ = {"schema": "nextgen"}
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -502,9 +502,10 @@ class Conners3(Base):
 
 
 class Ctopp2(Base):
-    """SQLAlchemy model representing the I2B2_Export_CTOPP_t table in the nextgen schema.
+    """SQLAlchemy model representing the I2B2_Export_CTOPP_t table.
 
-    This table stores the Comprehensive Test of Phonological Processing (CTOPP) assessment data,
+    This table stores the Comprehensive Test of Phonological Processing (CTOPP)
+    assessment data,
     """
 
     __tablename__ = "I2B2_Export_CTOPP_t"
@@ -801,7 +802,7 @@ class Gars(Base):
 
 
 class GroovedPegboard(Base):
-    """SQLAlchemy model representing the I2B2_Export_GroovedPeg_t table in the nextgen schema.
+    """SQLAlchemy model representing the I2B2_Export_GroovedPeg_t table.
 
     This table stores Grooved Pegboard Test data.
     """
@@ -879,7 +880,7 @@ class GroovedPegboard(Base):
 
 
 class MfqParent(Base):
-    """SQLAlchemy model representing the I2B2_Export_MFQ_Parent_t table in the nextgen schema.
+    """SQLAlchemy model representing the I2B2_Export_MFQ_Parent_t table.
 
     This table stores the Mood and Feelings Questionnaire (MFQ) Parent Report data.
     """
@@ -971,7 +972,7 @@ class MfqParent(Base):
 
 
 class MfqSelf(Base):
-    """SQLAlchemy model representing the I2B2_Export_MFQ_Self_t table in the nextgen schema.
+    """SQLAlchemy model representing the I2B2_Export_MFQ_Self_t table.
 
     This table stores the Mood and Feelings Questionnaire (MFQ) Self Report data.
     """
@@ -1062,9 +1063,10 @@ class MfqSelf(Base):
 
 
 class ScaredParent(Base):
-    """SQLAlchemy model representing the I2B2_Export_SCARED_Parent_t table in the nextgen schema.
+    """SQLAlchemy model representing the I2B2_Export_SCARED_Parent_t table.
 
-    This table stores the Screen for Child Anxiety Related Disorders (SCARED) Parent Report data,
+    This table stores the Screen for Child Anxiety Related Disorders (SCARED) Parent
+    Report data,
     """
 
     __tablename__ = "I2B2_Export_SCARED_Parent_t"
@@ -1177,9 +1179,10 @@ class ScaredParent(Base):
 
 
 class ScaredSelf(Base):
-    """SQLAlchemy model representing the I2B2_Export_SCARED_Self_t table in the nextgen schema.
+    """SQLAlchemy model representing the I2B2_Export_SCARED_Self_t table.
 
-    This table stores the Screen for Child Anxiety Related Disorders (SCARED) Self Report data,
+    This table stores the Screen for Child Anxiety Related Disorders (SCARED) Self
+    Report data,
     """
 
     __tablename__ = "I2B2_Export_SCARED_Self_t"

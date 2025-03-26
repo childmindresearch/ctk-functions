@@ -174,7 +174,10 @@ class AcademicAchievementDataSource(base.DataProducer):
         ]
         content_rows = []
         for label in ACADEMIC_ROW_LABELS:
-            domain_cell = base.WordTableCell(content=label.domain, formatter=base.Formatter(merge_top=True))
+            domain_cell = base.WordTableCell(
+                content=label.domain,
+                formatter=base.Formatter(merge_top=True),
+            )
             subtest_cell = base.WordTableCell(content=label.subtest)
             if label.score_column == "XXX":
                 # TODO: Remove once all columns are found.

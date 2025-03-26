@@ -115,7 +115,8 @@ class ParagraphBlock(pydantic.BaseModel):
     Attributes:
         content: The text content of the paragraph.
         style: The styling of the paragraph.
-        level: The level of the paragraph (e.g. 1 == Heading 1, 0 == Title, None == Normal style).
+        level: The level of the paragraph (e.g. 0 == Title, 1 == Heading 1,
+            None == Normal style).
     """
 
     content: str

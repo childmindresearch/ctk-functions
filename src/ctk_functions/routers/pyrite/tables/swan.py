@@ -116,7 +116,10 @@ class SwanTable(base.WordTableSection):
         markup = SwanDataSource().fetch(mrn)
         preamble = [
             base.ParagraphBlock(
-                content="Strengths and Weaknesses of ADHD Symptoms and Normal Behavior (SWAN)",
+                content=(
+                    "Strengths and Weaknesses of ADHD Symptoms "
+                    "and Normal Behavior (SWAN)"
+                ),
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]

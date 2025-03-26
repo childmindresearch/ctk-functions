@@ -88,7 +88,10 @@ class WiscCompositeTable(base.WordTableSection):
         markup = WiscCompositeDataSource().fetch(mrn)
         preamble = [
             base.ParagraphBlock(
-                content="The Wechsler Intelligence Scale for Children-Fifth Edition (WISC-V)",
+                content=(
+                    "The Wechsler Intelligence Scale for "
+                    "Children-Fifth Edition (WISC-V)"
+                ),
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]

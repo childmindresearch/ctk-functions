@@ -100,7 +100,7 @@ class PyriteReport:
 
         grooved_pegboard.GroovedPegboardTable(mrn=self._mrn).add_to(self.document)
         academic_achievement.AcademicAchievementTable(mrn=self._mrn).add_to(
-            self.document
+            self.document,
         )
 
         celf5.Celf5Table(mrn=self._mrn).add_to(self.document)
@@ -109,15 +109,17 @@ class PyriteReport:
         ctopp_2.Ctopp2Table(mrn=self._mrn).add_to(self.document)
 
         self.document.add_heading(
-            "Social-Emotional and Behavioral Functioning Questionnaires", level=1
+            "Social-Emotional and Behavioral Functioning Questionnaires",
+            level=1,
         )
         self.document.add_heading(
-            "General Emotional and Behavioral Functioning", level=2
+            "General Emotional and Behavioral Functioning",
+            level=2,
         )
         cbcl_ysr.CbclTable(mrn=self._mrn).add_to(self.document)
         cbcl_ysr.YsrTable(mrn=self._mrn).add_to(self.document)
         self.document.add_heading(
-            "Attention Deficit-Hyperactivity Symptoms and Behaviors"
+            "Attention Deficit-Hyperactivity Symptoms and Behaviors",
         )
         swan.SwanTable(mrn=self._mrn).add_to(self.document)
         conners3.Conners3Table(mrn=self._mrn).add_to(self.document)

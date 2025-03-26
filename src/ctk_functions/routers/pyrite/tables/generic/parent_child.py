@@ -1,3 +1,5 @@
+"""Creates a table for surveys that have separate parent/child responses."""
+
 from collections.abc import Sequence
 
 import pydantic
@@ -22,6 +24,17 @@ def build_parent_child_table(
     child_table: type[models.Base],
     row_labels: Sequence[ParentChildRow],
 ) -> base.WordTableMarkup:
+    """Creates a parent/child table.
+
+    Args:
+        mrn: The participant's unique identifier.
+        parent_table: The parent's SQL table.
+        child_table: The child's SQL table.
+        row_labels: The row labels for the parent/child table.
+
+    Returns:
+        The markup for the parent/child table.
+    """
     eid = utils.mrn_to_eid(mrn)
     statement = (
         sqlalchemy.select(

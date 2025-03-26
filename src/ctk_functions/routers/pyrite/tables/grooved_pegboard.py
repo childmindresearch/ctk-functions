@@ -86,7 +86,7 @@ def _create_pegboard_content_row(
     label: PegBoardRowLabels,
     data: models.GroovedPegboard,
 ) -> list[base.WordTableCell]:
-    """Creates a row for the pegboard table with label, score, percentile, and qualifier.
+    """Creates a row for the pegboard table.
 
     Args:
         label: A row label.
