@@ -500,7 +500,7 @@ class Development:
                 duration=getattr(patient_data, f"{service[0]}_dur"),
             )
             for index, service in enumerate(cpse_encodings)
-            if getattr(patient_data, f"schoolservices___{index+1}")
+            if getattr(patient_data, f"schoolservices___{index + 1}")
         ]
 
         self.cpse_services = [
@@ -511,7 +511,7 @@ class Development:
                 duration=getattr(patient_data, f"cpse_{service[0]}_dur"),
             )
             for index, service in enumerate(cpse_encodings)
-            if getattr(patient_data, f"cpse_services___{index+1}")
+            if getattr(patient_data, f"cpse_services___{index + 1}")
         ]
 
         self.started_walking = transformers.DevelopmentSkill(
@@ -613,7 +613,7 @@ class FamilyPsychiatricHistory:
 
         family_diagnoses = [
             parser_models.FamilyPsychiatricHistory(
-                diagnosis=diagnosis.subscale,
+                diagnosis=diagnosis.name,
                 no_formal_diagnosis=getattr(
                     patient_data,
                     f"{diagnosis.checkbox_abbreviation}___4",

@@ -300,7 +300,7 @@ class ReportWriter:
         text = f"""
             {prenatal_sentence} {birth_sentence} {patient.first_name} had
             {development.adaptability} during infancy and was
-            {development.soothing_difficulty.subscale} to soothe.
+            {development.soothing_difficulty.name} to soothe.
         """
 
         text = string_utils.remove_excess_whitespace(text)
@@ -650,7 +650,7 @@ class ReportWriter:
                 city=household.city,
                 state=household.state,
                 functioning=household.home_functioning,
-                languages=", ".join([lang.subscale for lang in household.languages]),
+                languages=", ".join([lang.name for lang in household.languages]),
             )
             + "Child Languages:\n"
             + "\n\n".join([str(lang) for lang in patient.languages])
@@ -669,8 +669,11 @@ class ReportWriter:
                 this patient.
 
                 Languages spoken in the household are as follows:
-                {string_utils.join_with_oxford_comma([language.subscale for language in
-                                                      household.languages])}.
+                {
+                string_utils.join_with_oxford_comma(
+                    [language.name for language in household.languages]
+                )
+            }.
 
                 What follows is an example output:
 

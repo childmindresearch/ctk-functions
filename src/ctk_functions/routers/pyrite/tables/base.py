@@ -8,6 +8,7 @@ from typing import Self
 import cmi_docx
 import pydantic
 from docx import document, table
+from docx.text import paragraph
 
 from ctk_functions.core import config
 
@@ -70,9 +71,9 @@ class ClinicalRelevance(pydantic.BaseModel):
         if self.high is not None:
             high_check = self.high.__ge__ if self.high_inclusive else self.high.__gt__
 
-        if not self.high:
+        if self.high is None:
             return low_check(float(value))
-        if not self.low:
+        if self.low is None:
             return high_check(float(value))
         return low_check(float(value)) and high_check(float(value))
 
@@ -124,7 +125,7 @@ class ParagraphBlock(pydantic.BaseModel):
     style: cmi_docx.ParagraphStyle = cmi_docx.ParagraphStyle()
     level: int | None = None
 
-    def add_to(self, doc: document.Document) -> None:
+    def add_to(self, doc: document.Document) -> paragraph.Paragraph:
         """Adds the paragraph to the end of a document.
 
         Args:
@@ -136,6 +137,7 @@ class ParagraphBlock(pydantic.BaseModel):
             para = doc.add_paragraph(self.content)
         if self.style:
             cmi_docx.ExtendParagraph(para).format(self.style)
+        return para  # type: ignore[no-any-return]
 
 
 class Formatter(pydantic.BaseModel):
@@ -303,7 +305,7 @@ class WordTableSection(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self, mrn: str) -> None:
-        """Initialize all properties needed to add the section to the document.."""
+        """Initialize all properties needed to add the section to the document."""
 
     @abc.abstractmethod
     def add_to(self, doc: document.Document) -> None:
