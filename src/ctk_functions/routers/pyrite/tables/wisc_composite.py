@@ -38,7 +38,7 @@ class WiscCompositeDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(self, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> base.WordTableMarkup:
         """Fetches the academic achievement data for a given mrn.
 
         Args:
