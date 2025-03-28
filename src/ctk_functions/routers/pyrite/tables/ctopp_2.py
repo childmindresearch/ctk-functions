@@ -24,10 +24,10 @@ class Ctopp2RowLabels:
 
 # Defines the rows and their order of appearance.
 CTOPP2_ROW_LABELS = (
-    Ctopp2RowLabels(name="Rapid Digit Naming", score_column="CTOPP_RD_S"),
-    Ctopp2RowLabels(name="Rapid Letter Naming", score_column="CTOPP_RL_S"),
-    Ctopp2RowLabels(name="Rapid Object Naming", score_column="CTOPP_RO_S"),
-    Ctopp2RowLabels(name="Rapid Color Naming", score_column="CTOPP_NR_S"),
+    Ctopp2RowLabels(name="Rapid Digit Naming", score_column="RD_errors"),
+    Ctopp2RowLabels(name="Rapid Letter Naming", score_column="RL_errors"),
+    Ctopp2RowLabels(name="Rapid Object Naming", score_column="RO_errors"),
+    Ctopp2RowLabels(name="Rapid Color Naming", score_column="RC_errors"),
 )
 
 
@@ -45,7 +45,7 @@ class Ctopp2DataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Ctopp2)
+        data = utils.fetch_participant_row("person_id", mrn, models.Ctopp2)
         header = [
             base.WordTableCell(content="CTOPP - 2 Rapid Naming"),
             base.WordTableCell(content="Number of Errors"),
@@ -53,7 +53,11 @@ class Ctopp2DataSource(base.DataProducer):
         content_rows = [
             [
                 base.WordTableCell(content=label.name),
-                base.WordTableCell(content=getattr(data, label.score_column) or "N/A"),
+                base.WordTableCell(
+                    content=getattr(data, label.score_column)
+                    if getattr(data, label.score_column) is not None
+                    else "N/A",
+                ),
             ]
             for label in CTOPP2_ROW_LABELS
         ]
@@ -61,7 +65,7 @@ class Ctopp2DataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class Ctopp2Table(base.WordTableSection):
+class Ctopp2Table(base.WordTableSection, data_source=Ctopp2DataSource):
     """Renderer for the CTOPP2 table."""
 
     def __init__(self, mrn: str) -> None:
@@ -70,13 +74,13 @@ class Ctopp2Table(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = Ctopp2DataSource.fetch(mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=[],
-            table_renderer=table_renderer,
-        )
+        self.mrn = mrn
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the CTOPP2 table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

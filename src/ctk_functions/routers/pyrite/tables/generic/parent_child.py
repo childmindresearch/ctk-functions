@@ -35,7 +35,7 @@ def build_parent_child_table(
     Returns:
         The markup for the parent/child table.
     """
-    eid = utils.mrn_to_eid(mrn)
+    eid = utils.mrn_to_ids(mrn).EID
     statement = (
         sqlalchemy.select(
             parent_table,
@@ -70,8 +70,8 @@ def build_parent_child_table(
 
 
 def _build_parent_child_row(
-    parent_data: models.Base,
-    child_data: models.Base,
+    parent_data: models.Base | None,
+    child_data: models.Base | None,
     label: ParentChildRow,
 ) -> list[base.WordTableCell]:
     styles = [
@@ -79,14 +79,26 @@ def _build_parent_child_row(
         for relevance in label.relevance
     ]
     formatter = base.Formatter(conditional_styles=styles)
+
+    def score2label(data: models.Base | None, column: str) -> str:
+        if not data:
+            return "N/A"
+        score = getattr(data, column)
+        if score is None:
+            return "N/A"
+        return str(score)
+
+    parent_label = score2label(parent_data, label.parent_column)
+    child_label = score2label(child_data, label.child_column)
+
     return [
         base.WordTableCell(content=label.subscale),
         base.WordTableCell(
-            content=getattr(parent_data, label.parent_column) or "N/A",
+            content=parent_label,
             formatter=formatter,
         ),
         base.WordTableCell(
-            content=getattr(child_data, label.child_column) or "N/A",
+            content=child_label,
             formatter=formatter,
         ),
         base.WordTableCell(

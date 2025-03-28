@@ -95,7 +95,7 @@ class WiscSubtestDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Wisc5)
+        data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
         header = [
             base.WordTableCell(content="Scale"),
             base.WordTableCell(content="Subtest"),
@@ -130,7 +130,7 @@ class WiscSubtestDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class WiscSubtestTable(base.WordTableSection):
+class WiscSubtestTable(base.WordTableSection, data_source=WiscSubtestDataSource):
     """Renderer for the WISC subtest table."""
 
     def __init__(self, mrn: str) -> None:
@@ -139,23 +139,23 @@ class WiscSubtestTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = WiscSubtestDataSource.fetch(mrn)
-        postamble = [
+        self.mrn = mrn
+        self.postamble = [
             base.ParagraphBlock(
                 content="*Subtests used to derive the Full Scale IQ (FSIQ)",
                 style=cmi_docx.ParagraphStyle(italic=True),
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=[],
-            table_renderer=table_renderer,
-            postamble=postamble,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the WISC subtest table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            table_renderer=table_renderer,
+            postamble=self.postamble,
+        )
+        renderer.add_to(doc)
 
 
 def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:

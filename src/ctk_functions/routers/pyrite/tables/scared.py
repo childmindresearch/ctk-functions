@@ -16,10 +16,9 @@ SCARED_ROW_LABELS = (
         child_column="SCARED_SR_PN",
         relevance=[
             base.ClinicalRelevance(
-                high=6,
-                low=None,
+                low=6,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -32,10 +31,9 @@ SCARED_ROW_LABELS = (
         child_column="SCARED_SR_GD",
         relevance=[
             base.ClinicalRelevance(
-                high=8,
-                low=None,
+                low=8,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -48,10 +46,9 @@ SCARED_ROW_LABELS = (
         child_column="SCARED_SR_SP",
         relevance=[
             base.ClinicalRelevance(
-                high=4,
-                low=None,
+                low=4,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -64,10 +61,9 @@ SCARED_ROW_LABELS = (
         child_column="SCARED_SR_SC",
         relevance=[
             base.ClinicalRelevance(
-                high=7,
-                low=None,
+                low=7,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -80,10 +76,9 @@ SCARED_ROW_LABELS = (
         child_column="SCARED_SR_SH",
         relevance=[
             base.ClinicalRelevance(
-                high=2,
-                low=None,
+                low=2,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -96,10 +91,9 @@ SCARED_ROW_LABELS = (
         child_column="SCARED_SR_Total",
         relevance=[
             base.ClinicalRelevance(
-                high=24,
-                low=None,
+                low=24,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -131,7 +125,7 @@ class ScaredDataSource(base.DataProducer):
         )
 
 
-class ScaredTable(base.WordTableSection):
+class ScaredTable(base.WordTableSection, data_source=ScaredDataSource):
     """Renderer for the Scared table."""
 
     def __init__(self, mrn: str) -> None:
@@ -140,19 +134,20 @@ class ScaredTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = ScaredDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Screen for Child Anxiety Related Disorders",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the Scared table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

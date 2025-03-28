@@ -23,7 +23,7 @@ class ScqDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Scq)
+        data = utils.fetch_participant_row("EID", mrn, models.Scq)
         relevance = base.ClinicalRelevance(
             low=10,
             high=None,
@@ -52,7 +52,7 @@ class ScqDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, content_row])
 
 
-class ScqTable(base.WordTableSection):
+class ScqTable(base.WordTableSection, data_source=ScqDataSource):
     """Renderer for the Scq table."""
 
     def __init__(self, mrn: str) -> None:
@@ -61,19 +61,20 @@ class ScqTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = ScqDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Social Communication Questionnaire",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the Scq table to the document."""
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        self.renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
         self.renderer.add_to(doc)

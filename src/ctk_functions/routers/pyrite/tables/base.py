@@ -3,7 +3,7 @@
 import abc
 import functools
 from collections.abc import Callable, Iterable, Sequence
-from typing import Self
+from typing import Any, ClassVar, Self
 
 import cmi_docx
 import pydantic
@@ -11,6 +11,7 @@ from docx import document, table
 from docx.text import paragraph
 
 from ctk_functions.core import config
+from ctk_functions.routers.pyrite.tables import utils
 
 logger = config.get_logger()
 
@@ -66,16 +67,24 @@ class ClinicalRelevance(pydantic.BaseModel):
 
         Excludes low value, includes high value.
         """
+        try:
+            value = float(value)
+        except (ValueError, TypeError):
+            # Escape hatch as some tables will mix numeric types with
+            # strings to represent missing data.
+            logger.debug("Could not check value %s", value)
+            return False
+
         if self.low is not None:
             low_check = self.low.__le__ if self.low_inclusive else self.low.__lt__
         if self.high is not None:
             high_check = self.high.__ge__ if self.high_inclusive else self.high.__gt__
 
         if self.high is None:
-            return low_check(float(value))
+            return low_check(value)
         if self.low is None:
-            return high_check(float(value))
-        return low_check(float(value)) and high_check(float(value))
+            return high_check(value)
+        return low_check(value) and high_check(value)
 
     def __str__(self) -> str:
         """String representation of the clinical relevance.
@@ -236,6 +245,15 @@ class DataProducer(abc.ABC):
     def fetch(cls, mrn: str) -> WordTableMarkup:
         """Abstract data fetcher."""
 
+    @classmethod
+    def is_available(cls, mrn: str) -> bool:
+        """Tests whether the required data is available."""
+        try:
+            cls.fetch(mrn)
+        except utils.TableDataNotFoundError:
+            return False
+        return True
+
 
 class WordDocumentTableRenderer(pydantic.BaseModel):
     """Creates Word tables.
@@ -281,8 +299,8 @@ class WordDocumentTableSectionRenderer(pydantic.BaseModel):
             appears between two tables, then the tables will be merged.
     """
 
-    preamble: Sequence[ParagraphBlock]
     table_renderer: WordDocumentTableRenderer
+    preamble: Sequence[ParagraphBlock] = pydantic.Field(default_factory=list)
     postamble: Sequence[ParagraphBlock] = [ParagraphBlock(content="")]
 
     def add_to(self, doc: document.Document) -> None:
@@ -303,9 +321,34 @@ class WordDocumentTableSectionRenderer(pydantic.BaseModel):
 class WordTableSection(abc.ABC):
     """Abstract class for adding table sections."""
 
+    data_source: ClassVar[type[DataProducer]]
+
+    def __init_subclass__(
+        cls,
+        /,
+        *,
+        data_source: type[DataProducer],
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
+        """Initializes the data source at class creation.
+
+        This allows for testing whether the data is available before initializing the
+        class instance.
+
+        Args:
+            data_source: The data source to use.
+            **kwargs: Additional keyword arguments to pass to the data source.
+        """
+        cls.data_source = data_source
+        return super().__init_subclass__(**kwargs)
+
     @abc.abstractmethod
     def __init__(self, mrn: str) -> None:
-        """Initialize all properties needed to add the section to the document."""
+        """Initialize the section for a given MRN.
+
+        Args:
+            mrn: The participant's unique identifier.
+        """
 
     @abc.abstractmethod
     def add_to(self, doc: document.Document) -> None:

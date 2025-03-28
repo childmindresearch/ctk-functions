@@ -43,7 +43,7 @@ class GroovedPegboardDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.GroovedPegboard)
+        data = utils.fetch_participant_row("EID", mrn, models.GroovedPegboard)
         header = [
             base.WordTableCell(content="Grooved Pegboard"),
             base.WordTableCell(content="Z-Score"),
@@ -58,7 +58,10 @@ class GroovedPegboardDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class GroovedPegboardTable(base.WordTableSection):
+class GroovedPegboardTable(
+    base.WordTableSection,
+    data_source=GroovedPegboardDataSource,
+):
     """Renderer for the grooved pegboard table."""
 
     def __init__(self, mrn: str) -> None:
@@ -67,22 +70,23 @@ class GroovedPegboardTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = GroovedPegboardDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Abbreviated Neurocognitive Assessment",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the grooved pegboard table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)
 
 
 def _create_pegboard_content_row(

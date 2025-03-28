@@ -22,7 +22,7 @@ class Celf5DataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Celf5)
+        data = utils.fetch_participant_row("EID", mrn, models.Celf5)
         markup = [
             [
                 base.WordTableCell(content="Test"),
@@ -45,7 +45,7 @@ class Celf5DataSource(base.DataProducer):
         return base.WordTableMarkup(rows=markup)
 
 
-class Celf5Table(base.WordTableSection):
+class Celf5Table(base.WordTableSection, data_source=Celf5DataSource):
     """Renderer for the CELF5 table."""
 
     def __init__(self, mrn: str) -> None:
@@ -54,19 +54,20 @@ class Celf5Table(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = Celf5DataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Language Screening",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the CELF5 table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

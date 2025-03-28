@@ -13,6 +13,7 @@ from ctk_functions.core import config
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
+    base,
     cbcl_ysr,
     celf5,
     conners3,
@@ -94,44 +95,93 @@ class PyriteReport:
 
     def create(self) -> None:
         """Creates the Pyrite report."""
-        self.document.add_heading("General Intellectual Function", level=1)
-        wisc_composite.WiscCompositeTable(mrn=self._mrn).add_to(self.document)
-        wisc_subtest.WiscSubtestTable(mrn=self._mrn).add_to(self.document)
+        composite_table = wisc_composite.WiscCompositeTable(mrn=self._mrn)
+        subtest_table = wisc_subtest.WiscSubtestTable(mrn=self._mrn)
+        grooved_table = grooved_pegboard.GroovedPegboardTable(mrn=self._mrn)
+        academic_table = academic_achievement.AcademicAchievementTable(mrn=self._mrn)
+        celf_table = celf5.Celf5Table(mrn=self._mrn)
+        language_table = language.LanguageTable(mrn=self._mrn)
+        ctopp_table = ctopp_2.Ctopp2Table(mrn=self._mrn)
+        cbcl_table = cbcl_ysr.CbclTable(mrn=self._mrn)
+        ysr_table = cbcl_ysr.YsrTable(mrn=self._mrn)
+        swan_table = swan.SwanTable(mrn=self._mrn)
+        conners3_table = conners3.Conners3Table(mrn=self._mrn)
+        scq_table = scq.ScqTable(mrn=self._mrn)
+        gars_table = gars.GarsTable(mrn=self._mrn)
+        srs_table = srs.SrsTable(mrn=self._mrn)
+        mfq_table = mfq.MfqTable(mrn=self._mrn)
+        scared_table = scared.ScaredTable(mrn=self._mrn)
 
-        grooved_pegboard.GroovedPegboardTable(mrn=self._mrn).add_to(self.document)
-        academic_achievement.AcademicAchievementTable(mrn=self._mrn).add_to(
-            self.document,
-        )
+        if composite_table.data_source.is_available(
+            self._mrn,
+        ) or subtest_table.data_source.is_available(self._mrn):
+            self.document.add_heading("General Intellectual Function", level=1)
+            self._add_if_available(composite_table)
+            self._add_if_available(subtest_table)
 
-        celf5.Celf5Table(mrn=self._mrn).add_to(self.document)
-        language.LanguageTable(mrn=self._mrn).add_to(self.document)
+        self._add_if_available(grooved_table)
+        self._add_if_available(academic_table)
+        self._add_if_available(celf_table)
+        self._add_if_available(language_table)
+        self._add_if_available(ctopp_table)
 
-        ctopp_2.Ctopp2Table(mrn=self._mrn).add_to(self.document)
+        if any(
+            table.data_source.is_available(self._mrn)
+            for table in [
+                cbcl_table,
+                ysr_table,
+                swan_table,
+                conners3_table,
+                scq_table,
+                gars_table,
+                srs_table,
+                mfq_table,
+                scared_table,
+            ]
+        ):
+            self.document.add_heading(
+                "Social-Emotional and Behavioral Functioning Questionnaires",
+                level=1,
+            )
 
-        self.document.add_heading(
-            "Social-Emotional and Behavioral Functioning Questionnaires",
-            level=1,
-        )
-        self.document.add_heading(
-            "General Emotional and Behavioral Functioning",
-            level=2,
-        )
-        cbcl_ysr.CbclTable(mrn=self._mrn).add_to(self.document)
-        cbcl_ysr.YsrTable(mrn=self._mrn).add_to(self.document)
-        self.document.add_heading(
-            "Attention Deficit-Hyperactivity Symptoms and Behaviors",
-        )
-        swan.SwanTable(mrn=self._mrn).add_to(self.document)
-        conners3.Conners3Table(mrn=self._mrn).add_to(self.document)
+        if cbcl_table.data_source.is_available(
+            self._mrn,
+        ) or ysr_table.data_source.is_available(
+            self._mrn,
+        ):
+            self.document.add_heading(
+                "General Emotional and Behavioral Functioning",
+                level=2,
+            )
+        self._add_if_available(cbcl_table)
+        self._add_if_available(ysr_table)
 
-        self.document.add_heading("Autism Spectrum Symptoms and Behaviors", level=2)
-        scq.ScqTable(mrn=self._mrn).add_to(self.document)
-        gars.GarsTable(mrn=self._mrn).add_to(self.document)
-        srs.SrsTable(mrn=self._mrn).add_to(self.document)
+        if swan_table.data_source.is_available(
+            self._mrn,
+        ) or conners3_table.data_source.is_available(self._mrn):
+            self.document.add_heading(
+                "Attention Deficit-Hyperactivity Symptoms and Behaviors",
+                level=2,
+            )
+        self._add_if_available(swan_table)
+        self._add_if_available(conners3_table)
 
-        self.document.add_heading("Depression and Anxiety Symptoms", level=2)
-        mfq.MfqTable(mrn=self._mrn).add_to(self.document)
-        scared.ScaredTable(mrn=self._mrn).add_to(self.document)
+        if (
+            scq_table.data_source.is_available(self._mrn)
+            or gars_table.data_source.is_available(self._mrn)
+            or srs_table.data_source.is_available(self._mrn)
+        ):
+            self.document.add_heading("Autism Spectrum Symptoms and Behaviors", level=2)
+        self._add_if_available(scq_table)
+        self._add_if_available(gars_table)
+        self._add_if_available(srs_table)
+
+        if mfq_table.data_source.is_available(
+            self._mrn,
+        ) or scq_table.data_source.is_available(self._mrn):
+            self.document.add_heading("Depression and Anxiety Symptoms", level=2)
+        self._add_if_available(mfq_table)
+        self._add_if_available(scared_table)
 
         self._replace_participant_information()
 
@@ -165,3 +215,7 @@ class PyriteReport:
                 template_formatted,
                 replacement,
             )
+
+    def _add_if_available(self, table: base.WordTableSection) -> None:
+        if table.data_source.is_available(self._mrn):
+            table.add_to(self.document)

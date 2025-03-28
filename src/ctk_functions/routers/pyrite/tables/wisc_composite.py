@@ -47,7 +47,7 @@ class WiscCompositeDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Wisc5)
+        data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
 
         header = [
             base.WordTableCell(content="Composite"),
@@ -79,7 +79,7 @@ def _create_wisc_composite_row(
     ]
 
 
-class WiscCompositeTable(base.WordTableSection):
+class WiscCompositeTable(base.WordTableSection, data_source=WiscCompositeDataSource):
     """Renderer for the WISC composite table."""
 
     def __init__(self, mrn: str) -> None:
@@ -88,8 +88,8 @@ class WiscCompositeTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = WiscCompositeDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content=(
                     "The Wechsler Intelligence Scale for "
@@ -98,12 +98,13 @@ class WiscCompositeTable(base.WordTableSection):
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the WISC Composite table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

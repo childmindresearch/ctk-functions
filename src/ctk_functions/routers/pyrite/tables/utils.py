@@ -1,17 +1,19 @@
 """Utility data fetching functions for all tables."""
 
+import dataclasses
 import functools
 import statistics
-from typing import TypeVar
+from typing import Literal, TypeVar
 
 import fastapi
 import sqlalchemy
 from starlette import status
 
+from ctk_functions.core.config import get_logger
 from ctk_functions.microservices.sql import client, models
-from ctk_functions.routers.pyrite.tables.base import logger
 
 TABLE_TITLE_LEVEL = 2
+logger = get_logger()
 
 
 class TableDataNotFoundError(Exception):
@@ -21,32 +23,17 @@ class TableDataNotFoundError(Exception):
 T = TypeVar("T", bound=models.Base)
 
 
-def fetch_participant_row(mrn: str, table: type[T]) -> T:
-    """Fetches a participant's row in the given table.
+@dataclasses.dataclass
+class UniqueIdentifiers:
+    """Dataclass for the variety of unique identifiers used in HBN."""
 
-    The table must have an EID property.
-
-    Args:
-        mrn: The participant's unique identifier.
-        table: The table to fetch the row from.
-
-    Returns:
-        The participant's row in the given table.
-    """
-    eid = mrn_to_eid(mrn)
-    statement = sqlalchemy.select(table).where(table.EID == eid)  # type: ignore[attr-defined]
-    with client.get_session() as session:
-        data = session.execute(statement).scalar_one_or_none()
-
-    if data:
-        return data
-
-    msg = f"Table data not found for {mrn}."
-    raise TableDataNotFoundError(msg)
+    mrn: str
+    EID: str
+    person_id: str
 
 
 @functools.lru_cache
-def mrn_to_eid(mrn: str) -> str:
+def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
     """Fetches a participant's EID from their MRN.
 
     EID (also known as GUID) and MRN are separate unique identifiers used
@@ -66,13 +53,49 @@ def mrn_to_eid(mrn: str) -> str:
             ),
         ).scalar_one_or_none()
 
-    if not participant or not participant.GUID:
+    if not participant:
         raise fastapi.HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"MRN {mrn} could not be converted to EID.",
         )
 
-    return participant.GUID  # type: ignore[no-any-return]
+    return UniqueIdentifiers(
+        mrn=mrn,
+        EID=participant.GUID,
+        person_id=participant.person_id,
+    )
+
+
+def fetch_participant_row(
+    id_property: Literal["person_id", "EID", "mrn"],
+    mrn: str,
+    table: type[T],
+) -> T:
+    """Fetches a participant's row in the given table.
+
+    The table must have an EID, person_id, or mrn property.
+
+    Args:
+        id_property: The identifier to use to select the row from the table.
+        mrn: The participant's unique identifier.
+        table: The table to fetch the row from.
+
+    Returns:
+        The participant's row in the given table.
+    """
+    identifier = getattr(mrn_to_ids(mrn), id_property)
+    statement = sqlalchemy.select(table).where(
+        getattr(table, id_property) == identifier,
+    )
+
+    with client.get_session() as session:
+        data = session.execute(statement).scalar_one_or_none()
+
+    if data:
+        return data
+
+    msg = f"Table data not found for {mrn}."
+    raise TableDataNotFoundError(msg)
 
 
 def standard_score_to_qualifier(score: float) -> str:  # noqa: PLR0911
@@ -117,4 +140,4 @@ def normal_score_to_percentile(score: float, mean: float, std: float) -> float:
     Returns:
         The percentile of the normal distribution.
     """
-    return statistics.NormalDist(mean, std).cdf(score) * 100
+    return statistics.NormalDist(mean, std).cdf(float(score)) * 100

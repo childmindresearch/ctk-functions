@@ -48,7 +48,7 @@ class GarsDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Gars)
+        data = utils.fetch_participant_row("EID", mrn, models.Gars)
 
         formatter = base.Formatter(
             conditional_styles=[
@@ -75,7 +75,7 @@ class GarsDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, content_row])
 
 
-class GarsTable(base.WordTableSection):
+class GarsTable(base.WordTableSection, data_source=GarsDataSource):
     """Renderer for the Gars table."""
 
     def __init__(self, mrn: str) -> None:
@@ -84,14 +84,14 @@ class GarsTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = GarsDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Gilliam Autism Rating Scale, Third Edition (GARS-3)",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        postamble = [
+        self.postamble = [
             base.ParagraphBlock(
                 content="""*Caution is advised in interpretation of the Autism Index
 score, because individuals with other diagnoses including ADHD, ODD, anxiety, language
@@ -100,13 +100,14 @@ diagnosed with autism. Thus, clinically elevated scores on this assessment are n
 necessarily indicative of an autism diagnosis.""",
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-            postamble=postamble,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the Gars table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+            postamble=self.postamble,
+        )
+        renderer.add_to(doc)

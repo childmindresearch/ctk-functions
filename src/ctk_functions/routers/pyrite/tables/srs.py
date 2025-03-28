@@ -82,11 +82,11 @@ class SrsDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Srs)
+        data = utils.fetch_participant_row("EID", mrn, models.Srs)
         return tscore.build_tscore_table(data, SRS_ROW_LABELS)
 
 
-class SrsTable(base.WordTableSection):
+class SrsTable(base.WordTableSection, data_source=SrsDataSource):
     """Renderer for the Srs table."""
 
     def __init__(self, mrn: str) -> None:
@@ -95,19 +95,20 @@ class SrsTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = SrsDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Social Responsiveness Scale",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the Srs table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

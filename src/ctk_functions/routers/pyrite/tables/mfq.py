@@ -16,10 +16,9 @@ MFQ_ROW_LABELS = (
         child_column="MFQ_SR_Total",
         relevance=[
             base.ClinicalRelevance(
-                low=None,
-                high=26,
+                low=26,
+                high=None,
                 label=None,
-                high_inclusive=False,
                 style=cmi_docx.TableStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
@@ -51,7 +50,7 @@ class MfqDataSource(base.DataProducer):
         )
 
 
-class MfqTable(base.WordTableSection):
+class MfqTable(base.WordTableSection, data_source=MfqDataSource):
     """Renderer for the Mfq table."""
 
     def __init__(self, mrn: str) -> None:
@@ -60,19 +59,20 @@ class MfqTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = MfqDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content="Mood and Feelings Questionnaire (MFQ) - Long Version",
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the Mfq table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

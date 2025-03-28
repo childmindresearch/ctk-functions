@@ -21,8 +21,8 @@ class Cbcl(Base):
     This table stores the Child Behavior Checklist (CBCL) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_CBCL_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_CBCL"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -258,8 +258,8 @@ class Celf5(Base):
     This table stores Clinical Evaluation of Language Fundamentals assessment data,
     """
 
-    __tablename__ = "I2B2_Export_CELF_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_CELF"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -327,8 +327,8 @@ class CmiHbnIdTrack(Base):
     identifiers, personal information, and demographic data.
     """
 
-    __tablename__ = "CMI_HBN_IDTrack_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "CMI_HBN_IDTrack"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     # Primary identification fields
     person_nbr = orm.mapped_column(
@@ -381,8 +381,8 @@ class Conners3(Base):
     This table stores the Conners-3 Self-Report Scale (C3SR) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_C3SR_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_C3SR"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -502,141 +502,111 @@ class Conners3(Base):
 
 
 class Ctopp2(Base):
-    """SQLAlchemy model representing the I2B2_Export_CTOPP_t table.
+    """SQLAlchemy model representing the CMI_HBN_CTOPP_ table in the dbo schema."""
 
-    This table stores the Comprehensive Test of Phonological Processing (CTOPP)
-    assessment data,
-    """
+    __tablename__ = "CMI_HBN_CTOPP_"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
-    __tablename__ = "I2B2_Export_CTOPP_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    # Administrative fields
+    enterprise_id = orm.mapped_column(sqlalchemy.CHAR(5), nullable=False)
+    practice_id = orm.mapped_column(sqlalchemy.CHAR(4), nullable=False)
+    person_id = orm.mapped_column(sqlalchemy.Uuid, nullable=False)
+    created_by = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    create_timestamp = orm.mapped_column(sqlalchemy.DateTime, nullable=False)
+    create_timestamp_tz = orm.mapped_column(sqlalchemy.SmallInteger, nullable=True)
+    modified_by = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    modify_timestamp = orm.mapped_column(sqlalchemy.DateTime, nullable=False)
+    modify_timestamp_tz = orm.mapped_column(sqlalchemy.SmallInteger, nullable=True)
+    row_timestamp = orm.mapped_column(sqlalchemy.TIMESTAMP, nullable=False)
+    enc_id = orm.mapped_column(sqlalchemy.Uuid, nullable=False, primary_key=True)
 
-    URSI = orm.mapped_column(
-        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    SiteID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RaterID = orm.mapped_column(
-        sqlalchemy.String(4, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    SourceType = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    AssessmentStartDate = orm.mapped_column(
-        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    AssessmentStartTime = orm.mapped_column(
-        sqlalchemy.String(5, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    Successful = orm.mapped_column(
-        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    EID = orm.mapped_column(
-        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    START_DATE = orm.mapped_column(
-        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=False,
-        primary_key=True,
-    )
-    Study = orm.mapped_column(
-        sqlalchemy.String(3, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Days_Baseline = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Year = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Season = orm.mapped_column(
-        sqlalchemy.String(6, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=False,
-    )
+    # Assessment metadata
+    ctopp_date = orm.mapped_column(sqlalchemy.String(10), nullable=True)
+    ctopp_admin = orm.mapped_column(sqlalchemy.String(100), nullable=True)
+    complete = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    incomplete_reason = orm.mapped_column(sqlalchemy.String(100), nullable=True)
+    incomplete_other_reason = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    reason = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    valid_possible = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    valid_reason_other = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    notes = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    CTOPP_Visit = orm.mapped_column(sqlalchemy.String(15), nullable=True)
+    CTOPP_RA = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    remote_visit = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Age = orm.mapped_column(sqlalchemy.DECIMAL(16, 10), nullable=True)
 
-    # Assessment status
-    CTOPP_Complete = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_Incomplete_Reason = orm.mapped_column(
-        sqlalchemy.String(100, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    CTOPP_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_Invalid_Reason = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    # Elision (EL) subtest
+    EL_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    EL_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    EL_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    EL_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    EL_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
 
-    # Elision subtest (EL)
-    CTOPP_EL_R = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_EL_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_EL_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_EL_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Blending Words (BW) subtest
+    BW_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    BW_Percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    BW_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    BW_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    BW_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
 
-    # Blending Words subtest (BW)
-    CTOPP_BW_R = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_BW_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_BW_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_BW_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Number Repetition (NR) subtest
+    NR_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NR_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    NR_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NR_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NR_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
 
-    # Number Repetition subtest (NR)
-    CTOPP_NR_R = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_NR_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_NR_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_NR_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Rapid Digit Naming (RD) subtest
+    RD_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RD_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    RD_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RD_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RD_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RD_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
 
-    # Rapid Digit Naming subtest (RD)
-    CTOPP_RD_R = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RD_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_RD_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RD_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Rapid Letter Naming (RL) subtest
+    RL_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RL_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    RL_scale = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RL_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RL_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RL_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
 
-    # Rapid Letter Naming subtest (RL)
-    CTOPP_RL_R = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RL_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_RL_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RL_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Rapid Object Naming (RO) subtest
+    RO_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RO_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    RO_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RO_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RO_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RO_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
 
-    # Rapid Object Naming subtest (RO)
-    CTOPP_RO_R = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RO_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_RO_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RO_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Rapid Color Naming (RC) subtest
+    RC_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RC_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
 
-    # Rapid Symbolic Naming composite (RSN)
-    CTOPP_RSN_Sum = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RSN_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    CTOPP_RSN_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_RSN_D = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
+    # Rapid Symbolic Naming (RSN) composite
+    RSN_sum = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RSN_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    RSN_composite = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RSN_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
 
-    # Phonological Awareness composite (PA)
+    # Rapid Non-Symbolic Naming (RnS) composite
+    RnS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RsNS_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RnSN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RnSN_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+
+    # Phonological Awareness (PA) composite
     CTOPP_PA_SS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_PA_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
     CTOPP_PA_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_PA_Desc = orm.mapped_column(
-        sqlalchemy.String(30, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-
-    # Rapid Non-Symbolic Naming composite (RnSN)
-    CTOPP_RnSN_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CTOPP_PA_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CTOPP_PA_D = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CTOPP_PA_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
 
 
 class Gars(Base):
@@ -650,8 +620,8 @@ class Gars(Base):
     the Autism Index (AI) composite score.
     """
 
-    __tablename__ = "I2B2_Export_GARS_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_GARS"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -807,8 +777,8 @@ class GroovedPegboard(Base):
     This table stores Grooved Pegboard Test data.
     """
 
-    __tablename__ = "I2B2_Export_GroovedPeg_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_GroovedPeg"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -885,8 +855,8 @@ class MfqParent(Base):
     This table stores the Mood and Feelings Questionnaire (MFQ) Parent Report data.
     """
 
-    __tablename__ = "I2B2_Export_MFQ_Parent_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_MFQ_Parent"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -977,8 +947,8 @@ class MfqSelf(Base):
     This table stores the Mood and Feelings Questionnaire (MFQ) Self Report data.
     """
 
-    __tablename__ = "I2B2_Export_MFQ_Self_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_MFQ_Self"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1069,8 +1039,8 @@ class ScaredParent(Base):
     Report data,
     """
 
-    __tablename__ = "I2B2_Export_SCARED_Parent_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_SCARED_Parent"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1185,8 +1155,8 @@ class ScaredSelf(Base):
     Report data,
     """
 
-    __tablename__ = "I2B2_Export_SCARED_Self_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_SCARED_Self"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1300,8 +1270,8 @@ class Scq(Base):
     This table stores the Social Communication Questionnaire (SCQ) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_SCQ_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_SCQ"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1403,8 +1373,8 @@ class Srs(Base):
     corresponding T-scores for different domains of social functioning.
     """
 
-    __tablename__ = "I2B2_Export_SRS_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_SRS"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1549,6 +1519,975 @@ class Srs(Base):
     SRS_Total_T = orm.mapped_column(sqlalchemy.Integer, nullable=True)
 
 
+class SummaryScores(Base):
+    """SQLAlchemy model representing CMI_HBN_SummaryScores in the dbo schema."""
+
+    __tablename__ = "CMI_HBN_SummaryScores"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+
+    # Primary demographic information
+    person_id = orm.mapped_column(
+        sqlalchemy.Uuid(),
+        nullable=False,
+        primary_key=True,
+    )
+    last_name = orm.mapped_column(sqlalchemy.String(60), nullable=False)
+    preferred_name = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    first_name = orm.mapped_column(sqlalchemy.String(60), nullable=True)
+    Age = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    sex = orm.mapped_column(sqlalchemy.CHAR(1), nullable=True)
+    date_of_birth = orm.mapped_column(sqlalchemy.String(8), nullable=True)
+    Pronoun = orm.mapped_column(sqlalchemy.String(100), nullable=True)
+
+    # WIAT scores - Main subtests
+    WIAT_Num_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Num_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_Pseudo_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Pseudo_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_Spell_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Spell_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_Word_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Word_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_Listen_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_Listen_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_Read_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_Read_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_Math_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_Math_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+
+    # WIAT dates
+    WIAT_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    WIAT_Abbr_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    WIAT_Screen_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    WIAT_Part2_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    WIAT_Writing_date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    WIAT_GN_Writing_date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+    # WIAT Math Fluency scores
+    WIAT_MF_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_MF_Add_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 5), nullable=True)
+    WIAT_MF_Add_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_MF_Sub_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Sub_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WIAT_MF_Mult_S = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Mult_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+
+    # Listening Comprehension scores
+    LC_ODC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    LC_ODC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    LC_ODC_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    LC_RV_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    LC_RV_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    LC_RV_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # Quotient scores
+    Quotient_GlobalScaled = orm.mapped_column(sqlalchemy.DECIMAL(16, 4), nullable=True)
+    Quotient_In_Scale = orm.mapped_column(sqlalchemy.DECIMAL(16, 4), nullable=True)
+    Quotient_Motion_Scale = orm.mapped_column(sqlalchemy.DECIMAL(16, 4), nullable=True)
+    Quotient_SysIndex = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Error scores
+    RD_Errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RL_Errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RO_Errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_Errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # NIH Toolbox scores - 7 task battery
+    NIH7_Card = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Card_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Comp = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Comp_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Flanker = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Flanker_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_List = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_List_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Pattern = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Pattern_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Picture = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH7_Picture_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+
+    # NIH Toolbox scores - 5 task battery
+    NIH5_Card = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH5_Card_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH5_Flanker = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH5_Flanker_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH5_Picture = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH5_Picture_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    NIH5_List = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NIH5_List_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NIH5_Pattern = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NIH5_Pattern_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # K-BIT scores
+    KBIT_IQ = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    KBIT_IQ_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    KBIT_IQ_Desc = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    KBIT_NV = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    KBIT_NV_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    KBIT_NV_Desc = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    KBIT_V = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    KBIT_V_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    KBIT_V_Desc = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    KBIT_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    KBIT_VK_SS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    KBIT_VK_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    KBIT_R_SS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    KBIT_R_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    KBIT_Revised = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+
+    # CELF score
+    CELF_CriterionCutoff = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # TOWRE scores
+    TOWRE_PDE_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_PDE_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    TOWRE_PDE_D = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    TOWRE_SWE_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_SWE_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    TOWRE_SWE_D = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    TOWRE_Total_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_Total_P = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    TOWRE_Total_D = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    TOWRE_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+    # WISC scores - Scaled scores
+    WISC_BD_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Similarities_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_MR_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_DS_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Coding_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Vocab_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_FW_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_VP_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_PS_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_SS_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WISC scores - Composite scores
+    WISC_VCI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_VSI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_FRI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_WMI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_PSI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_FSIQ = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WISC scores - Percentiles
+    WISC_VCI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_VSI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_FRI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_WMI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_PRI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_FSIQ_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Various test percentiles and descriptions
+    EL_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    WISC_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    EL_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    BW_Percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    BW_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    NR_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    NR_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RD_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    RD_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RL_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    RL_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RO_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    RO_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+
+    # CTOPP scores
+    CTOPP_PA_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CTOPP_PA_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CTOPP_PA_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RSN_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16), nullable=True)
+    RSN_composite = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RSN_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RC_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    RnSN_composite = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RnSN_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RnSN_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
+    CTOPP_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+    # GFTA scores
+    GFTA_SIW_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GFTA_SIW_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GFTA_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+    # Behavioral assessment scores
+    ASSQ_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_AG = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_FR = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_HY = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_IN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_LP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    C3SR_NI = orm.mapped_column(sqlalchemy.String(1), nullable=True)
+    C3SR_PI = orm.mapped_column(sqlalchemy.String(1), nullable=True)
+
+    # CBCL scores
+    CBCL_AB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_AD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_AP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_Ext = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_Int = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_RBB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_TP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CBCL_WD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Preschool scores
+    Pre_APT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_ExternT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_InterT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_SCT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_SPT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_WDT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_ABT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_ADT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_TotalT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Pre_ERT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # SNAP scores
+    SNAP_HY = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    SNAP_IN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    SNAP_total = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+
+    # SCARED scores - Parent report
+    SCARED_PN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SCARED_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SCARED_SH = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SCARED_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SCARED_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SCARED_GD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # SCARED scores - Child report
+    Child_GD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Child_PN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Child_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Child_SH = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Child_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Child_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # SCQ scores
+    SCQ_Total = orm.mapped_column(sqlalchemy.String(5), nullable=True)
+    SCQ_TotalScore = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # SRS scores
+    SRS_AWR = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_COG = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_COM = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_MOT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_RRB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # SRS Parent scores
+    SRS_P_AWR = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_P_COG = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_P_COM = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_P_MOT = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_P_RRB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SRS_P_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # YSR scores
+    YSR_AB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_AD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_AP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_Ext = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_Int = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_RBB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_TP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_WD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    YSR_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # MFQ scores
+    MFQ_P_Score = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    MFQ_SR_Score = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WISC percentiles and ranges
+    BD_percentile_2 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    BD_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Coding_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Coding_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    DS_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    DS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    FRI_range = orm.mapped_column(sqlalchemy.String(52), nullable=True)
+    FSIQ_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    FW_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    FW_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    MR_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    MR_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    PS_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    PS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    PSI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    similarities_percentile_2 = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Similarities_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    SS_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    SS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    VCI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Vocab_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Vocab_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    VP_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    VP_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    VSI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WMI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT ranges
+    LC_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    MP_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Math_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    MF_Add_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    MF_Sub_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    MF_Mult_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Numerical_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Pseudoword_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    RC_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Spelling_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Word_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # TOWRE standardized scores
+    TOWRE_SWE_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_PDE_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_Total_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Additional standardized scores
+    EL_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    BW_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NR_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RD_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RL_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RO_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    RC_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    celf_criterion = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    celf_total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Pegboard scores
+    Rank_NonDominant = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    Rank_Dominant = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    CELF_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    Pegboard_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    ZScore_NonDominant = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    ZScore_Dominant = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    GFTA_Range = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+
+    # ADHD and ESWAN scores
+    ADHD_Clin_Avg = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    ESWAN_IN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    ESWAN_HY = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+
+    # Feedback text fields
+    listening_custom_text = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    mathematics_custom_text = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    reading_comp_custom_text = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    reading_custom_text = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    written_custom_text = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_adhd = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_assq = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_cbcl = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_conners = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_mfq = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_scared = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_srs = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_swan = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_ysr = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    fri_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    fsiq_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    kbit_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    psi_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    vci_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    vsi_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    wmi_custom_text = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
+    feedback_attention = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_exec = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_fine_motor = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_processing = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_quotient = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_wm = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_articulation = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_language = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+    feedback_phonology = orm.mapped_column(sqlalchemy.String(500), nullable=True)
+
+    # Parent information
+    P1_Prefix = orm.mapped_column(sqlalchemy.String(10), nullable=True)
+    P1_Last_Name = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    P2_Last_Name = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    P2_Prefix = orm.mapped_column(sqlalchemy.String(10), nullable=True)
+
+    # WASI scores
+    WASI_BD_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_BD_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WASI_BD_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WASI_FSIQ = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WASI_FSIQ_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WASI_FSIQ_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_PRI_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_PRI = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_VCI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WASI_VCI_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_MR_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_MR_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Matrix_Reasoning_StandardScore = orm.mapped_column(
+        sqlalchemy.Integer,
+        nullable=True,
+    )
+    WASI_PRI_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WASI_Sim_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_Sim_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WASI_Sim_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WASI_VCI_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WASI_Vocab_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WASI_Vocab_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WASI_Vocab_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WAIS scores
+    WAIS_F_Length = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_B_Length = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_F_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_B_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_DS_Scale = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Seq_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Seq_Length = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Code_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Code_Scale = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Sym_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Sym_Scale = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Proc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_PSI_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Code_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Sym_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Code_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WAIS_Sym_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WAIS_DS_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_DS_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WAIS_DS_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WAIS_PSI_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WAIS_Code_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WAIS_Sym_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WAIS_PSI_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+
+    # Vineland scores
+    dls_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    dls_rank = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    dls_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    comm_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    comm_rank = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    comm_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    social_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    social_rank = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    social_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    motor_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    motor_rank = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    motor_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    comp_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    comp_rank = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    comp_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    Range_NonDominant = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Range_Dominant = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    VL_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    Dominant_Hand = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Adult Self-Report
+    ASR_AD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_WD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_SC = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_SP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_TP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_AP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_RBB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_AB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_Ext = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_Total = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    ASR_Int = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Test validity flags
+    GFTA_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    KBIT_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NIH7_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WASI_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CTOPP_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    CELF_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Peg_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Vineland_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # GAI scores
+    GAI_Composite = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GAI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GAI_Range = orm.mapped_column(sqlalchemy.String(25), nullable=True)
+
+    # WAIS-W scores
+    WAIS_W_FSIQ = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_FSIQ_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_FSIQ_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_VCI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_VCI_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_VCI_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_PRI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_PRI_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_PRI_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_WMI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_WMI_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_WMI_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_PSI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_Winston_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+    WAIS_W_PSI_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_PSI_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    GAI_FB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WAIS-W subtest scaled scores
+    WAIS_W_BD_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_SIM_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_DS_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_MR_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_V_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_A_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_SS_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_VP_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_I_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_C_S = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WAIS-W subtest percentiles
+    WAIS_W_BD_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_SIM_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_DS_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_MR_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_V_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_A_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_SS_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_VP_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_I_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_C_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # WAIS-W subtest ranges
+    WAIS_W_BD_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_SIM_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_DS_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_MR_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_V_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_A_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_SS_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_VP_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_I_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+    WAIS_W_C_R = orm.mapped_column(sqlalchemy.String(140), nullable=True)
+
+    # WAIS-W GAI scores
+    WAIS_W_GAI_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_GAI_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WAIS_W_GAI_R = orm.mapped_column(sqlalchemy.String(25), nullable=True)
+    WAIS_W_GAI_FB = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Assessment flags
+    other_gai = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    clin_review = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    gradenorm = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    NIH = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Vineland domain descriptors
+    comm1_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    comm2_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    comm3_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    dls1_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    dls2_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    dls3_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    social1_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    social2_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    social3_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    motor1_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    motor2_desc = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+
+    # GARS scores
+    GARS_AI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_AI_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_AI_Prob_char = orm.mapped_column(sqlalchemy.String(100), nullable=True)
+    GARS_AI_Sev = orm.mapped_column(sqlalchemy.String(100), nullable=True)
+    GARS_CS_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_CS_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_ER_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_ER_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_MS_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_MS_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_RB_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_RB_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_SI_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_SI_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_SC_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_SC_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GARS_mute = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Remote WISC scores
+    Remote_WISC_VCI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_VCI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remtoe_WISC_VCI_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_NMVSI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NMVSI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NMVSI_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_FRI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_FRI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_FRI_Range = orm.mapped_column(sqlalchemy.String(52), nullable=True)
+    Remote_WISC_WMI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_WMI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_WMI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_NSI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NSI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_NSI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_NMFSIQ = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NMFSIQ_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NMFSIQ_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_Similarities = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_Similarities_Percentile = orm.mapped_column(
+        sqlalchemy.Integer,
+        nullable=True,
+    )
+    Remote_WISC_Similarities_Range = orm.mapped_column(
+        sqlalchemy.String(50),
+        nullable=True,
+    )
+    Remote_WISC_Vocab = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_Vocab_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_Vocab_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_BD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_BD_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_BD_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_VP = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_VP_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_VP_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_MR = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_MR_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_MR_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_FW = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_FW_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_FW_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_DS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_DS_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_DS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_LNS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_LNS_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_LNS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_NLS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NLS_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NLS_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_NSQ = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NSQ_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_SS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    Remote_WISC_GAI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_GAI_Percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_GAI_range = orm.mapped_column(sqlalchemy.String(25), nullable=True)
+    Remote_WISC_NSL_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    Remote_WISC_NSQ_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+
+    # Remote testing flags
+    CTOPP_Remote = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_Remote = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    GFTA_Remote = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_Remote = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    Remote_WISC_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+    # TOWRE Grade Norm scores
+    TOWRE_Scaled_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    TOWRE_Desc_GN = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    TOWRE_SWE_Scaled_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_SWE_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    TOWRE_SWE_Desc_GN = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+    TOWRE_PDE_Scaled_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    TOWRE_PDE_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    TWORE_PED_Desc_GN = orm.mapped_column(sqlalchemy.String(20), nullable=True)
+
+    # WIAT Grade Norm scores
+    WIAT_Word_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Word_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Word_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Pseudo_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Pseudo_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Pseudo_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_RC_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_RC_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_RC_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Spell_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Spell_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Spell_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Num_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Num_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Num_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Math_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(20, 6), nullable=True)
+    WIAT_Math_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_Math_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_MF_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_MF_Add_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Add_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Add_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_MF_Sub_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Sub_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Sub_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_MF_Mult_Stnd_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Mult_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_MF_Mult_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WISC Abbreviated scores
+    WISC_Abbr_VCI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_VCI_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_VCI_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_FRI = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_FRI_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_FRI_range = orm.mapped_column(sqlalchemy.String(52), nullable=True)
+    WISC_Abbr_FSIQ = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_FSIQ_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_FSIQ_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_Sim = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_Sim_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_Sim_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_Vocab = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_Vocab_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_Vocab_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_MR = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_MR_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_MR_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_FW = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_FW_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_FW_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_BD = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_BD_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_BD_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_DS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_DS_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_DS_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WISC_Abbr_Coding = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_Coding_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WISC_Abbr_Coding_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT Abbreviated scores
+    WIAT_Abbr_Word = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Word_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Word_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Abbr_PW = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_PW_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_PW_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Abbr_Spelling = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Spelling_Perc = orm.mapped_column(
+        sqlalchemy.DECIMAL(16, 6),
+        nullable=True,
+    )
+    WIAT_Abbr_Spelling_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Abbr_Num = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Num_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Num_range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # Visit flags
+    TOWRE_Visit = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    TOWRE_Visit_GradeNorm = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    CELF_Visit = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+
+    # WIAT Abbreviated Grade Norm scores
+    WIAT_Abbr_Word_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Word_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Word_range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Abbr_PW_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_PW_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_PW_range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_Abbr_Spelling_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Spelling_Perc_GN = orm.mapped_column(
+        sqlalchemy.DECIMAL(16, 6),
+        nullable=True,
+    )
+    WIAT_Abbr_Spelling_range_GN = orm.mapped_column(
+        sqlalchemy.String(50),
+        nullable=True,
+    )
+    WIAT_Abrr_Num_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Num_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_Abbr_Num_range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT version and test status
+    WIAT_Test_Number = orm.mapped_column(sqlalchemy.String(10), nullable=False)
+    Full_WIAT = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    WIAT_Screener = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    WIAT_GN_Screener = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    WIAT_Extended = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+    WIAT_GN_Extended = orm.mapped_column(sqlalchemy.Integer, nullable=False)
+
+    # WIAT-4 scores
+    WIAT_4_WR_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_WR_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_WR_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_WR_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_Pseudo_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_Pseudo_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Pseudo_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Pseudo_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_NO_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_NO_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_NO_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_NO_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_Spell_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_Spell_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Spell_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Spell_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_LC_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_LC_ODC_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_ODC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_LC_ODC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_ODC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_LC_RV_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_RV_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_LC_RV_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_RV_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_RC_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_RC_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_RC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_RC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MP_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_MP_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_MP_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_MP_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Add_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 5), nullable=True)
+    WIAT_4_MF_Add_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 5), nullable=True)
+    WIAT_4_MF_Add_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 5), nullable=True)
+    WIAT_4_MF_Add_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Sub_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Sub_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Sub_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Sub_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Mult_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Mult_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Mult_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Mult_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT-4 Grade Norm scores
+    WIAT_4_WR_Raw_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_WR_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_WR_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_WR_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_Pseudo_Raw_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_Pseudo_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Pseudo_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Pseudo_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_NO_Raw_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_NO_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_NO_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_NO_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_Spell_Raw_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_Spell_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Spell_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_Spell_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_LC_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_LC_ODC_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_ODC_Std_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_LC_ODC_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_ODC_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_LC_RV_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_RV_Std_GN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_4_LC_RV_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_LC_RV_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_RC_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_RC_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_RC_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_RC_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MP_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_MP_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_MP_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_4_MP_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Add_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Add_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Add_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Add_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Sub_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Sub_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Sub_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Sub_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_4_MF_Mult_Raw_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Mult_Std_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Mult_Perc_GN = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_4_MF_Mult_Range_GN = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT-3 scores
+    WIAT_3_WR_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_WR_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_WR_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_LC_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_LC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_LC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_LC_ODC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_3_LC_ODC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_LC_ODC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_LC_RV_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_3_LC_RV_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_LC_RV_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_RC_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_RC_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_RC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_Pseudo_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_Pseudo_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_Pseudo_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_Spell_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_Spell_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_Spell_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_NO_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_NO_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_NO_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_MP_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_MP_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
+    WIAT_3_MP_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_MF_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_MF_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_MF_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_MF_Add_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 5), nullable=True)
+    WIAT_3_MF_Add_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 5), nullable=True)
+    WIAT_3_MF_Add_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_MF_Sub_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_MF_Sub_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_MF_Sub_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_3_MF_Mult_Std = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_MF_Mult_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
+    WIAT_3_MF_Mult_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT Writing scores
+    WIAT_EC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_EC_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_EC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_SB_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_SB_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_SB_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_SC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_SC_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_SC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_SComp_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_SComp_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_SComp_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # WIAT Writing Grade Norm scores
+    WIAT_GN_EC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_EC_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_EC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_GN_SB_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_SB_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_SB_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_GN_SC_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_SC_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_SC_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+    WIAT_GN_SComp_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_SComp_Perc = orm.mapped_column(sqlalchemy.Integer, nullable=True)
+    WIAT_GN_SComp_Range = orm.mapped_column(sqlalchemy.String(50), nullable=True)
+
+    # Enrollment date
+    Enroll_Date = orm.mapped_column(sqlalchemy.Date, nullable=True)
+
+
 class Swan(Base):
     """SQLAlchemy model representing the I2B2_Export_SWAN_t table in the nextgen schema.
 
@@ -1556,8 +2495,8 @@ class Swan(Base):
     (SWAN) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_SWAN_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_SWAN"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1636,205 +2575,6 @@ class Swan(Base):
     SWAN_Total = orm.mapped_column(sqlalchemy.Numeric(18, 6), nullable=True)
 
 
-class Towre(Base):
-    """SQLAlchemy model representing I2B2_Export_TOWRE_t in the nextgen schema.
-
-    This table stores Test of Word Reading Efficiency (TOWRE) assessment data,
-    including raw scores, scaled scores, percentiles, and age/grade equivalents.
-    """
-
-    __tablename__ = "I2B2_Export_TOWRE_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
-
-    URSI = orm.mapped_column(
-        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    SiteID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RaterID = orm.mapped_column(
-        sqlalchemy.String(4, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    SourceType = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    AssessmentStartDate = orm.mapped_column(
-        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    AssessmentStartTime = orm.mapped_column(
-        sqlalchemy.String(5, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    Successful = orm.mapped_column(
-        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    EID = orm.mapped_column(
-        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    START_DATE = orm.mapped_column(
-        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=False,
-        primary_key=True,
-    )
-    Study = orm.mapped_column(
-        sqlalchemy.String(3, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Days_Baseline = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Year = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Season = orm.mapped_column(
-        sqlalchemy.String(6, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=False,
-    )
-    TOWRE_Complete = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_IncompleteReason = orm.mapped_column(
-        sqlalchemy.String(100, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    TOWRE_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_Invalid_Reason = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-
-    # Phonemic Decoding Efficiency (PDE) scores
-    TOWRE_PDE_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_PDE_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_PDE_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    TOWRE_PDE_AE = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_PDE_GE = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_PDE_Desc = orm.mapped_column(
-        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-
-    # Sight Word Efficiency (SWE) scores
-    TOWRE_SWE_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_SWE_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_SWE_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    TOWRE_SWE_AE = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_SWE_GE = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_SWE_Desc = orm.mapped_column(
-        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-
-    # Total scores
-    TOWRE_Total_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    TOWRE_Total_Perc = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    TOWRE_Total_Desc = orm.mapped_column(
-        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-
-
-class Wiat(Base):
-    """SQLAlchemy model representing the I2B2_Export_WIAT_t table in the nextgen schema.
-
-    This table stores Wechsler Individual Achievement Test (WIAT) assessment data,
-    including raw scores, standardized scores, and percentiles for various subtests
-    measuring academic achievement in areas like reading, spelling, and mathematics.
-    """
-
-    __tablename__ = "I2B2_Export_WIAT_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
-
-    URSI = orm.mapped_column(
-        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    SiteID = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RaterID = orm.mapped_column(
-        sqlalchemy.String(4, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    SourceType = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    AssessmentStartDate = orm.mapped_column(
-        sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    AssessmentStartTime = orm.mapped_column(
-        sqlalchemy.String(5, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    Successful = orm.mapped_column(
-        sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    EID = orm.mapped_column(
-        sqlalchemy.String(15, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    START_DATE = orm.mapped_column(
-        sqlalchemy.String(20, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=False,
-        primary_key=True,
-    )
-    Study = orm.mapped_column(
-        sqlalchemy.String(3, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    Site = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Days_Baseline = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Year = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Season = orm.mapped_column(
-        sqlalchemy.String(6, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=False,
-    )
-
-    # Assessment status
-    WIAT_Complete = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_Incomplete_reason = orm.mapped_column(
-        sqlalchemy.String(300, "SQL_Latin1_General_CP1_CI_AS"),
-        nullable=True,
-    )
-    WIAT_Valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_Invalid_Reason = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-
-    # Numerical Operations subtest
-    WIAT_Num_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_Num_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-    WIAT_Num_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-
-    # Pseudoword Decoding subtest
-    WIAT_Pseudo_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_Pseudo_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-    WIAT_Pseudo_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-
-    # Spelling subtest
-    WIAT_Spell_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_Spell_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-    WIAT_Spell_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-
-    # Word Reading subtest
-    WIAT_Word_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_Word_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-    WIAT_Word_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 6), nullable=True)
-
-    # Listening Comprehension - Receptive Vocabulary
-    WIAT_LCRV_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_LCRV_Std = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_LCRV_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-
-    # Listening Comprehension - Oral Discourse Comprehension
-    WIAT_LCODC_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_LCODC_Stnd = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    WIAT_LCODC_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-
-    # Listening Comprehension composite
-    WIAT_LC_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_LC_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-
-    # Reading Comprehension subtest
-    WIAT_RC_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_RC_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_RC_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-
-    # Math Problem Solving subtest
-    WIAT_MP_Raw = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_MP_Stnd = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    WIAT_MP_P = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-
-
 class Wisc5(Base):
     """SQLAlchemy model representing I2B2_Export_WISC_V_t in the nextgen schema.
 
@@ -1842,8 +2582,8 @@ class Wisc5(Base):
     including raw scores, scaled scores, indexes, and percentiles.
     """
 
-    __tablename__ = "I2B2_Export_WISC_V_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_WISC_V"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1952,8 +2692,8 @@ class Ysr(Base):
     This table stores the Youth Self-Report (YSR) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_YSR_t"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
+    __tablename__ = "I2B2_Export_YSR"
+    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),

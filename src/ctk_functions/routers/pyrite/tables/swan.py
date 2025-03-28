@@ -72,7 +72,7 @@ class SwanDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row(mrn, models.Swan)
+        data = utils.fetch_participant_row("EID", mrn, models.Swan)
         header = [
             base.WordTableCell(content="Subscale"),
             base.WordTableCell(content="Score"),
@@ -107,7 +107,7 @@ class SwanDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class SwanTable(base.WordTableSection):
+class SwanTable(base.WordTableSection, data_source=SwanDataSource):
     """Renderer for the Swan table."""
 
     def __init__(self, mrn: str) -> None:
@@ -116,8 +116,8 @@ class SwanTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = SwanDataSource.fetch(mrn)
-        preamble = [
+        self.mrn = mrn
+        self.preamble = [
             base.ParagraphBlock(
                 content=(
                     "Strengths and Weaknesses of ADHD Symptoms "
@@ -126,12 +126,13 @@ class SwanTable(base.WordTableSection):
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=preamble,
-            table_renderer=table_renderer,
-        )
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the Swan table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=self.preamble,
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)

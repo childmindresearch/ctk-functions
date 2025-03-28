@@ -2,6 +2,7 @@
 
 import dataclasses
 import functools
+from typing import Literal
 
 import sqlalchemy
 from docx import document
@@ -17,93 +18,93 @@ class LanguageRowLabels:
     test: str
     subtest: str
     score_column: str | None
-    percentile_column: str | None
+    table: Literal["SummaryScores", "Ctopp2"]
 
 
 LANGUAGE_ROW_LABELS = (
     LanguageRowLabels(
         test="WIAT-4",
         subtest="Listening Comprehension",
-        score_column="WIAT_LC_Stnd",
-        percentile_column="WIAT_LC_P",
+        score_column="WIAT_4_LC_Std",
+        table="SummaryScores",
     ),
     LanguageRowLabels(
         test="WIAT-4",
         subtest="Receptive Vocabulary",
-        score_column="WIAT_LCRV_Std",
-        percentile_column="WIAT_LCRV_P",
+        score_column="WIAT_4_LC_RV_Std",
+        table="SummaryScores",
     ),
     LanguageRowLabels(
         test="WIAT-4",
         subtest="Oral Discourse Comprehension",
-        score_column="WIAT_LCODC_Stnd",
-        percentile_column="WIAT_LCODC_P",
+        score_column="WIAT_4_LC_ODC_Std",
+        table="SummaryScores",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Memory",
         score_column=None,
-        percentile_column=None,
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Non-word Repetition",
-        score_column="CTOPP_NR_R",
-        percentile_column="CTOPP_NR_P",
+        score_column="NR_Standard",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Awareness",
         score_column="CTOPP_PA_Comp",
-        percentile_column="CTOPP_PA_P",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Elision",
-        score_column="CTOPP_EL_R",
-        percentile_column="CTOPP_EL_P",
+        score_column="EL_Standard",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Blending Words",
-        score_column="CTOPP_BW_R",
-        percentile_column="CTOPP_BW_P",
+        score_column="BW_Standard",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Symbolic Naming",
-        score_column="CTOPP_RSN_Comp",
-        percentile_column="CTOPP_RSN_P",
+        score_column="RSN_composite",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Digit Naming",
-        score_column="CTOPP_RD_R",
-        percentile_column="CTOPP_RD_P",
+        score_column="RD_Standard",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Letter Naming",
-        score_column="CTOPP_RL_R",
-        percentile_column="CTOPP_RL_P",
+        score_column="RL_Standard",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Non-Symbolic",
-        score_column="CTOPP_RnSN_Comp",
-        percentile_column=None,
+        score_column="RnSN",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Object Naming",
-        score_column="CTOPP_RO_R",
-        percentile_column="CTOPP_RO_P",
+        score_column="RO_Standard",
+        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="- Rapid Color Naming",
-        score_column=None,
-        percentile_column=None,
+        score_column="RC_standard",
+        table="Ctopp2",
     ),
 )
 
@@ -122,20 +123,23 @@ class LanguageDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        eid = utils.mrn_to_eid(mrn)
+        identifiers = utils.mrn_to_ids(mrn)
         statement = (
-            sqlalchemy.select(models.Wiat, models.Ctopp2)
+            sqlalchemy.select(models.SummaryScores, models.Ctopp2)
             .where(
-                models.Wiat.EID == eid,
+                models.SummaryScores.person_id == identifiers.person_id,
             )
             .outerjoin(
                 models.Ctopp2,
-                models.Wiat.EID == models.Ctopp2.EID,
+                models.Ctopp2.person_id == models.SummaryScores.person_id,
             )
         )
 
         with client.get_session() as session:
             data = session.execute(statement).fetchone()
+        if not data:
+            msg = f"Could not fetch language data for {mrn}."
+            raise utils.TableDataNotFoundError(msg)
 
         header = [
             base.WordTableCell(content="Test"),
@@ -152,23 +156,13 @@ class LanguageDataSource(base.DataProducer):
                 formatter=base.Formatter(merge_top=True),
             )
             subtest_cell = base.WordTableCell(content=label.subtest)
-
-            if label.score_column is None:
-                # TODO: Remove this once the correct column is found.
-                # Must set data_index, but the value doesn't matter in this case.
-                data_index = 0
-            else:
-                data_index = int(label.score_column.startswith("CTOPP_"))
-
-            if not label.score_column or not getattr(
-                data[data_index],  # type: ignore[index]
-                label.score_column,
-            ):
+            data_table = data[int(label.table == "Ctopp2")]
+            if not label.score_column or not getattr(data_table, label.score_column):
                 score_cell = base.WordTableCell(content="N/A")
                 percentile_cell = base.WordTableCell(content="N/A")
                 range_cell = base.WordTableCell(content="N/A")
             else:
-                score = float(getattr(data[data_index], label.score_column))  # type: ignore[index]
+                score = float(getattr(data_table, label.score_column))
                 percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
                 qualifier = utils.standard_score_to_qualifier(score)
                 score_cell = base.WordTableCell(content=str(int(score)))
@@ -188,7 +182,7 @@ class LanguageDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class LanguageTable(base.WordTableSection):
+class LanguageTable(base.WordTableSection, data_source=LanguageDataSource):
     """Renderer for the language table."""
 
     def __init__(self, mrn: str) -> None:
@@ -197,13 +191,14 @@ class LanguageTable(base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
-        markup = LanguageDataSource.fetch(mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        self.renderer = base.WordDocumentTableSectionRenderer(
-            preamble=[],
-            table_renderer=table_renderer,
-        )
+        self.mrn = mrn
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the langauge table to the document."""
-        self.renderer.add_to(doc)
+        markup = self.data_source.fetch(self.mrn)
+        table_renderer = base.WordDocumentTableRenderer(markup=markup)
+        renderer = base.WordDocumentTableSectionRenderer(
+            preamble=[],
+            table_renderer=table_renderer,
+        )
+        renderer.add_to(doc)
