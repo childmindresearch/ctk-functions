@@ -458,7 +458,7 @@ class ReportWriter:
         table = self.report.document.add_table(7, 4)
         self.insert_before._p.addprevious(table._tbl)  # noqa: SLF001
         table.style = "Table Grid"
-        header_row = table.template_rows[0].cells
+        header_row = table.rows[0].cells
 
         header_texts = [
             "Domain/Index/Subtest",
@@ -478,7 +478,7 @@ class ReportWriter:
                     background_rgb=(217, 217, 217),
                 ),
             )
-        for row in table.template_rows:
+        for row in table.rows:
             row.height = 1
             row.height_rule = enum_table.WD_ROW_HEIGHT_RULE.EXACTLY
             for cell in row.cells:

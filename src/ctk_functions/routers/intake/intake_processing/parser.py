@@ -298,7 +298,7 @@ class Language(parser_models.CommentBaseModel):
         self.fluency: str = getattr(
             patient_data,
             f"child_language{identifier}_fluency",
-        ).subscale
+        ).name
 
 
 class HouseholdMember(parser_models.CommentBaseModel, PersonalRelation):
@@ -327,7 +327,7 @@ class HouseholdMember(parser_models.CommentBaseModel, PersonalRelation):
         self.relationship_quality = getattr(
             patient_data,
             f"peopleinhome{identifier}_relationship",
-        ).subscale
+        ).name
 
         self.grade_occupation = getattr(
             patient_data,
