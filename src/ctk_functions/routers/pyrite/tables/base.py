@@ -322,6 +322,7 @@ class WordTableSection(abc.ABC):
     """Abstract class for adding table sections."""
 
     data_source: ClassVar[type[DataProducer]]
+    mrn: str
 
     def __init_subclass__(
         cls,
@@ -357,3 +358,7 @@ class WordTableSection(abc.ABC):
         Args:
             doc: The document to add the section to.
         """
+
+    def is_available(self) -> bool:
+        """Convenience method for the data source's availability."""
+        return self.data_source.is_available(self.mrn)

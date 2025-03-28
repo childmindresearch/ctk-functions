@@ -1,12 +1,15 @@
 """Business logic for the Pyrite endpoints."""
 
 import io
-import pathlib
+from collections.abc import Callable
+from typing import Self, get_type_hints
 
 import cmi_docx
 import docx
 import fastapi
+import pydantic
 import sqlalchemy
+from docx import document
 from fastapi import status
 
 from ctk_functions.core import config
@@ -55,6 +58,74 @@ def get_pyrite_report(mrn: str) -> bytes:
     return out.getvalue()
 
 
+class ReportSection(pydantic.BaseModel):
+    """Represents a section in the report structure."""
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
+    title: str | None = None
+    level: int | None = None
+    condition: Callable[[], bool] = lambda: True
+    tables: list[base.WordTableSection] = pydantic.Field(default_factory=list)
+    subsections: list[Self] = pydantic.Field(default_factory=list)
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the section to a document.
+
+        Args:
+            doc: The document to add the section to.
+        """
+        if not self.condition():
+            return
+        if self.title and self.level:
+            doc.add_heading(self.title, level=self.level)
+        for table in self.tables:
+            if table.is_available():
+                table.add_to(doc)
+        for subsection in self.subsections:
+            subsection.add_to(doc)
+
+
+@pydantic.dataclasses.dataclass(
+    config=pydantic.ConfigDict(arbitrary_types_allowed=True),
+)
+class PyriteTableCollection:
+    """Collection of all tables used in Pyrite reports."""
+
+    mrn: str
+
+    tbl_wisc_composite: wisc_composite.WiscCompositeTable = pydantic.Field(init=False)
+    tbl_wisc_subtest: wisc_subtest.WiscSubtestTable = pydantic.Field(init=False)
+    tbl_grooved_pegboard: grooved_pegboard.GroovedPegboardTable = pydantic.Field(
+        init=False,
+    )
+    tbl_academic_achievement: academic_achievement.AcademicAchievementTable = (
+        pydantic.Field(init=False)
+    )
+    tbl_celf5: celf5.Celf5Table = pydantic.Field(init=False)
+    tbl_language: language.LanguageTable = pydantic.Field(init=False)
+    tbl_ctopp2: ctopp_2.Ctopp2Table = pydantic.Field(init=False)
+    tbl_cbcl: cbcl_ysr.CbclTable = pydantic.Field(init=False)
+    tbl_ysr: cbcl_ysr.YsrTable = pydantic.Field(init=False)
+    tbl_swan: swan.SwanTable = pydantic.Field(init=False)
+    tbl_conners3: conners3.Conners3Table = pydantic.Field(init=False)
+    tbl_scq: scq.ScqTable = pydantic.Field(init=False)
+    tbl_gars: gars.GarsTable = pydantic.Field(init=False)
+    tbl_srs: srs.SrsTable = pydantic.Field(init=False)
+    tbl_mfq: mfq.MfqTable = pydantic.Field(init=False)
+    tbl_scared: scared.ScaredTable = pydantic.Field(init=False)
+
+    def __post_init__(self) -> None:
+        """Populates all tables with their instance."""
+        hints = get_type_hints(self)
+        for field_name, field_type in hints.items():
+            if field_name.startswith("tbl_") and issubclass(
+                field_type,
+                base.WordTableSection,
+            ):
+                setattr(self, field_name, field_type(self.mrn))
+
+
 class PyriteReport:
     """Builder of the Pyrite reports.
 
@@ -68,8 +139,118 @@ class PyriteReport:
             mrn: The participant's unique identifier.
         """
         self._mrn = mrn
+        self._tables = PyriteTableCollection(mrn=mrn)
         self.document = docx.Document(str(DATA_DIR / "pyrite_template.docx"))
         self._participant = self._get_participant()
+
+    def create(self) -> None:
+        """Creates the Pyrite report."""
+        structure = self._report_structure()
+        for section in structure:
+            section.add_to(self.document)
+        self._replace_participant_information()
+
+    def _report_structure(self) -> list[ReportSection]:
+        """Creates the structure of the Pyrite report."""
+
+        def is_any_available(*tbls: base.WordTableSection) -> bool:
+            """Checks if any of the tables are available.
+
+            Args:
+                tbls: The tables to check.
+            """
+            return any(tbl.is_available() for tbl in tbls)
+
+        tables = self._tables  # Alias because this is used a LOT.
+
+        return [
+            ReportSection(
+                title="General Intellectual Function",
+                level=1,
+                tables=[tables.tbl_wisc_composite, tables.tbl_wisc_subtest],
+                condition=lambda: is_any_available(
+                    tables.tbl_wisc_composite,
+                    tables.tbl_wisc_subtest,
+                ),
+            ),
+            ReportSection(
+                title="Motor Skills",
+                level=1,
+                tables=[tables.tbl_grooved_pegboard],
+                condition=lambda: is_any_available(tables.tbl_grooved_pegboard),
+            ),
+            ReportSection(
+                title="Academic Achievement",
+                level=1,
+                tables=[tables.tbl_academic_achievement],
+                condition=lambda: is_any_available(tables.tbl_academic_achievement),
+            ),
+            ReportSection(
+                title="Language Skills",
+                level=1,
+                tables=[tables.tbl_celf5, tables.tbl_language, tables.tbl_ctopp2],
+                condition=lambda: is_any_available(
+                    tables.tbl_celf5,
+                    tables.tbl_language,
+                    tables.tbl_ctopp2,
+                ),
+            ),
+            ReportSection(
+                title="Social-Emotional and Behavioral Functioning Questionnaires",
+                level=1,
+                tables=[],
+                condition=lambda: is_any_available(
+                    tables.tbl_cbcl,
+                    tables.tbl_ysr,
+                    tables.tbl_swan,
+                    tables.tbl_conners3,
+                    tables.tbl_scq,
+                    tables.tbl_gars,
+                    tables.tbl_srs,
+                    tables.tbl_mfq,
+                    tables.tbl_scared,
+                ),
+                subsections=[
+                    ReportSection(
+                        title="General Emotional and Behavioral Functioning",
+                        level=2,
+                        tables=[tables.tbl_cbcl, tables.tbl_ysr],
+                        condition=lambda: is_any_available(
+                            tables.tbl_cbcl,
+                            tables.tbl_ysr,
+                        ),
+                    ),
+                    ReportSection(
+                        title="Attention Deficit-Hyperactivity Symptoms and Behaviors",
+                        level=2,
+                        tables=[tables.tbl_swan, tables.tbl_conners3],
+                        condition=lambda: is_any_available(
+                            tables.tbl_swan,
+                            tables.tbl_conners3,
+                        ),
+                    ),
+                    ReportSection(
+                        title="Autism Spectrum Symptoms and Behaviors",
+                        level=2,
+                        tables=[tables.tbl_scq, tables.tbl_gars, tables.tbl_srs],
+                        condition=lambda: is_any_available(
+                            tables.tbl_scq,
+                            tables.tbl_gars,
+                            tables.tbl_srs,
+                        ),
+                    ),
+                    ReportSection(
+                        title="Depression and Anxiety Symptoms",
+                        level=2,
+                        tables=[tables.tbl_mfq, tables.tbl_scared],
+                        condition=lambda: is_any_available(
+                            tables.tbl_mfq,
+                            tables.tbl_scared,
+                        ),
+                    ),
+                ],
+            ),
+        ]
 
     def _get_participant(self) -> models.CmiHbnIdTrack:
         """Fetches the participant's data from the SQL database.
@@ -93,110 +274,6 @@ class PyriteReport:
 
         return participant
 
-    def create(self) -> None:
-        """Creates the Pyrite report."""
-        composite_table = wisc_composite.WiscCompositeTable(mrn=self._mrn)
-        subtest_table = wisc_subtest.WiscSubtestTable(mrn=self._mrn)
-        grooved_table = grooved_pegboard.GroovedPegboardTable(mrn=self._mrn)
-        academic_table = academic_achievement.AcademicAchievementTable(mrn=self._mrn)
-        celf_table = celf5.Celf5Table(mrn=self._mrn)
-        language_table = language.LanguageTable(mrn=self._mrn)
-        ctopp_table = ctopp_2.Ctopp2Table(mrn=self._mrn)
-        cbcl_table = cbcl_ysr.CbclTable(mrn=self._mrn)
-        ysr_table = cbcl_ysr.YsrTable(mrn=self._mrn)
-        swan_table = swan.SwanTable(mrn=self._mrn)
-        conners3_table = conners3.Conners3Table(mrn=self._mrn)
-        scq_table = scq.ScqTable(mrn=self._mrn)
-        gars_table = gars.GarsTable(mrn=self._mrn)
-        srs_table = srs.SrsTable(mrn=self._mrn)
-        mfq_table = mfq.MfqTable(mrn=self._mrn)
-        scared_table = scared.ScaredTable(mrn=self._mrn)
-
-        if composite_table.data_source.is_available(
-            self._mrn,
-        ) or subtest_table.data_source.is_available(self._mrn):
-            self.document.add_heading("General Intellectual Function", level=1)
-            self._add_if_available(composite_table)
-            self._add_if_available(subtest_table)
-
-        self._add_if_available(grooved_table)
-        self._add_if_available(academic_table)
-        self._add_if_available(celf_table)
-        self._add_if_available(language_table)
-        self._add_if_available(ctopp_table)
-
-        if any(
-            table.data_source.is_available(self._mrn)
-            for table in [
-                cbcl_table,
-                ysr_table,
-                swan_table,
-                conners3_table,
-                scq_table,
-                gars_table,
-                srs_table,
-                mfq_table,
-                scared_table,
-            ]
-        ):
-            self.document.add_heading(
-                "Social-Emotional and Behavioral Functioning Questionnaires",
-                level=1,
-            )
-
-        if cbcl_table.data_source.is_available(
-            self._mrn,
-        ) or ysr_table.data_source.is_available(
-            self._mrn,
-        ):
-            self.document.add_heading(
-                "General Emotional and Behavioral Functioning",
-                level=2,
-            )
-        self._add_if_available(cbcl_table)
-        self._add_if_available(ysr_table)
-
-        if swan_table.data_source.is_available(
-            self._mrn,
-        ) or conners3_table.data_source.is_available(self._mrn):
-            self.document.add_heading(
-                "Attention Deficit-Hyperactivity Symptoms and Behaviors",
-                level=2,
-            )
-        self._add_if_available(swan_table)
-        self._add_if_available(conners3_table)
-
-        if (
-            scq_table.data_source.is_available(self._mrn)
-            or gars_table.data_source.is_available(self._mrn)
-            or srs_table.data_source.is_available(self._mrn)
-        ):
-            self.document.add_heading("Autism Spectrum Symptoms and Behaviors", level=2)
-        self._add_if_available(scq_table)
-        self._add_if_available(gars_table)
-        self._add_if_available(srs_table)
-
-        if mfq_table.data_source.is_available(
-            self._mrn,
-        ) or scq_table.data_source.is_available(self._mrn):
-            self.document.add_heading("Depression and Anxiety Symptoms", level=2)
-        self._add_if_available(mfq_table)
-        self._add_if_available(scared_table)
-
-        self._replace_participant_information()
-
-    def _save(self, filepath: str | pathlib.Path) -> None:
-        """Saves the report to a file.
-
-        Used for dev testing only.
-
-        Args:
-            filepath: The filepath to save the report to.
-        """
-        if isinstance(filepath, pathlib.Path):
-            filepath = str(filepath.expanduser())
-        self.document.save(filepath)
-
     def _replace_participant_information(self) -> None:
         """Replaces the patient information in the report."""
         logger.debug("Replacing patient information in the report.")
@@ -215,7 +292,3 @@ class PyriteReport:
                 template_formatted,
                 replacement,
             )
-
-    def _add_if_available(self, table: base.WordTableSection) -> None:
-        if table.data_source.is_available(self._mrn):
-            table.add_to(self.document)
