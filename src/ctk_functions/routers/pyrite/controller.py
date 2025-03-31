@@ -151,125 +151,6 @@ class PyriteReport:
             section.add_to(self.document)
         self._replace_participant_information()
 
-    def _report_structure(self) -> list[ReportSection]:
-        """Creates the structure of the Pyrite report.
-
-        Returns:
-            The structure of the Pyrite report, containing only available sections.
-        """
-
-        def is_any_available(*tbls: base.WordTableSection) -> bool:
-            return any(tbl.is_available() for tbl in tbls)
-
-        def is_all_available(*tbls: base.WordTableSection) -> bool:
-            return all(tbl.is_available() for tbl in tbls)
-
-        tables = self._tables  # Alias because this is used a LOT.
-
-        return [
-            ReportSection(
-                title="General Intellectual Function",
-                level=1,
-                tables=[tables.tbl_wisc_composite, tables.tbl_wisc_subtest],
-                condition=lambda: is_all_available(
-                    tables.tbl_wisc_composite,
-                    tables.tbl_wisc_subtest,
-                ),
-                subsections=[
-                    ReportSection(
-                        title=(
-                            "The Wechsler Intelligence Scale for Children-Fifth "
-                            "Edition (WISC-V)"
-                        ),
-                        level=2,
-                        tables=[tables.tbl_wisc_composite],
-                    ),
-                    ReportSection(
-                        title=None,
-                        level=None,
-                        tables=[tables.tbl_wisc_subtest],
-                    ),
-                ],
-            ),
-            ReportSection(
-                title="Abbreviated Neurocognitive Assessment",
-                level=2,
-                tables=[tables.tbl_grooved_pegboard],
-                condition=lambda: is_any_available(tables.tbl_grooved_pegboard),
-            ),
-            ReportSection(
-                title="Academic Achievement",
-                level=1,
-                tables=[tables.tbl_academic_achievement],
-                condition=lambda: is_any_available(tables.tbl_academic_achievement),
-            ),
-            ReportSection(
-                title="Language Skills",
-                level=1,
-                tables=[tables.tbl_celf5, tables.tbl_language, tables.tbl_ctopp2],
-                condition=lambda: is_any_available(
-                    tables.tbl_celf5,
-                    tables.tbl_language,
-                    tables.tbl_ctopp2,
-                ),
-            ),
-            ReportSection(
-                title="Social-Emotional and Behavioral Functioning Questionnaires",
-                level=1,
-                tables=[],
-                condition=lambda: is_any_available(
-                    tables.tbl_cbcl,
-                    tables.tbl_ysr,
-                    tables.tbl_swan,
-                    tables.tbl_conners3,
-                    tables.tbl_scq,
-                    tables.tbl_gars,
-                    tables.tbl_srs,
-                    tables.tbl_mfq,
-                    tables.tbl_scared,
-                ),
-                subsections=[
-                    ReportSection(
-                        title="General Emotional and Behavioral Functioning",
-                        level=2,
-                        tables=[tables.tbl_cbcl, tables.tbl_ysr],
-                        condition=lambda: is_any_available(
-                            tables.tbl_cbcl,
-                            tables.tbl_ysr,
-                        ),
-                    ),
-                    ReportSection(
-                        title="Attention Deficit-Hyperactivity Symptoms and Behaviors",
-                        level=2,
-                        tables=[tables.tbl_swan, tables.tbl_conners3],
-                        condition=lambda: is_any_available(
-                            tables.tbl_swan,
-                            tables.tbl_conners3,
-                        ),
-                    ),
-                    ReportSection(
-                        title="Autism Spectrum Symptoms and Behaviors",
-                        level=2,
-                        tables=[tables.tbl_scq, tables.tbl_gars, tables.tbl_srs],
-                        condition=lambda: is_any_available(
-                            tables.tbl_scq,
-                            tables.tbl_gars,
-                            tables.tbl_srs,
-                        ),
-                    ),
-                    ReportSection(
-                        title="Depression and Anxiety Symptoms",
-                        level=2,
-                        tables=[tables.tbl_mfq, tables.tbl_scared],
-                        condition=lambda: is_any_available(
-                            tables.tbl_mfq,
-                            tables.tbl_scared,
-                        ),
-                    ),
-                ],
-            ),
-        ]
-
     def _get_participant(self) -> models.CmiHbnIdTrack:
         """Fetches the participant's data from the SQL database.
 
@@ -310,3 +191,179 @@ class PyriteReport:
                 template_formatted,
                 replacement,
             )
+
+    def _report_structure(self) -> list[ReportSection]:
+        """Creates the structure of the Pyrite report.
+
+        Returns:
+            The structure of the Pyrite report, containing only available sections.
+        """
+
+        def is_any_available(*tbls: base.WordTableSection) -> bool:
+            return any(tbl.is_available() for tbl in tbls)
+
+        def is_all_available(*tbls: base.WordTableSection) -> bool:
+            return all(tbl.is_available() for tbl in tbls)
+
+        tables = self._tables  # Alias because this is used a LOT.
+
+        return [
+            ReportSection(
+                title="General Intellectual Function",
+                level=1,
+                tables=[],
+                condition=lambda: is_all_available(
+                    tables.tbl_wisc_composite, tables.tbl_wisc_subtest
+                ),
+                subsections=[
+                    ReportSection(
+                        title=(
+                            "The Wechsler Intelligence Scale for Children-Fifth "
+                            "Edition (WISC-V)"
+                        ),
+                        level=2,
+                        tables=[],
+                    ),
+                    ReportSection(
+                        title=None,
+                        level=None,
+                        tables=[tables.tbl_wisc_composite],
+                    ),
+                    ReportSection(
+                        title=None,
+                        level=None,
+                        tables=[tables.tbl_wisc_subtest],
+                    ),
+                ],
+            ),
+            ReportSection(
+                title="Abbreviated Neurocognitive Assessment",
+                level=2,
+                tables=[tables.tbl_grooved_pegboard],
+                condition=lambda: tables.tbl_grooved_pegboard.is_available(),
+            ),
+            ReportSection(
+                title="Academic Achievement",
+                level=1,
+                tables=[tables.tbl_academic_achievement],
+                condition=lambda: tables.tbl_academic_achievement.is_available(),
+            ),
+            ReportSection(
+                title="Language Skills",
+                level=1,
+                tables=[tables.tbl_celf5, tables.tbl_language, tables.tbl_ctopp2],
+                condition=lambda: is_any_available(
+                    tables.tbl_celf5,
+                    tables.tbl_language,
+                    tables.tbl_ctopp2,
+                ),
+            ),
+            ReportSection(
+                title="Social-Emotional and Behavioral Functioning Questionnaires",
+                level=1,
+                tables=[],
+                condition=lambda: is_any_available(
+                    tables.tbl_cbcl,
+                    tables.tbl_ysr,
+                    tables.tbl_swan,
+                    tables.tbl_conners3,
+                    tables.tbl_scq,
+                    tables.tbl_gars,
+                    tables.tbl_srs,
+                    tables.tbl_mfq,
+                    tables.tbl_scared,
+                ),
+                subsections=[
+                    ReportSection(
+                        title="General Emotional and Behavioral Functioning",
+                        level=2,
+                        tables=[],
+                        condition=lambda: is_any_available(
+                            tables.tbl_cbcl,
+                            tables.tbl_ysr,
+                        ),
+                        subsections=[
+                            ReportSection(
+                                title=(
+                                    "Child Behavior Checklist - Parent Report "
+                                    "Form (CBCL)"
+                                ),
+                                level=2,
+                                tables=[tables.tbl_cbcl],
+                                condition=lambda: tables.tbl_cbcl.is_available(),
+                            ),
+                            ReportSection(
+                                title=(
+                                    "Child Behavior Checklist - Youth Self Report (YSR)"
+                                ),
+                                level=2,
+                                tables=[tables.tbl_ysr],
+                                condition=lambda: tables.tbl_ysr.is_available(),
+                            ),
+                        ],
+                    ),
+                    ReportSection(
+                        title="Attention Deficit-Hyperactivity Symptoms and Behaviors",
+                        level=2,
+                        tables=[],
+                        condition=lambda: is_any_available(
+                            tables.tbl_swan,
+                            tables.tbl_conners3,
+                        ),
+                        subsections=[
+                            ReportSection(
+                                title=(
+                                    "Strengths and Weaknesses of ADHD Symptoms "
+                                    "and Normal Behavior (SWAN)"
+                                ),
+                                level=2,
+                                tables=[tables.tbl_swan],
+                                condition=lambda: tables.tbl_swan.is_available(),
+                            ),
+                            ReportSection(
+                                title="Conners 3 - Child Short Form",
+                                level=2,
+                                tables=[tables.tbl_conners3],
+                                condition=lambda: tables.tbl_conners3.is_available(),
+                            ),
+                        ],
+                    ),
+                    ReportSection(
+                        title="Autism Spectrum Symptoms and Behaviors",
+                        level=2,
+                        tables=[tables.tbl_scq, tables.tbl_gars, tables.tbl_srs],
+                        condition=lambda: is_any_available(
+                            tables.tbl_scq,
+                            tables.tbl_gars,
+                            tables.tbl_srs,
+                        ),
+                    ),
+                    ReportSection(
+                        title="Depression and Anxiety Symptoms",
+                        level=2,
+                        tables=[],
+                        condition=lambda: is_any_available(
+                            tables.tbl_mfq,
+                            tables.tbl_scared,
+                        ),
+                        subsections=[
+                            ReportSection(
+                                title=(
+                                    "Mood and Feelings Questionnaire (MFQ) "
+                                    "- Long Version"
+                                ),
+                                level=2,
+                                tables=[tables.tbl_mfq],
+                                condition=lambda: tables.tbl_mfq.is_available(),
+                            ),
+                            ReportSection(
+                                title="Screen for Child Anxiety Related Disorders",
+                                level=2,
+                                tables=[tables.tbl_scared],
+                                condition=lambda: tables.tbl_scared.is_available(),
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+        ]

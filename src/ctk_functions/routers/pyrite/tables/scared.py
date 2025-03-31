@@ -5,7 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import parent_child
 
 SCARED_ROW_LABELS = (
@@ -134,10 +134,4 @@ class ScaredTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Screen for Child Anxiety Related Disorders",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = ScaredDataSource

@@ -107,10 +107,4 @@ class Conners3Table(
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Conners 3 - Child Short Form",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = Conners3DataSource

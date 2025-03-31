@@ -152,12 +152,6 @@ class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Child Behavior Checklist - Parent Report Form (CBCL)",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = CbclDataSource
 
 
@@ -189,10 +183,4 @@ class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Child Behavior Checklist - Youth Self Report (YSR)",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = YsrDataSource

@@ -53,10 +53,4 @@ class Celf5Table(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Language Screening",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = Celf5DataSource

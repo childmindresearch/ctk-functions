@@ -116,13 +116,4 @@ class SwanTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content=(
-                    "Strengths and Weaknesses of ADHD Symptoms "
-                    "and Normal Behavior (SWAN)"
-                ),
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = _SwanDataSource
