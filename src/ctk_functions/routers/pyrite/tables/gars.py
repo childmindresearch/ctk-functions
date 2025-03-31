@@ -33,7 +33,7 @@ CLINICAL_RELEVANCE = [
 ]
 
 
-class GarsDataSource(base.DataProducer):
+class _GarsDataSource(base.DataProducer):
     """Fetches the GARS table data."""
 
     @classmethod
@@ -74,7 +74,7 @@ class GarsDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, content_row])
 
 
-class GarsTable(base.AddToMixin, base.WordTableSection, data_source=GarsDataSource):
+class GarsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Gars table."""
 
     def __init__(self, mrn: str) -> None:
@@ -99,3 +99,4 @@ diagnosed with autism. Thus, clinically elevated scores on this assessment are n
 necessarily indicative of an autism diagnosis.""",
             ),
         ]
+        self.data_source = _GarsDataSource

@@ -29,7 +29,7 @@ CTOPP2_ROW_LABELS = (
 )
 
 
-class Ctopp2DataSource(base.DataProducer):
+class _Ctopp2DataSource(base.DataProducer):
     """Fetches the data for the CTOPP-2 table."""
 
     @classmethod
@@ -63,7 +63,7 @@ class Ctopp2DataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class Ctopp2Table(base.AddToMixin, base.WordTableSection, data_source=Ctopp2DataSource):
+class Ctopp2Table(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the CTOPP2 table."""
 
     def __init__(self, mrn: str) -> None:
@@ -73,3 +73,4 @@ class Ctopp2Table(base.AddToMixin, base.WordTableSection, data_source=Ctopp2Data
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
+        self.data_source = _Ctopp2DataSource

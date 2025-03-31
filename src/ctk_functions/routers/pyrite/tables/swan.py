@@ -10,7 +10,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class SwanRowLabels:
+class _SwanRowLabels:
     """Defines the rows of the table.
 
     Attributes:
@@ -24,7 +24,7 @@ class SwanRowLabels:
 
 # Defines the rows and their order of appearance.
 SWAN_ROW_LABELS = (
-    SwanRowLabels(
+    _SwanRowLabels(
         name="ADHD Inattentive",
         relevance=base.ClinicalRelevance(
             low=1.78,
@@ -34,7 +34,7 @@ SWAN_ROW_LABELS = (
             style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
-    SwanRowLabels(
+    _SwanRowLabels(
         name="ADHD Hyperactive/Impulsive",
         relevance=base.ClinicalRelevance(
             low=1.44,
@@ -44,7 +44,7 @@ SWAN_ROW_LABELS = (
             style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
-    SwanRowLabels(
+    _SwanRowLabels(
         name="ADHD Total (Combined Type)",
         relevance=base.ClinicalRelevance(
             low=1.67,
@@ -57,7 +57,7 @@ SWAN_ROW_LABELS = (
 )
 
 
-class SwanDataSource(base.DataProducer):
+class _SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
     @classmethod
@@ -106,7 +106,7 @@ class SwanDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class SwanTable(base.AddToMixin, base.WordTableSection, data_source=SwanDataSource):
+class SwanTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Swan table."""
 
     def __init__(self, mrn: str) -> None:
@@ -125,3 +125,4 @@ class SwanTable(base.AddToMixin, base.WordTableSection, data_source=SwanDataSour
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = _SwanDataSource

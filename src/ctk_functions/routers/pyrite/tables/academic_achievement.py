@@ -112,7 +112,7 @@ ACADEMIC_ROW_LABELS = (
 )
 
 
-class AcademicAchievementDataSource(base.DataProducer):
+class _AcademicAchievementDataSource(base.DataProducer):
     """Fetches the data for the academic achievement table."""
 
     @classmethod
@@ -164,9 +164,8 @@ class AcademicAchievementDataSource(base.DataProducer):
 
 
 class AcademicAchievementTable(
-    base.AddToMixin,
+    base.WordTableSectionAddToMixin,
     base.WordTableSection,
-    data_source=AcademicAchievementDataSource,
 ):
     """Renderer for the Academic Achievement composite table."""
 
@@ -180,3 +179,4 @@ class AcademicAchievementTable(
         self.preamble = [
             base.ParagraphBlock(content="Age Norms:"),
         ]
+        self.data_source = _AcademicAchievementDataSource

@@ -3,7 +3,7 @@
 import abc
 import functools
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, ClassVar, Protocol, Self, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
 
 import cmi_docx
 import pydantic
@@ -321,27 +321,8 @@ class WordDocumentTableSectionRenderer(pydantic.BaseModel):
 class WordTableSection(abc.ABC):
     """Abstract class for adding table sections."""
 
-    data_source: ClassVar[type[DataProducer]]
+    data_source: type[DataProducer]
     mrn: str
-
-    def __init_subclass__(
-        cls,
-        /,
-        *,
-        data_source: type[DataProducer],
-        **kwargs: Any,  # noqa: ANN401
-    ) -> None:
-        """Initializes the data source at class creation.
-
-        This allows for testing whether the data is available before initializing the
-        class instance.
-
-        Args:
-            data_source: The data source to use.
-            **kwargs: Additional keyword arguments to pass to the data source.
-        """
-        cls.data_source = data_source
-        return super().__init_subclass__(**kwargs)
 
     @abc.abstractmethod
     def __init__(self, mrn: str) -> None:
@@ -377,7 +358,7 @@ class _AddToProtocol(Protocol):
         """The data source to use."""
 
 
-class AddToMixin:
+class WordTableSectionAddToMixin:
     """Adds a standardized add_to method for WordTableSections.
 
     Most tables' add_to functions follow a standardized pattern. This mixin

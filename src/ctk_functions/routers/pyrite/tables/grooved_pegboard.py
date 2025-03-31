@@ -8,7 +8,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class PegBoardRowLabels:
+class _PegBoardRowLabels:
     """Defines the rows of the table.
 
     Attributes:
@@ -22,12 +22,12 @@ class PegBoardRowLabels:
 
 # Defines the rows and their order of appearance.
 PEGBOARD_ROW_LABELS = (
-    PegBoardRowLabels(name="Dominant", score_column="peg_z_d"),
-    PegBoardRowLabels(name="Non-Dominant", score_column="peg_z_nd"),
+    _PegBoardRowLabels(name="Dominant", score_column="peg_z_d"),
+    _PegBoardRowLabels(name="Non-Dominant", score_column="peg_z_nd"),
 )
 
 
-class GroovedPegboardDataSource(base.DataProducer):
+class _GroovedPegboardDataSource(base.DataProducer):
     """Fetches the data for the Grooved Pegboard table."""
 
     @classmethod
@@ -57,9 +57,8 @@ class GroovedPegboardDataSource(base.DataProducer):
 
 
 class GroovedPegboardTable(
-    base.AddToMixin,
+    base.WordTableSectionAddToMixin,
     base.WordTableSection,
-    data_source=GroovedPegboardDataSource,
 ):
     """Renderer for the grooved pegboard table."""
 
@@ -70,10 +69,11 @@ class GroovedPegboardTable(
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
+        self.data_source = _GroovedPegboardDataSource
 
 
 def _create_pegboard_content_row(
-    label: PegBoardRowLabels,
+    label: _PegBoardRowLabels,
     data: models.GroovedPegboard,
 ) -> list[base.WordTableCell]:
     """Creates a row for the pegboard table.

@@ -12,7 +12,7 @@ from ctk_functions.routers.pyrite.tables import base, utils
 
 
 @dataclasses.dataclass
-class WiscSubtestRowLabels:
+class _WiscSubtestRowLabels:
     """Class definition for subtest rows.
 
     Attributes:
@@ -27,52 +27,52 @@ class WiscSubtestRowLabels:
 
 
 WISC_SUBTEST_ROW_LABELS = (
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Verbal Comprehension",
         subtest="Similarities*",
         score_column="WISC_Similarities_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Verbal Comprehension",
         subtest="Vocabulary*",
         score_column="WISC_Vocab_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Visual Spatial",
         subtest="Block Design*",
         score_column="WISC_BD_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Visual Spatial",
         subtest="Visual Puzzles",
         score_column="WISC_VP_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Fluid Reasoning",
         subtest="Matrix Reasoning*",
         score_column="WISC_MR_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Fluid Reasoning",
         subtest="Figure Weights*",
         score_column="WISC_FW_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Working Memory",
         subtest="Digit Span*",
         score_column="WISC_DS_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Working Memory",
         subtest="Picture Span",
         score_column="WISC_PS_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Processing Speed",
         subtest="Coding*",
         score_column="WISC_Coding_Scaled",
     ),
-    WiscSubtestRowLabels(
+    _WiscSubtestRowLabels(
         scale="Processing Speed",
         subtest="Symbol Search",
         score_column="WISC_SS_Scaled",
@@ -80,7 +80,7 @@ WISC_SUBTEST_ROW_LABELS = (
 )
 
 
-class WiscSubtestDataSource(base.DataProducer):
+class _WiscSubtestDataSource(base.DataProducer):
     """Fetches the data for the WISC table."""
 
     @classmethod
@@ -129,11 +129,7 @@ class WiscSubtestDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class WiscSubtestTable(
-    base.AddToMixin,
-    base.WordTableSection,
-    data_source=WiscSubtestDataSource,
-):
+class WiscSubtestTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the WISC subtest table."""
 
     def __init__(self, mrn: str) -> None:
@@ -149,6 +145,7 @@ class WiscSubtestTable(
                 style=cmi_docx.ParagraphStyle(italic=True),
             ),
         ]
+        self.data_source = _WiscSubtestDataSource
 
 
 def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:

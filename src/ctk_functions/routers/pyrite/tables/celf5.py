@@ -43,7 +43,7 @@ class Celf5DataSource(base.DataProducer):
         return base.WordTableMarkup(rows=markup)
 
 
-class Celf5Table(base.AddToMixin, base.WordTableSection, data_source=Celf5DataSource):
+class Celf5Table(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the CELF5 table."""
 
     def __init__(self, mrn: str) -> None:
@@ -59,3 +59,4 @@ class Celf5Table(base.AddToMixin, base.WordTableSection, data_source=Celf5DataSo
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = Celf5DataSource

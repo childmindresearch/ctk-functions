@@ -67,7 +67,7 @@ SRS_ROW_LABELS = (
 )
 
 
-class SrsDataSource(base.DataProducer):
+class _SrsDataSource(base.DataProducer):
     """Fetches the data for the SRS table."""
 
     @classmethod
@@ -85,7 +85,7 @@ class SrsDataSource(base.DataProducer):
         return tscore.build_tscore_table(data, SRS_ROW_LABELS)
 
 
-class SrsTable(base.AddToMixin, base.WordTableSection, data_source=SrsDataSource):
+class SrsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Srs table."""
 
     def __init__(self, mrn: str) -> None:
@@ -101,3 +101,4 @@ class SrsTable(base.AddToMixin, base.WordTableSection, data_source=SrsDataSource
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = _SrsDataSource

@@ -27,7 +27,7 @@ MFQ_ROW_LABELS = (
 )
 
 
-class MfqDataSource(base.DataProducer):
+class _MfqDataSource(base.DataProducer):
     """Fetches the data for the MFQ table."""
 
     @classmethod
@@ -49,7 +49,7 @@ class MfqDataSource(base.DataProducer):
         )
 
 
-class MfqTable(base.AddToMixin, base.WordTableSection, data_source=MfqDataSource):
+class MfqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Mfq table."""
 
     def __init__(self, mrn: str) -> None:
@@ -65,3 +65,4 @@ class MfqTable(base.AddToMixin, base.WordTableSection, data_source=MfqDataSource
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = _MfqDataSource

@@ -124,7 +124,7 @@ class ScaredDataSource(base.DataProducer):
         )
 
 
-class ScaredTable(base.AddToMixin, base.WordTableSection, data_source=ScaredDataSource):
+class ScaredTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Scared table."""
 
     def __init__(self, mrn: str) -> None:
@@ -140,3 +140,4 @@ class ScaredTable(base.AddToMixin, base.WordTableSection, data_source=ScaredData
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = ScaredDataSource

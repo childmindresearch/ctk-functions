@@ -5,7 +5,6 @@ import functools
 from typing import Literal
 
 import sqlalchemy
-from docx import document
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -109,7 +108,7 @@ LANGUAGE_ROW_LABELS = (
 )
 
 
-class LanguageDataSource(base.DataProducer):
+class _LanguageDataSource(base.DataProducer):
     """Fetches the data for the Language table."""
 
     @classmethod
@@ -183,9 +182,8 @@ class LanguageDataSource(base.DataProducer):
 
 
 class LanguageTable(
-    base.AddToMixin,
+    base.WordTableSectionAddToMixin,
     base.WordTableSection,
-    data_source=LanguageDataSource,
 ):
     """Renderer for the language table."""
 
@@ -196,13 +194,4 @@ class LanguageTable(
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the langauge table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=[],
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)
+        self.data_source = _LanguageDataSource

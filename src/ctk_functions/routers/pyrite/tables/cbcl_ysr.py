@@ -142,7 +142,7 @@ class CbclDataSource(base.DataProducer):
         return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["CBCL"])
 
 
-class CbclTable(base.AddToMixin, base.WordTableSection, data_source=CbclDataSource):
+class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the CBCL table."""
 
     def __init__(self, mrn: str) -> None:
@@ -158,6 +158,7 @@ class CbclTable(base.AddToMixin, base.WordTableSection, data_source=CbclDataSour
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = CbclDataSource
 
 
 class YsrDataSource(base.DataProducer):
@@ -178,7 +179,7 @@ class YsrDataSource(base.DataProducer):
         return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["YSR"])
 
 
-class YsrTable(base.AddToMixin, base.WordTableSection, data_source=YsrDataSource):
+class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the YSR table."""
 
     def __init__(self, mrn: str) -> None:
@@ -194,3 +195,4 @@ class YsrTable(base.AddToMixin, base.WordTableSection, data_source=YsrDataSource
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = YsrDataSource

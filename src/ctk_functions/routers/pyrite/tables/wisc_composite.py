@@ -31,7 +31,7 @@ WISC_COMPOSITE_ROW_LABELS = (
 )
 
 
-class WiscCompositeDataSource(base.DataProducer):
+class _WiscCompositeDataSource(base.DataProducer):
     """Fetches data for and creates the WISC composite table."""
 
     @classmethod
@@ -77,11 +77,7 @@ def _create_wisc_composite_row(
     ]
 
 
-class WiscCompositeTable(
-    base.AddToMixin,
-    base.WordTableSection,
-    data_source=WiscCompositeDataSource,
-):
+class WiscCompositeTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the WISC composite table."""
 
     def __init__(self, mrn: str) -> None:
@@ -91,3 +87,4 @@ class WiscCompositeTable(
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
+        self.data_source = _WiscCompositeDataSource

@@ -95,9 +95,8 @@ class Conners3DataSource(base.DataProducer):
 
 
 class Conners3Table(
-    base.AddToMixin,
+    base.WordTableSectionAddToMixin,
     base.WordTableSection,
-    data_source=Conners3DataSource,
 ):
     """Renderer for the Conners3 table."""
 
@@ -114,3 +113,4 @@ class Conners3Table(
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = Conners3DataSource

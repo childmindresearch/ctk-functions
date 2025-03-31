@@ -51,7 +51,7 @@ class ScqDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, content_row])
 
 
-class ScqTable(base.AddToMixin, base.WordTableSection, data_source=ScqDataSource):
+class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Scq table."""
 
     def __init__(self, mrn: str) -> None:
@@ -67,3 +67,4 @@ class ScqTable(base.AddToMixin, base.WordTableSection, data_source=ScqDataSource
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
+        self.data_source = ScqDataSource
