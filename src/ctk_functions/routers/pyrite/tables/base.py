@@ -3,7 +3,7 @@
 import abc
 import functools
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar, Protocol, Self, runtime_checkable
 
 import cmi_docx
 import pydantic
@@ -362,3 +362,49 @@ class WordTableSection(abc.ABC):
     def is_available(self) -> bool:
         """Convenience method for the data source's availability."""
         return self.data_source.is_available(self.mrn)
+
+
+@runtime_checkable
+class _AddToProtocol(Protocol):
+    """Protocol defining what's required to use the AddToMixin."""
+
+    @property
+    def mrn(self) -> str:
+        """The participant's unique identifier."""
+
+    @property
+    def data_source(self) -> DataProducer:
+        """The data source to use."""
+
+
+class AddToMixin:
+    """Adds a standardized add_to method for WordTableSections.
+
+    Most tables' add_to functions follow a standardized pattern. This mixin
+    provides the option of adding the standard pattern.
+    """
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the data source to the document.
+
+        Args:
+            doc: The document to add the section to.
+        """
+        if not isinstance(self, _AddToProtocol):
+            msg = (
+                "Classes using the AddToMixin must be a valid implementation of "
+                "the AddToProtocol."
+            )
+            raise TypeError(msg)
+
+        markup = self.data_source.fetch(self.mrn)
+
+        args = {
+            "preamble": getattr(self, "preamble", None),
+            "postamble": getattr(self, "postamble", None),
+            "table_renderer": WordDocumentTableRenderer(markup=markup),
+        }
+        args = {key: val for key, val in args.items() if val}
+
+        renderer = WordDocumentTableSectionRenderer(**args)
+        renderer.add_to(doc)

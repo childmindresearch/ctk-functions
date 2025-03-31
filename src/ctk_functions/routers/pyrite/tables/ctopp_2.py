@@ -3,8 +3,6 @@
 import dataclasses
 import functools
 
-from docx import document
-
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -65,7 +63,7 @@ class Ctopp2DataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class Ctopp2Table(base.WordTableSection, data_source=Ctopp2DataSource):
+class Ctopp2Table(base.AddToMixin, base.WordTableSection, data_source=Ctopp2DataSource):
     """Renderer for the CTOPP2 table."""
 
     def __init__(self, mrn: str) -> None:
@@ -75,12 +73,3 @@ class Ctopp2Table(base.WordTableSection, data_source=Ctopp2DataSource):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the CTOPP2 table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)

@@ -4,7 +4,6 @@ import dataclasses
 import functools
 
 import cmi_docx
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -107,7 +106,7 @@ class SwanDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class SwanTable(base.WordTableSection, data_source=SwanDataSource):
+class SwanTable(base.AddToMixin, base.WordTableSection, data_source=SwanDataSource):
     """Renderer for the Swan table."""
 
     def __init__(self, mrn: str) -> None:
@@ -126,13 +125,3 @@ class SwanTable(base.WordTableSection, data_source=SwanDataSource):
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the Swan table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=self.preamble,
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)

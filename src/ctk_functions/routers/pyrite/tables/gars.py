@@ -3,7 +3,6 @@
 import functools
 
 import cmi_docx
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -75,7 +74,7 @@ class GarsDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, content_row])
 
 
-class GarsTable(base.WordTableSection, data_source=GarsDataSource):
+class GarsTable(base.AddToMixin, base.WordTableSection, data_source=GarsDataSource):
     """Renderer for the Gars table."""
 
     def __init__(self, mrn: str) -> None:
@@ -100,14 +99,3 @@ diagnosed with autism. Thus, clinically elevated scores on this assessment are n
 necessarily indicative of an autism diagnosis.""",
             ),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the Gars table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=self.preamble,
-            table_renderer=table_renderer,
-            postamble=self.postamble,
-        )
-        renderer.add_to(doc)

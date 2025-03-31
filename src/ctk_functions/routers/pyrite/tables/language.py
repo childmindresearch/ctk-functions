@@ -182,7 +182,11 @@ class LanguageDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class LanguageTable(base.WordTableSection, data_source=LanguageDataSource):
+class LanguageTable(
+    base.AddToMixin,
+    base.WordTableSection,
+    data_source=LanguageDataSource,
+):
     """Renderer for the language table."""
 
     def __init__(self, mrn: str) -> None:

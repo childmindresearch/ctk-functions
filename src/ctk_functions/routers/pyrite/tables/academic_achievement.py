@@ -3,8 +3,6 @@
 import dataclasses
 import functools
 
-from docx import document
-
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -166,6 +164,7 @@ class AcademicAchievementDataSource(base.DataProducer):
 
 
 class AcademicAchievementTable(
+    base.AddToMixin,
     base.WordTableSection,
     data_source=AcademicAchievementDataSource,
 ):
@@ -179,19 +178,5 @@ class AcademicAchievementTable(
         """
         self.mrn = mrn
         self.preamble = [
-            base.ParagraphBlock(
-                content="Academic Achievement",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
             base.ParagraphBlock(content="Age Norms:"),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the Academic Achievement table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=self.preamble,
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)

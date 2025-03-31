@@ -3,7 +3,6 @@
 import functools
 
 import cmi_docx
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -125,7 +124,7 @@ class ScaredDataSource(base.DataProducer):
         )
 
 
-class ScaredTable(base.WordTableSection, data_source=ScaredDataSource):
+class ScaredTable(base.AddToMixin, base.WordTableSection, data_source=ScaredDataSource):
     """Renderer for the Scared table."""
 
     def __init__(self, mrn: str) -> None:
@@ -141,13 +140,3 @@ class ScaredTable(base.WordTableSection, data_source=ScaredDataSource):
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the Scared table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=self.preamble,
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)

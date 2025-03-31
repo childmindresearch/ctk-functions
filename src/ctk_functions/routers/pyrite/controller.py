@@ -94,6 +94,7 @@ class PyriteTableCollection:
 
     mrn: str
 
+    # Tables must start with "tbl_"
     tbl_wisc_composite: wisc_composite.WiscCompositeTable = pydantic.Field(init=False)
     tbl_wisc_subtest: wisc_subtest.WiscSubtestTable = pydantic.Field(init=False)
     tbl_grooved_pegboard: grooved_pegboard.GroovedPegboardTable = pydantic.Field(
@@ -151,15 +152,17 @@ class PyriteReport:
         self._replace_participant_information()
 
     def _report_structure(self) -> list[ReportSection]:
-        """Creates the structure of the Pyrite report."""
+        """Creates the structure of the Pyrite report.
+
+        Returns:
+            The structure of the Pyrite report, containing only available sections.
+        """
 
         def is_any_available(*tbls: base.WordTableSection) -> bool:
-            """Checks if any of the tables are available.
-
-            Args:
-                tbls: The tables to check.
-            """
             return any(tbl.is_available() for tbl in tbls)
+
+        def is_all_available(*tbls: base.WordTableSection) -> bool:
+            return all(tbl.is_available() for tbl in tbls)
 
         tables = self._tables  # Alias because this is used a LOT.
 
@@ -168,14 +171,29 @@ class PyriteReport:
                 title="General Intellectual Function",
                 level=1,
                 tables=[tables.tbl_wisc_composite, tables.tbl_wisc_subtest],
-                condition=lambda: is_any_available(
+                condition=lambda: is_all_available(
                     tables.tbl_wisc_composite,
                     tables.tbl_wisc_subtest,
                 ),
+                subsections=[
+                    ReportSection(
+                        title=(
+                            "The Wechsler Intelligence Scale for Children-Fifth "
+                            "Edition (WISC-V)"
+                        ),
+                        level=2,
+                        tables=[tables.tbl_wisc_composite],
+                    ),
+                    ReportSection(
+                        title=None,
+                        level=None,
+                        tables=[tables.tbl_wisc_subtest],
+                    ),
+                ],
             ),
             ReportSection(
-                title="Motor Skills",
-                level=1,
+                title="Abbreviated Neurocognitive Assessment",
+                level=2,
                 tables=[tables.tbl_grooved_pegboard],
                 condition=lambda: is_any_available(tables.tbl_grooved_pegboard),
             ),

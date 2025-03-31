@@ -3,7 +3,6 @@
 import functools
 
 import cmi_docx
-from docx import document
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -143,7 +142,7 @@ class CbclDataSource(base.DataProducer):
         return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["CBCL"])
 
 
-class CbclTable(base.WordTableSection, data_source=CbclDataSource):
+class CbclTable(base.AddToMixin, base.WordTableSection, data_source=CbclDataSource):
     """Renderer for the CBCL table."""
 
     def __init__(self, mrn: str) -> None:
@@ -159,16 +158,6 @@ class CbclTable(base.WordTableSection, data_source=CbclDataSource):
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the CBCL table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=self.preamble,
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)
 
 
 class YsrDataSource(base.DataProducer):
@@ -189,7 +178,7 @@ class YsrDataSource(base.DataProducer):
         return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["YSR"])
 
 
-class YsrTable(base.WordTableSection, data_source=YsrDataSource):
+class YsrTable(base.AddToMixin, base.WordTableSection, data_source=YsrDataSource):
     """Renderer for the YSR table."""
 
     def __init__(self, mrn: str) -> None:
@@ -205,13 +194,3 @@ class YsrTable(base.WordTableSection, data_source=YsrDataSource):
                 level=utils.TABLE_TITLE_LEVEL,
             ),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the YSR table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            preamble=self.preamble,
-            table_renderer=table_renderer,
-        )
-        renderer.add_to(doc)

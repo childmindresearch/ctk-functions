@@ -5,7 +5,6 @@ import functools
 
 import cmi_docx
 import fastapi
-from docx import document
 from starlette import status
 
 from ctk_functions.microservices.sql import models
@@ -130,7 +129,11 @@ class WiscSubtestDataSource(base.DataProducer):
         return base.WordTableMarkup(rows=[header, *content_rows])
 
 
-class WiscSubtestTable(base.WordTableSection, data_source=WiscSubtestDataSource):
+class WiscSubtestTable(
+    base.AddToMixin,
+    base.WordTableSection,
+    data_source=WiscSubtestDataSource,
+):
     """Renderer for the WISC subtest table."""
 
     def __init__(self, mrn: str) -> None:
@@ -146,16 +149,6 @@ class WiscSubtestTable(base.WordTableSection, data_source=WiscSubtestDataSource)
                 style=cmi_docx.ParagraphStyle(italic=True),
             ),
         ]
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the WISC subtest table to the document."""
-        markup = self.data_source.fetch(self.mrn)
-        table_renderer = base.WordDocumentTableRenderer(markup=markup)
-        renderer = base.WordDocumentTableSectionRenderer(
-            table_renderer=table_renderer,
-            postamble=self.postamble,
-        )
-        renderer.add_to(doc)
 
 
 def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:
