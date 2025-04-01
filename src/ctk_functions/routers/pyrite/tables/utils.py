@@ -26,7 +26,7 @@ T = TypeVar("T", bound=models.Base)
 class UniqueIdentifiers:
     """Dataclass for the variety of unique identifiers used in HBN."""
 
-    mrn: str
+    MRN: str
     EID: str
     person_id: str
 
@@ -58,13 +58,15 @@ def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
             detail=f"MRN {mrn} could not be converted to EID.",
         )
 
+    logger.debug("Fetched participant %s.", mrn)
     return UniqueIdentifiers(
-        mrn=mrn,
+        MRN=mrn,
         EID=participant.GUID,
         person_id=participant.person_id,
     )
 
 
+@functools.lru_cache
 def fetch_participant_row(
     id_property: Literal["person_id", "EID", "MRN"],
     mrn: str,
@@ -82,7 +84,8 @@ def fetch_participant_row(
     Returns:
         The participant's row in the given table.
     """
-    identifier = mrn if id_property == "MRN" else getattr(mrn_to_ids(mrn), id_property)
+    logger.debug("Fetching table %s, participant %s.", table.__name__, mrn)
+    identifier = getattr(mrn_to_ids(mrn), id_property)
     statement = sqlalchemy.select(table).where(
         getattr(table, id_property) == identifier,
     )
@@ -90,6 +93,7 @@ def fetch_participant_row(
     with client.get_session() as session:
         data = session.execute(statement).scalar_one_or_none()
 
+    logger.debug("Fetched table %s, participant %s,", table.__name__, mrn)
     if data:
         return data
 
