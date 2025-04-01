@@ -1,12 +1,16 @@
 """Creates a table for surveys that have separate parent/child responses."""
 
 from collections.abc import Sequence
+from typing import TypeVar
 
 import pydantic
 import sqlalchemy
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
+
+T_parent = TypeVar("T_parent", bound=models.Base)
+T_child = TypeVar("T_child", bound=models.Base)
 
 
 class ParentChildRow(pydantic.BaseModel):
@@ -35,6 +39,24 @@ def build_parent_child_table(
     Returns:
         The markup for the parent/child table.
     """
+    data = _get_parent_child_data(mrn, parent_table, child_table)
+
+    header = [
+        base.WordTableCell(content="Subscales"),
+        base.WordTableCell(content="Parent"),
+        base.WordTableCell(content="Child"),
+        base.WordTableCell(content="Clinical Relevance"),
+    ]
+
+    content_rows = [
+        _build_parent_child_row(data[0], data[1], label) for label in row_labels
+    ]
+    return base.WordTableMarkup(rows=[header, *content_rows])
+
+
+def _get_parent_child_data(
+    mrn: str, parent_table: type[T_parent], child_table: type[T_child]
+) -> sqlalchemy.Row[tuple[T_parent, T_child]]:
     eid = utils.mrn_to_ids(mrn).EID
     statement = (
         sqlalchemy.select(
@@ -49,24 +71,12 @@ def build_parent_child_table(
             parent_table.EID == child_table.EID,  # type: ignore[attr-defined]
         )
     )
-
     with client.get_session() as session:
         data = session.execute(statement).fetchone()
     if not data:
         msg = f"Could not find MFQ data for {mrn}."
         raise utils.TableDataNotFoundError(msg)
-
-    header = [
-        base.WordTableCell(content="Subscales"),
-        base.WordTableCell(content="Parent"),
-        base.WordTableCell(content="Child"),
-        base.WordTableCell(content="Clinical Relevance"),
-    ]
-
-    content_rows = [
-        _build_parent_child_row(data[0], data[1], label) for label in row_labels
-    ]
-    return base.WordTableMarkup(rows=[header, *content_rows])
+    return data
 
 
 def _build_parent_child_row(

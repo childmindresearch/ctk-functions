@@ -76,7 +76,7 @@ CONNERS3_ROW_LABELS = (
 )
 
 
-class Conners3DataSource(base.DataProducer):
+class _Conners3DataSource(base.DataProducer):
     """Fetches the data for the Conners3 table."""
 
     @classmethod
@@ -107,4 +107,4 @@ class Conners3Table(
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.data_source = Conners3DataSource
+        self.data_source = _Conners3DataSource

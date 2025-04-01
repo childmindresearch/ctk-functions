@@ -20,7 +20,7 @@ from ctk_functions.routers.pyrite.tables import (
     cbcl_ysr,
     celf5,
     conners3,
-    ctopp_2,
+    ctopp2,
     gars,
     grooved_pegboard,
     language,
@@ -105,7 +105,7 @@ class PyriteTableCollection:
     )
     tbl_celf5: celf5.Celf5Table = pydantic.Field(init=False)
     tbl_language: language.LanguageTable = pydantic.Field(init=False)
-    tbl_ctopp2: ctopp_2.Ctopp2Table = pydantic.Field(init=False)
+    tbl_ctopp2: ctopp2.Ctopp2Table = pydantic.Field(init=False)
     tbl_cbcl: cbcl_ysr.CbclTable = pydantic.Field(init=False)
     tbl_ysr: cbcl_ysr.YsrTable = pydantic.Field(init=False)
     tbl_swan: swan.SwanTable = pydantic.Field(init=False)

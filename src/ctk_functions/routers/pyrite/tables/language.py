@@ -122,23 +122,7 @@ class _LanguageDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        identifiers = utils.mrn_to_ids(mrn)
-        statement = (
-            sqlalchemy.select(models.SummaryScores, models.Ctopp2)
-            .where(
-                models.SummaryScores.person_id == identifiers.person_id,
-            )
-            .outerjoin(
-                models.Ctopp2,
-                models.Ctopp2.person_id == models.SummaryScores.person_id,
-            )
-        )
-
-        with client.get_session() as session:
-            data = session.execute(statement).fetchone()
-        if not data:
-            msg = f"Could not fetch language data for {mrn}."
-            raise utils.TableDataNotFoundError(msg)
+        data = _get_data(mrn)
 
         header = [
             base.WordTableCell(content="Test"),
@@ -179,6 +163,27 @@ class _LanguageDataSource(base.DataProducer):
             )
 
         return base.WordTableMarkup(rows=[header, *content_rows])
+
+
+def _get_data(mrn: str) -> sqlalchemy.Row[tuple[models.SummaryScores, models.Ctopp2]]:
+    """Fetches the language data for the given mrn."""
+    identifiers = utils.mrn_to_ids(mrn)
+    statement = (
+        sqlalchemy.select(models.SummaryScores, models.Ctopp2)
+        .where(
+            models.SummaryScores.person_id == identifiers.person_id,
+        )
+        .outerjoin(
+            models.Ctopp2,
+            models.Ctopp2.person_id == models.SummaryScores.person_id,
+        )
+    )
+    with client.get_session() as session:
+        data = session.execute(statement).fetchone()
+    if not data:
+        msg = f"Could not fetch language data for {mrn}."
+        raise utils.TableDataNotFoundError(msg)
+    return data
 
 
 class LanguageTable(

@@ -6,7 +6,7 @@ from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
-class Celf5DataSource(base.DataProducer):
+class _Celf5DataSource(base.DataProducer):
     """Fetches the data for the Celf5 table."""
 
     @classmethod
@@ -53,4 +53,4 @@ class Celf5Table(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.data_source = Celf5DataSource
+        self.data_source = _Celf5DataSource

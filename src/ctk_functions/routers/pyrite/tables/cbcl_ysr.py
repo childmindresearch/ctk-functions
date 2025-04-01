@@ -124,7 +124,7 @@ CBCL_YSR_ROW_LABELS = {
 }
 
 
-class CbclDataSource(base.DataProducer):
+class _CbclDataSource(base.DataProducer):
     """Fetches the data for the CBCL table."""
 
     @classmethod
@@ -152,10 +152,10 @@ class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.data_source = CbclDataSource
+        self.data_source = _CbclDataSource
 
 
-class YsrDataSource(base.DataProducer):
+class _YsrDataSource(base.DataProducer):
     """Fetches the data for the YSR table."""
 
     @classmethod
@@ -183,4 +183,4 @@ class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.data_source = YsrDataSource
+        self.data_source = _YsrDataSource

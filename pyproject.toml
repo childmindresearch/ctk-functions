@@ -119,7 +119,8 @@ convention = "google"
 "tests/**/*.py" = [
     "S101", # asserts should be used in pytest
     "SLF001", # accessing private members in tests is fine
-    "INP001"  # tests should not be a module
+    "INP001", # tests should not be a module
+    "ARG001" # tests can have ununsed arguments (fixtures with side-effects)
 ]
 "local/**/*" = ["ALL"]
 

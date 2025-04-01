@@ -162,3 +162,36 @@ def test_word_table_markup_not_2d_array() -> None:
     """Tests whether a word table markup raises when not 2D array."""
     with pytest.raises(ValueError, match="All rows must have the same length."):
         base.WordTableMarkup(rows=[[base.WordTableCell(content="a")], []])
+
+
+def test_word_table_section_add_to_mixin_faulty_protocol() -> None:
+    """Tests whether a WordTableSectionAddToMixin with a faulty class errors."""
+
+    class ShouldError(base.WordTableSectionAddToMixin):
+        pass
+
+    error_message = (
+        "Classes using the AddToMixin must be a valid implementation of "
+        "the AddToProtocol"
+    )
+
+    with pytest.raises(TypeError, match=error_message):
+        ShouldError().add_to(None)  # type: ignore[arg-type]
+
+
+def test_add_to_procotol() -> None:
+    """Tests whether AddToProtocol isinstance() works."""
+
+    class NotValid:
+        pass
+
+    class DataSource(base.DataProducer):
+        def fetch(self, mrn: str) -> None:  # type: ignore[override]
+            pass
+
+    class Valid:
+        mrn = "a"
+        data_source = DataSource()
+
+    assert not isinstance(NotValid, base._AddToProtocol)
+    assert isinstance(Valid, base._AddToProtocol)

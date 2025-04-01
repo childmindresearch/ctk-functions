@@ -174,11 +174,18 @@ def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:
         17: "very high",
     }
 
-    return mapping[scaled]
+    if scaled in mapping:
+        return mapping[scaled]
+    raise fastapi.HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Unknown WISC subtest score.",
+    )
 
 
 def _wisc_subtest_scaled_score_to_percentile(scale: int) -> int:
     """Converts WISC subtest scores to percentiles."""
+    if scale > 16:  # noqa: PLR2004
+        return 19
     mapping = {
         1: 1,
         2: 1,
@@ -196,10 +203,6 @@ def _wisc_subtest_scaled_score_to_percentile(scale: int) -> int:
         14: 91,
         15: 95,
         16: 98,
-        17: 99,
-        18: 99,
-        19: 99,
-        20: 99,
     }
     if scale in mapping:
         return mapping[scale]
