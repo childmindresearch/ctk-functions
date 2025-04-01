@@ -185,7 +185,7 @@ def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:
 def _wisc_subtest_scaled_score_to_percentile(scale: int) -> int:
     """Converts WISC subtest scores to percentiles."""
     if scale > 16:  # noqa: PLR2004
-        return 19
+        return 99
     mapping = {
         1: 1,
         2: 1,
