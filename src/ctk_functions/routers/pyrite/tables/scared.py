@@ -102,7 +102,7 @@ SCARED_ROW_LABELS = (
 )
 
 
-class ScaredDataSource(base.DataProducer):
+class _ScaredDataSource(base.DataProducer):
     """Fetches the data for the Scared table."""
 
     @classmethod
@@ -134,4 +134,4 @@ class ScaredTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.data_source = ScaredDataSource
+        self.data_source = _ScaredDataSource

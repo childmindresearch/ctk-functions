@@ -84,12 +84,6 @@ class GarsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Gilliam Autism Rating Scale, Third Edition (GARS-3)",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.postamble = [
             base.ParagraphBlock(
                 content="""*Caution is advised in interpretation of the Autism Index

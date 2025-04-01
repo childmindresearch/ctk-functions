@@ -331,12 +331,35 @@ class PyriteReport:
                     ReportSection(
                         title="Autism Spectrum Symptoms and Behaviors",
                         level=2,
-                        tables=[tables.tbl_scq, tables.tbl_gars, tables.tbl_srs],
+                        tables=[],
                         condition=lambda: is_any_available(
                             tables.tbl_scq,
                             tables.tbl_gars,
                             tables.tbl_srs,
                         ),
+                        subsections=[
+                            ReportSection(
+                                title="Social Communication Questionnaire",
+                                level=2,
+                                tables=tables.tbl_scq,
+                                condition=lambda: tables.tbl_scq.is_available(),
+                            ),
+                            ReportSection(
+                                title=(
+                                    "Gilliam Autism Rating Scale, Third Edition "
+                                    "(GARS-3)"
+                                ),
+                                level=2,
+                                tables=[tables.tbl_gars],
+                                condition=lambda: tables.tbl_gars.is_available(),
+                            ),
+                            ReportSection(
+                                title="Social Responsiveness Scale",
+                                level=2,
+                                tables=[tables.tbl_scq],
+                                condition=lambda: tables.tbl_scq.is_available(),
+                            ),
+                        ],
                     ),
                     ReportSection(
                         title="Depression and Anxiety Symptoms",

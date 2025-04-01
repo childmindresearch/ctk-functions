@@ -95,10 +95,4 @@ class SrsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Social Responsiveness Scale",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
         self.data_source = _SrsDataSource

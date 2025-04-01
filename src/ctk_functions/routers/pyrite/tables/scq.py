@@ -8,7 +8,7 @@ from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
-class ScqDataSource(base.DataProducer):
+class _ScqDataSource(base.DataProducer):
     """Fetches and creates the SCQ table."""
 
     @classmethod
@@ -61,10 +61,4 @@ class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.preamble = [
-            base.ParagraphBlock(
-                content="Social Communication Questionnaire",
-                level=utils.TABLE_TITLE_LEVEL,
-            ),
-        ]
-        self.data_source = ScqDataSource
+        self.data_source = _ScqDataSource

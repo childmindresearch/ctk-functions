@@ -12,7 +12,6 @@ from starlette import status
 from ctk_functions.core.config import get_logger
 from ctk_functions.microservices.sql import client, models
 
-TABLE_TITLE_LEVEL = 2
 logger = get_logger()
 
 
