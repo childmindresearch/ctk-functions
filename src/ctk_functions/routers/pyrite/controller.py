@@ -8,12 +8,11 @@ import cmi_docx
 import docx
 import fastapi
 import pydantic
-import sqlalchemy
 from docx import document
 from fastapi import status
 
 from ctk_functions.core import config
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
@@ -29,6 +28,7 @@ from ctk_functions.routers.pyrite.tables import (
     scq,
     srs,
     swan,
+    utils,
     wisc_composite,
     wisc_subtest,
 )
@@ -158,28 +158,23 @@ class PyriteReport:
             A row from the CMI_HB_IDTrack_t table.
         """
         logger.debug("Fetching participant %s.", self._mrn)
-        with client.get_session() as session:
-            participant = session.execute(
-                sqlalchemy.select(models.CmiHbnIdTrack).where(
-                    models.CmiHbnIdTrack.MRN == self._mrn,
-                ),
-            ).scalar_one_or_none()
-
-        if not participant:
+        try:
+            return utils.fetch_participant_row("MRN", self._mrn, models.CmiHbnIdTrack)
+        except utils.TableDataNotFoundError as exception_info:
             raise fastapi.HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="MRN not found.",
-            )
-
-        return participant
+            ) from exception_info
 
     def _replace_participant_information(self) -> None:
         """Replaces the patient information in the report."""
         logger.debug("Replacing patient information in the report.")
 
         first_name = self._participant.first_name
-        full_name = first_name + " " + self._participant.last_name
-        first_name_possessive = first_name + ("'" if first_name.endswith("s") else "'s")
+        full_name = f"{first_name} {self._participant.last_name}"
+        first_name_possessive = (
+            f"{first_name}{"'" if first_name.endswith("s") else "'s"}"
+        )
         replacements = {
             "full_name": full_name,
             "first_name_possessive": first_name_possessive,
@@ -341,7 +336,7 @@ class PyriteReport:
                             ReportSection(
                                 title="Social Communication Questionnaire",
                                 level=2,
-                                tables=tables.tbl_scq,
+                                tables=[tables.tbl_scq],
                                 condition=lambda: tables.tbl_scq.is_available(),
                             ),
                             ReportSection(

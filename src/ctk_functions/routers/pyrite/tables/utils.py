@@ -66,7 +66,7 @@ def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
 
 
 def fetch_participant_row(
-    id_property: Literal["person_id", "EID", "mrn"],
+    id_property: Literal["person_id", "EID", "MRN"],
     mrn: str,
     table: type[T],
 ) -> T:
@@ -82,7 +82,7 @@ def fetch_participant_row(
     Returns:
         The participant's row in the given table.
     """
-    identifier = getattr(mrn_to_ids(mrn), id_property)
+    identifier = mrn if id_property == "MRN" else getattr(mrn_to_ids(mrn), id_property)
     statement = sqlalchemy.select(table).where(
         getattr(table, id_property) == identifier,
     )
