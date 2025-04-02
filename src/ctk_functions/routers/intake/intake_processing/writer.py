@@ -14,7 +14,7 @@ from docx.enum import table as enum_table
 from docx.enum import text as enum_text
 from docx.text import paragraph as docx_paragraph
 
-from ctk_functions.core import config
+from ctk_functions.core import config, word
 from ctk_functions.microservices import redcap
 from ctk_functions.routers.intake.intake_processing import (
     parser,
@@ -43,16 +43,6 @@ class _RGB(enum.Enum):
     TESTING = (155, 187, 89)
     UNRELIABLE = (247, 150, 70)
     ERROR = (255, 0, 0)
-
-
-class _StyleName(enum.Enum):
-    """The styles for the report."""
-
-    HEADING_1 = "Heading 1"
-    HEADING_2 = "Heading 2"
-    HEADING_3 = "Heading 3"
-    TITLE = "Title"
-    NORMAL = "Normal"
 
 
 class EnabledTasks(pydantic.BaseModel):
@@ -247,7 +237,7 @@ class ReportWriter:
         text += f" {placeholder_id}"
         text = string_utils.remove_excess_whitespace(text)
 
-        self._insert("REASON FOR VISIT", _StyleName.HEADING_1)
+        self._insert("REASON FOR VISIT", word.StyleName.HEADING_1)
         paragraph = self._insert(text)
         self._insert("")
 
@@ -263,7 +253,7 @@ class ReportWriter:
     def write_developmental_history(self) -> None:
         """Writes the developmental history to the end of the report."""
         logger.debug("Writing the developmental history to the report.")
-        self._insert("DEVELOPMENTAL HISTORY", _StyleName.HEADING_1)
+        self._insert("DEVELOPMENTAL HISTORY", word.StyleName.HEADING_1)
         self.write_prenatal_history()
         self.write_developmental_milestones()
         self.write_early_education_interventions()
@@ -330,7 +320,7 @@ class ReportWriter:
             )
             text += f" {placeholder}"
 
-        self._insert("Prenatal and Birth History", _StyleName.HEADING_2)
+        self._insert("Prenatal and Birth History", word.StyleName.HEADING_2)
         self._insert(text)
         self._insert("")
 
@@ -357,7 +347,7 @@ class ReportWriter:
         ]
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
-        self._insert("Developmental Milestones", _StyleName.HEADING_2)
+        self._insert("Developmental Milestones", word.StyleName.HEADING_2)
         paragraph = self._insert(" ".join(texts))
         cmi_docx.ExtendParagraph(paragraph).replace(
             texts[0],
@@ -421,14 +411,14 @@ class ReportWriter:
             """
             text = string_utils.remove_excess_whitespace(text)
 
-        self._insert("Early Educational Interventions", _StyleName.HEADING_2)
+        self._insert("Early Educational Interventions", word.StyleName.HEADING_2)
         self._insert(text)
         self._insert("")
 
     def write_academic_history(self) -> None:
         """Writes the academic history to the end of the report."""
         logger.debug("Writing the academic history to the report.")
-        self._insert("ACADEMIC AND EDUCATIONAL HISTORY", _StyleName.HEADING_1)
+        self._insert("ACADEMIC AND EDUCATIONAL HISTORY", word.StyleName.HEADING_1)
         self.write_previous_testing()
         self.write_academic_history_table()
         self.write_past_educational_history()
@@ -447,7 +437,7 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        self._insert("Previous Testing", _StyleName.HEADING_2)
+        self._insert("Previous Testing", word.StyleName.HEADING_2)
         paragraph = self._insert(text)
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=_RGB.UNRELIABLE.value),
@@ -544,7 +534,7 @@ class ReportWriter:
             verify=True,
         )
 
-        self._insert("Educational History", _StyleName.HEADING_2)
+        self._insert("Educational History", word.StyleName.HEADING_2)
         self._insert(placeholder_id)
         self._insert("")
 
@@ -641,7 +631,7 @@ class ReportWriter:
     def write_social_history(self) -> None:
         """Writes the social history to the end of the report."""
         logger.debug("Writing the social history to the report.")
-        self._insert("SOCIAL HISTORY", _StyleName.HEADING_1)
+        self._insert("SOCIAL HISTORY", word.StyleName.HEADING_1)
         self.write_home_and_adaptive_functioning()
         self.write_social_functioning()
 
@@ -679,8 +669,11 @@ class ReportWriter:
                 this patient.
 
                 Languages spoken in the household are as follows:
-                {string_utils.join_with_oxford_comma([language.name for language in
-                                                       household.languages])}.
+                {
+                string_utils.join_with_oxford_comma(
+                    [language.name for language in household.languages]
+                )
+            }.
 
                 What follows is an example output:
 
@@ -742,7 +735,7 @@ class ReportWriter:
         text_home = string_utils.remove_excess_whitespace(text_home)
         text_adaptive = string_utils.remove_excess_whitespace(text_adaptive)
 
-        self._insert("Home and Adaptive Functioning", _StyleName.HEADING_2)
+        self._insert("Home and Adaptive Functioning", word.StyleName.HEADING_2)
         self._insert(text_home)
         self._insert("")
         self._insert(text_adaptive)
@@ -792,14 +785,14 @@ class ReportWriter:
         text += f" {placeholder}"
         text = string_utils.remove_excess_whitespace(text)
 
-        self._insert("Social Functioning", _StyleName.HEADING_2)
+        self._insert("Social Functioning", word.StyleName.HEADING_2)
         self._insert(text)
         self._insert("")
 
     def write_psychiatric_history(self) -> None:
         """Writes the psychiatric history to the end of the report."""
         logger.debug("Writing the psychiatric history to the report.")
-        self._insert("PSYCHRIATIC HISTORY", _StyleName.HEADING_1)
+        self._insert("PSYCHRIATIC HISTORY", word.StyleName.HEADING_1)
         self.write_past_psychiatric_diagnoses()
         self.write_past_psychiatric_hospitalizations()
         self.write_past_therapeutic_interventions()
@@ -838,7 +831,7 @@ class ReportWriter:
                 ),
             )
 
-        self._insert("Past Psychiatric Diagnoses", _StyleName.HEADING_2)
+        self._insert("Past Psychiatric Diagnoses", word.StyleName.HEADING_2)
         self._insert(text)
         self._insert("")
 
@@ -852,7 +845,7 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        self._insert("Past Psychiatric Hospitalizations", _StyleName.HEADING_2)
+        self._insert("Past Psychiatric Hospitalizations", word.StyleName.HEADING_2)
         paragraph = self._insert(text)
         cmi_docx.ExtendParagraph(paragraph).format(
             cmi_docx.ParagraphStyle(font_rgb=_RGB.UNRELIABLE.value),
@@ -869,7 +862,7 @@ class ReportWriter:
         )
         self._insert(
             "Administration for Children's Services (ACS) Involvement",
-            _StyleName.HEADING_2,
+            word.StyleName.HEADING_2,
         )
         paragraph = self._insert(text)
         if not self.intake.patient.psychiatric_history.is_follow_up_done:
@@ -890,7 +883,7 @@ class ReportWriter:
 
         self._insert(
             "Past Severe Aggressive Behaviors and Homicidality",
-            _StyleName.HEADING_2,
+            word.StyleName.HEADING_2,
         )
         paragraph = self._insert(text)
         if not self.intake.patient.psychiatric_history.is_follow_up_done:
@@ -960,7 +953,7 @@ class ReportWriter:
         """
 
         history = self.intake.patient.psychiatric_history.family_psychiatric_history
-        self._insert("Family Psychiatric History", _StyleName.HEADING_2)
+        self._insert("Family Psychiatric History", word.StyleName.HEADING_2)
 
         if not history.base:
             # No known family history.
@@ -1011,7 +1004,7 @@ class ReportWriter:
                 ),
             )
 
-        self._insert("Past Therapeutic Interventions", _StyleName.HEADING_2)
+        self._insert("Past Therapeutic Interventions", word.StyleName.HEADING_2)
         self._insert(text)
         self._insert("")
 
@@ -1021,7 +1014,7 @@ class ReportWriter:
 
         medications = self.intake.patient.psychiatric_history.medications
 
-        self._insert("Past Psychiatric Medications", _StyleName.HEADING_2)
+        self._insert("Past Psychiatric Medications", word.StyleName.HEADING_2)
         if not medications.past_medication and not medications.current_medication:
             text = f"""
                 {self.intake.patient.guardian.title_name} denied any history of
@@ -1071,7 +1064,7 @@ class ReportWriter:
 
         self._insert(
             "Past Self-Injurious Behaviors and Suicidality",
-            _StyleName.HEADING_2,
+            word.StyleName.HEADING_2,
         )
         paragraph = self._insert(text)
         if not self.intake.patient.psychiatric_history.is_follow_up_done:
@@ -1089,7 +1082,7 @@ class ReportWriter:
             self.intake.patient.psychiatric_history.violence_and_trauma,
         )
 
-        self._insert("Exposure to Violence and Trauma", _StyleName.HEADING_2)
+        self._insert("Exposure to Violence and Trauma", word.StyleName.HEADING_2)
         paragraph = self._insert(text)
         if not self.intake.patient.psychiatric_history.is_follow_up_done:
             cmi_docx.ExtendParagraph(paragraph).format(
@@ -1136,7 +1129,7 @@ class ReportWriter:
         texts.append(prior_diseases.transform() + ".")
         texts = [string_utils.remove_excess_whitespace(text) for text in texts]
 
-        self._insert("MEDICAL HISTORY", _StyleName.HEADING_1)
+        self._insert("MEDICAL HISTORY", word.StyleName.HEADING_1)
         paragraph = self._insert(" ".join(texts))
         cmi_docx.ExtendParagraph(paragraph).replace(
             texts[0],
@@ -1148,7 +1141,7 @@ class ReportWriter:
     def write_current_psychiatric_functioning(self) -> None:
         """Writes the current psychiatric functioning to the report."""
         logger.debug("Writing the current psychiatric functioning to the report.")
-        self._insert("CURRENT PSYCHIATRIC FUNCTIONING", _StyleName.HEADING_1)
+        self._insert("CURRENT PSYCHIATRIC FUNCTIONING", word.StyleName.HEADING_1)
         self.write_current_psychiatric_medications_intake()
         self.write_current_psychiatric_medications_testing()
         self.write_denied_symptoms()
@@ -1193,7 +1186,7 @@ class ReportWriter:
                 verify=True,
             )
 
-        self._insert("Current Psychiatric Medications", _StyleName.HEADING_2)
+        self._insert("Current Psychiatric Medications", word.StyleName.HEADING_2)
         self._insert(text)
         self._insert("")
 
@@ -1241,7 +1234,7 @@ class ReportWriter:
         """
         text = string_utils.remove_excess_whitespace(text)
 
-        header = self._insert("Denied Symptoms", _StyleName.HEADING_2)
+        header = self._insert("Denied Symptoms", word.StyleName.HEADING_2)
         paragraph = self._insert(text)
         cmi_docx.ExtendParagraph(header).format(
             cmi_docx.ParagraphStyle(font_rgb=_RGB.TESTING.value),
@@ -1350,7 +1343,7 @@ class ReportWriter:
     def _insert(
         self,
         text: str,
-        style: _StyleName = _StyleName.NORMAL,
+        style: word.StyleName = word.StyleName.NORMAL,
     ) -> docx_paragraph.Paragraph:
         """Inserts text at the insertion point.
 

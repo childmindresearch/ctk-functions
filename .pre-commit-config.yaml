@@ -14,12 +14,6 @@ repos:
     args:
     - --autofix
     - --indent=2
-  - id: pretty-format-toml
-    exclude: ^poetry.lock$
-    args:
-    - --autofix
-    - --indent=2
-    - --no-sort
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.5.0
