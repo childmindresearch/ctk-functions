@@ -159,7 +159,7 @@ class PyriteReport:
         """
         logger.debug("Fetching participant %s.", self._mrn)
         try:
-            return utils.fetch_participant_row("MRN", self._mrn, models.CmiHbnIdTrack)
+            return utils.fetch_participant_row("MRN", self._mrn, models.CmiHbnIdTrack)  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.
         except utils.TableDataNotFoundError as exception_info:
             raise fastapi.HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -173,7 +173,7 @@ class PyriteReport:
         first_name = self._participant.first_name
         full_name = f"{first_name} {self._participant.last_name}"
         first_name_possessive = (
-            f"{first_name}{"'" if first_name.endswith("s") else "'s"}"
+            f"{first_name}{"'" if first_name.endswith('s') else "'s"}"
         )
         replacements = {
             "full_name": full_name,
