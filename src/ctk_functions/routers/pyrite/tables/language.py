@@ -5,9 +5,18 @@ import functools
 from typing import Literal
 
 import sqlalchemy
+from docx import shared
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
+
+COLUMN_WIDTHS = (
+    shared.Cm(1.98),
+    shared.Cm(5.75),
+    shared.Cm(3.25),
+    shared.Cm(2.21),
+    shared.Cm(3.29),
+)
 
 
 @dataclasses.dataclass
@@ -124,33 +133,50 @@ class _LanguageDataSource(base.DataProducer):
         """
         data = _get_data(mrn)
 
+        header_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
+        header_content = ["Test", "Subtest", "Standard Score", "Percentile", "Range"]
         header = [
-            base.WordTableCell(content="Test"),
-            base.WordTableCell(content="Subtest"),
-            base.WordTableCell(content="Standard Score"),
-            base.WordTableCell(content="Percentile"),
-            base.WordTableCell(content="Range"),
+            base.WordTableCell(content=content, formatter=formatter)
+            for content, formatter in zip(
+                header_content, header_formatters, strict=True
+            )
         ]
 
+        body_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
+        body_formatters[0].merge_top = True
         content_rows = []
         for label in LANGUAGE_ROW_LABELS:
             test_cell = base.WordTableCell(
                 content=label.test,
-                formatter=base.Formatter(merge_top=True),
+                formatter=body_formatters[0],
             )
-            subtest_cell = base.WordTableCell(content=label.subtest)
+            subtest_cell = base.WordTableCell(
+                content=label.subtest, formatter=body_formatters[1]
+            )
             data_table = data[int(label.table == "Ctopp2")]
             if not label.score_column or not getattr(data_table, label.score_column):
-                score_cell = base.WordTableCell(content="N/A")
-                percentile_cell = base.WordTableCell(content="N/A")
-                range_cell = base.WordTableCell(content="N/A")
+                score_cell = base.WordTableCell(
+                    content="N/A", formatter=body_formatters[2]
+                )
+                percentile_cell = base.WordTableCell(
+                    content="N/A", formatter=body_formatters[3]
+                )
+                range_cell = base.WordTableCell(
+                    content="N/A", formatter=body_formatters[4]
+                )
             else:
                 score = float(getattr(data_table, label.score_column))
                 percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
                 qualifier = utils.standard_score_to_qualifier(score)
-                score_cell = base.WordTableCell(content=str(int(score)))
-                percentile_cell = base.WordTableCell(content=f"{percentile:.0f}")
-                range_cell = base.WordTableCell(content=qualifier)
+                score_cell = base.WordTableCell(
+                    content=str(int(score)), formatter=body_formatters[2]
+                )
+                percentile_cell = base.WordTableCell(
+                    content=f"{percentile:.0f}", formatter=body_formatters[3]
+                )
+                range_cell = base.WordTableCell(
+                    content=qualifier, formatter=body_formatters[4]
+                )
 
             content_rows.append(
                 [
