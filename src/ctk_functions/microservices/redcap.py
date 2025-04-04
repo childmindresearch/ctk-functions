@@ -662,8 +662,8 @@ class RedCapData(pydantic.BaseModel):
 
     # Guardian
 
-    title: GuardianTitle | None
-    title_other: str | None
+    title: GuardianTitle | None = None
+    title_other: str | None = None
     guardian_first_name: str
     guardian_last_name: str
     guardian_maritalstatus: GuardianMaritalStatus
