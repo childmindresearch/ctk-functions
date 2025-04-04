@@ -3,8 +3,12 @@
 import dataclasses
 from collections.abc import Sequence
 
+from docx import shared
+
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base
+
+COLUMN_WIDTHS = (shared.Cm(6.5), shared.Cm(3.5), shared.Cm(6.5))
 
 
 @dataclasses.dataclass
@@ -63,23 +67,28 @@ def build_tscore_table(
         row_labels: Definitions of the table rows, header excluded.
 
     """
+    header_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
+    header_content = ["Subscale", "T-Score", "Clinical Relevance"]
     header = [
-        base.WordTableCell(content="Subscale"),
-        base.WordTableCell(content="T-Score"),
-        base.WordTableCell(content="Clinical Relevance"),
+        base.WordTableCell(content=content, formatter=formatter)
+        for content, formatter in zip(header_content, header_formatters, strict=True)
     ]
+
     content_rows = [
         [
-            base.WordTableCell(content=label.subscale),
+            base.WordTableCell(
+                content=label.subscale, formatter=base.Formatter(width=COLUMN_WIDTHS[0])
+            ),
             base.WordTableCell(
                 content=getattr(data, label.score_column),
                 formatter=base.Formatter(
                     conditional_styles=_label_to_conditional_styles(label),
+                    width=COLUMN_WIDTHS[1],
                 ),
             ),
             base.WordTableCell(
                 content=_label_to_relevance_text(label),
-                formatter=base.Formatter(merge_top=True),
+                formatter=base.Formatter(merge_top=True, width=COLUMN_WIDTHS[2]),
             ),
         ]
         for label in row_labels

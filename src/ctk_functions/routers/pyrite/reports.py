@@ -3,7 +3,7 @@
 import abc
 import dataclasses
 from collections.abc import Callable
-from typing import Any, Literal, Self
+from typing import Any, Literal
 
 import pydantic
 from docx import document
@@ -60,7 +60,7 @@ class TableSection(pydantic.BaseModel, Section):
     level: int | None = None
     condition: Callable[[], bool] = lambda: True
     tables: list[base.WordTableSection] = pydantic.Field(default_factory=list)
-    subsections: list[Self] = pydantic.Field(default_factory=list)
+    subsections: list[Section] = pydantic.Field(default_factory=list)
 
     def add_to(self, doc: document.Document) -> None:
         """Adds the section to a document.
@@ -289,6 +289,7 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                         ),
                     ],
                 ),
+                PageBreak(),
                 TableSection(
                     title="Depression and Anxiety Symptoms",
                     level=2,

@@ -8,6 +8,14 @@ from docx import shared
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
+COLUMN_WIDTHS = (
+    shared.Cm(1.76),
+    shared.Cm(6.11),
+    shared.Cm(3.37),
+    shared.Cm(2.45),
+    shared.Cm(2.8),
+)
+
 
 @dataclasses.dataclass
 class AcademicRowLabels:
@@ -129,15 +137,7 @@ class _AcademicAchievementDataSource(base.DataProducer):
             The markup for the Word table.
         """
         data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
-
-        column_widths = (
-            shared.Cm(1.76),
-            shared.Cm(6.11),
-            shared.Cm(3.37),
-            shared.Cm(2.45),
-            shared.Cm(2.8),
-        )
-        header_formatters = [base.Formatter(width=width) for width in column_widths]
+        header_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
         header = [
             base.WordTableCell(content="Domain", formatter=header_formatters[0]),
             base.WordTableCell(content="Subtest", formatter=header_formatters[1]),
@@ -149,7 +149,7 @@ class _AcademicAchievementDataSource(base.DataProducer):
             base.WordTableCell(content="Range", formatter=header_formatters[4]),
         ]
 
-        body_formatters = [base.Formatter(width=width) for width in column_widths]
+        body_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
         body_formatters[0].merge_top = True
         content_rows = []
         for label in ACADEMIC_ROW_LABELS:

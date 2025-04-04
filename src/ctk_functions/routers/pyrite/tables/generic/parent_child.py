@@ -5,9 +5,17 @@ from typing import TypeVar
 
 import pydantic
 import sqlalchemy
+from docx import shared
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
+
+COLUMN_WIDTHS = (
+    shared.Cm(6.99),
+    shared.Cm(2.76),
+    shared.Cm(2.73),
+    shared.Cm(4.02),
+)
 
 T_parent = TypeVar("T_parent", bound=models.Base)
 T_child = TypeVar("T_child", bound=models.Base)
@@ -41,11 +49,11 @@ def build_parent_child_table(
     """
     data = _get_parent_child_data(mrn, parent_table, child_table)
 
+    formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
+    content = ["Subscales", "Parent", "Child", "Clinical Relevance"]
     header = [
-        base.WordTableCell(content="Subscales"),
-        base.WordTableCell(content="Parent"),
-        base.WordTableCell(content="Child"),
-        base.WordTableCell(content="Clinical Relevance"),
+        base.WordTableCell(content=content, formatter=formatter)
+        for content, formatter in zip(content, formatters, strict=True)
     ]
 
     content_rows = [
@@ -88,7 +96,9 @@ def _build_parent_child_row(
         base.ConditionalStyle(condition=relevance.in_range, style=relevance.style)
         for relevance in label.relevance
     ]
-    formatter = base.Formatter(conditional_styles=styles)
+    formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
+    formatters[1].conditional_styles = styles
+    formatters[2].conditional_styles = styles
 
     def score2label(data: models.Base | None, column: str) -> str:
         if not data:
@@ -102,17 +112,11 @@ def _build_parent_child_row(
     child_label = score2label(child_data, label.child_column)
 
     return [
-        base.WordTableCell(content=label.subscale),
-        base.WordTableCell(
-            content=parent_label,
-            formatter=formatter,
-        ),
-        base.WordTableCell(
-            content=child_label,
-            formatter=formatter,
-        ),
+        base.WordTableCell(content=label.subscale, formatter=formatters[0]),
+        base.WordTableCell(content=parent_label, formatter=formatters[1]),
+        base.WordTableCell(content=child_label, formatter=formatters[2]),
         base.WordTableCell(
             content="\n".join(str(relevance) for relevance in label.relevance),
-            formatter=base.Formatter(merge_top=True),
+            formatter=formatters[3],
         ),
     ]
