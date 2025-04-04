@@ -97,8 +97,8 @@ def _build_parent_child_row(
         for relevance in label.relevance
     ]
     formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
-    formatters[1].conditional_styles = styles
-    formatters[2].conditional_styles = styles
+    formatters[1].conditional_styles.extend(styles)
+    formatters[2].conditional_styles.extend(styles)
 
     def score2label(data: models.Base | None, column: str) -> str:
         if not data:

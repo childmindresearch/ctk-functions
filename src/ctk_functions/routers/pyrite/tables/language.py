@@ -4,8 +4,10 @@ import dataclasses
 import functools
 from typing import Literal
 
+import cmi_docx
 import sqlalchemy
 from docx import shared
+from docx.enum import text
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -56,7 +58,7 @@ LANGUAGE_ROW_LABELS = (
     ),
     LanguageRowLabels(
         test="CTOPP-2",
-        subtest="- Non-word Repetition",
+        subtest="\tNon-word Repetition",
         score_column="NR_Standard",
         table="Ctopp2",
     ),
@@ -86,13 +88,13 @@ LANGUAGE_ROW_LABELS = (
     ),
     LanguageRowLabels(
         test="CTOPP-2",
-        subtest="- Rapid Digit Naming",
+        subtest="\tRapid Digit Naming",
         score_column="RD_Standard",
         table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
-        subtest="- Rapid Letter Naming",
+        subtest="\tRapid Letter Naming",
         score_column="RL_Standard",
         table="Ctopp2",
     ),
@@ -104,13 +106,13 @@ LANGUAGE_ROW_LABELS = (
     ),
     LanguageRowLabels(
         test="CTOPP-2",
-        subtest="- Rapid Object Naming",
+        subtest="\tRapid Object Naming",
         score_column="RO_Standard",
         table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
-        subtest="- Rapid Color Naming",
+        subtest="\tRapid Color Naming",
         score_column="RC_standard",
         table="Ctopp2",
     ),
@@ -144,6 +146,14 @@ class _LanguageDataSource(base.DataProducer):
 
         body_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
         body_formatters[0].merge_top = True
+        left_align = cmi_docx.TableStyle(
+            paragraph=cmi_docx.ParagraphStyle(
+                alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
+            )
+        )
+        body_formatters[1].conditional_styles.append(
+            base.ConditionalStyle(style=left_align)
+        )
         content_rows = []
         for label in LANGUAGE_ROW_LABELS:
             test_cell = base.WordTableCell(
