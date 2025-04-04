@@ -177,7 +177,15 @@ class Patient:
 
 
 class PersonalRelation(abc.ABC):
-    """Basic string properties for personal relationships."""
+    """Basic string properties for personal relationships.
+
+    Attributes:
+        first_name: The first name of the person.
+        last_name: The last name of the person.
+        relationship: The relationship to the patient.
+        _title: Optional title. If None provided, it is inferred from the
+            relationship.
+    """
 
     first_name: str
     last_name: str
