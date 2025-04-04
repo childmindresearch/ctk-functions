@@ -22,7 +22,7 @@ class Cbcl(Base):
     """
 
     __tablename__ = "I2B2_Export_CBCL"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -259,7 +259,7 @@ class Celf5(Base):
     """
 
     __tablename__ = "I2B2_Export_CELF"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -327,8 +327,8 @@ class CmiHbnIdTrack(Base):
     identifiers, personal information, and demographic data.
     """
 
-    __tablename__ = "CMI_HBN_IDTrack"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __tablename__ = "CMI_HBN_IDTrack_t"
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     # Primary identification fields
     person_nbr = orm.mapped_column(
@@ -382,7 +382,7 @@ class Conners3(Base):
     """
 
     __tablename__ = "I2B2_Export_C3SR"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -505,7 +505,7 @@ class Ctopp2(Base):
     """SQLAlchemy model representing the CMI_HBN_CTOPP_ table in the dbo schema."""
 
     __tablename__ = "CMI_HBN_CTOPP_"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     # Administrative fields
     enterprise_id = orm.mapped_column(sqlalchemy.CHAR(5), nullable=False)
@@ -621,7 +621,7 @@ class Gars(Base):
     """
 
     __tablename__ = "I2B2_Export_GARS"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -778,7 +778,7 @@ class GroovedPegboard(Base):
     """
 
     __tablename__ = "I2B2_Export_GroovedPeg"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -856,7 +856,7 @@ class MfqParent(Base):
     """
 
     __tablename__ = "I2B2_Export_MFQ_Parent"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -948,7 +948,7 @@ class MfqSelf(Base):
     """
 
     __tablename__ = "I2B2_Export_MFQ_Self"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1040,7 +1040,7 @@ class ScaredParent(Base):
     """
 
     __tablename__ = "I2B2_Export_SCARED_Parent"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1156,7 +1156,7 @@ class ScaredSelf(Base):
     """
 
     __tablename__ = "I2B2_Export_SCARED_Self"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1271,7 +1271,7 @@ class Scq(Base):
     """
 
     __tablename__ = "I2B2_Export_SCQ"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1374,7 +1374,7 @@ class Srs(Base):
     """
 
     __tablename__ = "I2B2_Export_SRS"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -1523,7 +1523,7 @@ class SummaryScores(Base):
     """SQLAlchemy model representing CMI_HBN_SummaryScores in the dbo schema."""
 
     __tablename__ = "CMI_HBN_SummaryScores"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     # Primary demographic information
     person_id = orm.mapped_column(
@@ -2496,7 +2496,7 @@ class Swan(Base):
     """
 
     __tablename__ = "I2B2_Export_SWAN"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -2583,7 +2583,7 @@ class Wisc5(Base):
     """
 
     __tablename__ = "I2B2_Export_WISC_V"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
@@ -2693,7 +2693,7 @@ class Ysr(Base):
     """
 
     __tablename__ = "I2B2_Export_YSR"
-    __table_args__ = {"schema": "dbo"}  # noqa: RUF012
+    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
         sqlalchemy.String(10, "SQL_Latin1_General_CP1_CI_AS"),
