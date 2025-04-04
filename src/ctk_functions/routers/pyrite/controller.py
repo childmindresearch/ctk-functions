@@ -1,6 +1,7 @@
 """Business logic for the Pyrite endpoints."""
 
 import io
+from typing import Any
 
 import cmi_docx
 import docx
@@ -31,7 +32,7 @@ def get_pyrite_report(mrn: str) -> bytes:
     """
     logger.debug("Entered controller of get_pyrite_report.")
     report = PyriteReport(mrn)
-    report.create()
+    report.create(version="alabaster")
 
     logger.debug("Successfully generated Pyrite report.")
     out = io.BytesIO()
@@ -54,9 +55,14 @@ class PyriteReport:
         self._mrn = mrn
         self.document = docx.Document(str(DATA_DIR / "pyrite_template.docx"))
 
-    def create(self) -> None:
-        """Creates the Pyrite report."""
-        structure = reports.get_report_structure(self._mrn, version="alabaster")
+    def create(self, version: reports.VERSIONS, **kwargs: Any) -> None:  # noqa: ANN401
+        """Creates the Pyrite report.
+
+        Args:
+            version: The version of the report to generate.
+            **kwargs: Version-specific keyword arguments.
+        """
+        structure = reports.get_report_structure(self._mrn, version, **kwargs)
         for section in structure:
             section.add_to(self.document)
         self._replace_participant_information()

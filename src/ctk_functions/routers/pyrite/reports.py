@@ -1,11 +1,13 @@
 """Contains definitions of Pyrite report formats."""
 
+import abc
 import dataclasses
 from collections.abc import Callable
-from typing import Literal, Self
+from typing import Any, Literal, Self
 
 import pydantic
 from docx import document
+from docx.enum import text as enum_text
 
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
@@ -26,9 +28,31 @@ from ctk_functions.routers.pyrite.tables import (
     wisc_subtest,
 )
 
+VERSIONS = Literal["alabaster", "chalk"]
 
-class TableSection(pydantic.BaseModel):
+
+class Section(abc.ABC):
     """Represents a section in the report structure."""
+
+    @abc.abstractmethod
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the section to the report."""
+
+
+class PageBreak(Section):
+    """A page break in the report."""
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds a page break to the report.
+
+        Args:
+            doc: The document to add the page break to.
+        """
+        doc.add_paragraph().add_run().add_break(enum_text.WD_BREAK.PAGE)
+
+
+class TableSection(pydantic.BaseModel, Section):
+    """Represents a table section in the report structure."""
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
@@ -80,29 +104,38 @@ class _PyriteTableCollection:
 
 
 def get_report_structure(
-    mrn: str, version: Literal["alabaster"]
-) -> tuple[TableSection, ...]:
+    mrn: str,
+    version: VERSIONS,
+    **kwargs: Any,  # noqa: ANN401
+) -> tuple[Section, ...]:
     """Fetches a report structure based on version name.
 
     Valid versions are:
         alabaster: Maintained from 2025-04-02 until the present. This version
             outputs all available tables and is currently the 'main' version.
+        chalk: Debug version that runs requested tables only.
 
     Args:
         mrn: The participant's unique identifier.
         version: The report version name.
+        kwargs: Version-specific keyword arguments.
 
     Returns:
           The structure of the Pyrite report.
     """
     if version == "alabaster":
         return _report_alabaster(mrn)
+    if version == "chalk":
+        return _report_chalk(mrn, **kwargs)
     msg = f"Invalid Pyrite version: {version}."
     raise ValueError(msg)
 
 
-def _report_alabaster(mrn: str) -> tuple[TableSection, ...]:
+def _report_alabaster(mrn: str) -> tuple[Section, ...]:
     """Creates the structure of the 2024-04-02 Pyrite report.
+
+    Args:
+        mrn: The participant's unique identifier.
 
     Returns:
         The structure of the Pyrite report, containing only available sections.
@@ -151,12 +184,14 @@ def _report_alabaster(mrn: str) -> tuple[TableSection, ...]:
             tables=[tables.grooved_pegboard],
             condition=lambda: tables.grooved_pegboard.is_available(),
         ),
+        PageBreak(),
         TableSection(
             title="Academic Achievement",
             level=1,
             tables=[tables.academic_achievement],
             condition=lambda: tables.academic_achievement.is_available(),
         ),
+        PageBreak(),
         TableSection(
             title="Language Skills",
             level=1,
@@ -167,6 +202,7 @@ def _report_alabaster(mrn: str) -> tuple[TableSection, ...]:
                 tables.ctopp2,
             ),
         ),
+        PageBreak(),
         TableSection(
             title="Social-Emotional and Behavioral Functioning Questionnaires",
             level=1,
@@ -184,31 +220,16 @@ def _report_alabaster(mrn: str) -> tuple[TableSection, ...]:
             ),
             subsections=[
                 TableSection(
-                    title="General Emotional and Behavioral Functioning",
+                    title="Child Behavior Checklist - Parent Report Form (CBCL)",
                     level=2,
-                    tables=[],
-                    condition=lambda: is_any_available(
-                        tables.cbcl,
-                        tables.ysr,
-                    ),
-                    subsections=[
-                        TableSection(
-                            title=(
-                                "Child Behavior Checklist - Parent Report Form (CBCL)"
-                            ),
-                            level=2,
-                            tables=[tables.cbcl],
-                            condition=lambda: tables.cbcl.is_available(),
-                        ),
-                        TableSection(
-                            title=(
-                                "Child Behavior Checklist - Youth Self Report (YSR)"
-                            ),
-                            level=2,
-                            tables=[tables.ysr],
-                            condition=lambda: tables.ysr.is_available(),
-                        ),
-                    ],
+                    tables=[tables.cbcl],
+                    condition=lambda: tables.cbcl.is_available(),
+                ),
+                TableSection(
+                    title="Child Behavior Checklist - Youth Self Report (YSR)",
+                    level=2,
+                    tables=[tables.ysr],
+                    condition=lambda: tables.ysr.is_available(),
                 ),
                 TableSection(
                     title="Attention Deficit-Hyperactivity Symptoms and Behaviors",
@@ -295,4 +316,23 @@ def _report_alabaster(mrn: str) -> tuple[TableSection, ...]:
                 ),
             ],
         ),
+    )
+
+
+def _report_chalk(mrn: str, table_names: list[str]) -> tuple[Section, ...]:
+    """Creates the structure of the debug Pyrite report.
+
+    Args:
+        mrn: The participant's unique identifier.
+        table_names: List of table names.
+
+    Returns:
+        The structure of the Pyrite report.
+    """
+    tables = _PyriteTableCollection(mrn)
+    return tuple(
+        [
+            TableSection(title=name, level=1, tables=[getattr(tables, name)])
+            for name in table_names
+        ]
     )
