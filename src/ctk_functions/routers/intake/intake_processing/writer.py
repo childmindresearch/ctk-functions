@@ -30,6 +30,7 @@ from ctk_functions.routers.intake.intake_processing.utils import (
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 PLACEHOLDER = "______"
+COMMENT_AUTHOR = "Clinician Toolkit"
 
 
 logger = config.get_logger()
@@ -203,52 +204,73 @@ class ReportWriter:
         else:
             grade_superscript = ""
 
-        text = f"""
-                At the time of enrollment, {patient.first_name} was
-                {age_determinant} {patient.age}-year-old, {patient.handedness}
-                {patient.age_gender_label} {past_diagnoses}.
-                {patient.first_name} was placed in a {patient.education.classroom_type}
-                {patient.education.grade}{grade_superscript} grade classroom at
-                {patient.education.school_name}. {patient.first_name}
-                {patient.education.individualized_educational_program}.
-                {patient.first_name} and {patient.pronouns[2]}
-                {patient.guardian.relationship}
-        """
+        main_text = string_utils.remove_excess_whitespace(f"""
+            At the time of enrollment, {patient.first_name} was
+            {age_determinant} {patient.age}-year-old, {patient.handedness}
+            {patient.age_gender_label} {past_diagnoses}.
+            {patient.first_name} was placed in a {patient.education.classroom_type}
+            {patient.education.grade}{grade_superscript} grade classroom at
+            {patient.education.school_name}. {patient.first_name}
+            {patient.education.individualized_educational_program}.
+            {patient.first_name} and {patient.pronouns[2]}
+            {patient.guardian.relationship}
+        """)
 
-        placeholder_id = self.llm.run_text_with_parent_input(
-            text=(
-                f"""
-                    {patient.guardian.title_full_name} attended the present
-                    evaluation due to concerns regarding {PLACEHOLDER}.
-                    The family is hoping for {PLACEHOLDER}.
-                    The family learned of the study through {PLACEHOLDER}."
-            """
-            ),
-            parent_input=f"""
-                Reason for visit: {patient.reason_for_visit}.
-                Hopes: {patient.hopes}.
-                Learned of study: {patient.learned_of_study}.
+        hopes_text = (
+            "The family is hoping for diagnostic clarity and "
+            "recommendations on an appropriate course of interventions."
+        )
+
+        attendance_id = self.llm.run_text_with_parent_input(
+            text=f"""
+                {patient.guardian.title_full_name} attended the present
+                evaluation due to concerns regarding {PLACEHOLDER}.
             """,
+            parent_input=f"Reason for visit: {patient.reason_for_visit}.",
+            additional_instruction="""
+                The placeholder should be replaced with at most one sentence.
+                Further details will be provided later in the report, so include
+                only the most pertinent information here.
+            """,
+            context=main_text,
+            comment=None,  # See BUG comment below.
+        )
+
+        learned_of_study_id = self.llm.run_text_with_parent_input(
+            text=f"The family learned of the study through {PLACEHOLDER}.",
+            parent_input=f"Learned of study: {patient.learned_of_study}.",
             additional_instruction="""
                 The placeholders should be replaced with at most one sentence.
                 Further details will be provided later in the report, so include
                 only the most pertinent information here.
             """,
-            context=text,
-            comment="\n\n".join(
+            context=main_text + " " + hopes_text,
+            comment=None,  # See BUG comment below.
+        )
+
+        self._insert("REASON FOR VISIT", _StyleName.HEADING_1)
+        paragraph = self._insert(main_text)
+        paragraph.add_run(" " + attendance_id + " ")
+        hopes_run = paragraph.add_run(hopes_text)
+        # TODO @reindervdw-cmi: Hunt down this bug.  # noqa: FIX002
+        # https://github.com/childmindresearch/ctk-functions/issues/199
+        # BUG: There's a bug in the comment functionality that is causing comments to
+        # disappear when the three reasons are added as separate comments.
+        # I've been unable to trace this bug, so in lieu of fixing it, add
+        # all information in a single comment.
+        comment.add_comment(
+            self.report.document,
+            location=(hopes_run, hopes_run),
+            author=COMMENT_AUTHOR,
+            text="\n\n".join(
                 [
-                    f"Reason for visit: {patient.reason_for_visit}.",
-                    f"Hopes: {patient.hopes}.",
+                    f"Reason for visit: {patient.reason_for_visit}",
+                    f"Hopes: {patient.hopes}",
                     f"Learned of study: {patient.learned_of_study}.",
                 ],
             ),
         )
-
-        text += f" {placeholder_id}"
-        text = string_utils.remove_excess_whitespace(text)
-
-        self._insert("REASON FOR VISIT", _StyleName.HEADING_1)
-        paragraph = self._insert(text)
+        paragraph.add_run(" " + learned_of_study_id)
         self._insert("")
 
         # Due to a known error in the intake form multiple classifications may appear.
@@ -1308,7 +1330,7 @@ class ReportWriter:
                 comment.add_comment(
                     self.report.document,
                     runs,
-                    author="Clinician Toolkit",
+                    author=COMMENT_AUTHOR,
                     text=placeholder.comment,
                 )
 
