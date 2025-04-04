@@ -21,11 +21,11 @@ class ConditionalStyle(pydantic.BaseModel):
 
     Args:
         condition: The condition, if it evaluates to True then the style
-            will be applied.
+            will be applied. Defaults to always True.
         style: The style to apply.
     """
 
-    condition: Callable[[str], bool]
+    condition: Callable[[str], bool] = lambda _: True
     style: cmi_docx.TableStyle
 
     def apply(self, cells: table._Cell | Iterable[table._Cell]) -> None:
@@ -149,11 +149,23 @@ class ParagraphBlock(pydantic.BaseModel):
         return para  # type: ignore[no-any-return]
 
 
+def _default_table_style_factory() -> list[ConditionalStyle]:
+    return [
+        ConditionalStyle(
+            style=cmi_docx.TableStyle(
+                paragraph=cmi_docx.ParagraphStyle(
+                    space_after=shared.Pt(3), space_before=shared.Pt(3)
+                ),
+            ),
+        )
+    ]
+
+
 class Formatter(pydantic.BaseModel):
     """Formatter for table cells.
 
     Attributes:
-        conditional_styles: A tuple of styles to apply, conditional on cell contents.
+        conditional_styles: A list of styles to apply, conditional on cell contents.
         merge_top: If True, merges cells with identical cells above them.
         merge_right: If True, merges cells with identical cells right of them.
         width: The width of the cell. If None, does not adjust from Word's default.
@@ -162,7 +174,7 @@ class Formatter(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     conditional_styles: list[ConditionalStyle] = pydantic.Field(
-        default_factory=list,
+        default_factory=_default_table_style_factory,
     )
     merge_top: bool = pydantic.Field(default=False)
     merge_right: bool = pydantic.Field(default=False)
@@ -215,7 +227,7 @@ class WordTableCell(pydantic.BaseModel):
     """
 
     content: str = pydantic.Field(..., coerce_numbers_to_str=True)
-    formatter: Formatter = Formatter()
+    formatter: Formatter = pydantic.Field(default_factory=Formatter)
 
 
 class WordTableMarkup(pydantic.BaseModel):

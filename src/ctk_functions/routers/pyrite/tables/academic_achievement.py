@@ -3,17 +3,19 @@
 import dataclasses
 import functools
 
+import cmi_docx
 from docx import shared
+from docx.enum import text
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
     shared.Cm(1.76),
-    shared.Cm(6.11),
-    shared.Cm(3.37),
-    shared.Cm(2.45),
-    shared.Cm(2.8),
+    shared.Cm(7.24),
+    shared.Cm(2.56),
+    shared.Cm(2.2),
+    shared.Cm(2.75),
 )
 
 
@@ -56,12 +58,12 @@ ACADEMIC_ROW_LABELS = (
     ),
     AcademicRowLabels(
         domain="Reading",
-        subtest="TOWRE-II Sight Word Efficiency",
+        subtest="\tSight Word Efficiency",
         score_column="TOWRE_SWE_S",
     ),
     AcademicRowLabels(
         domain="Reading",
-        subtest="TOWRE-II Phonemic Decoding Efficiency",
+        subtest="\tPhonemic Decoding Efficiency",
         score_column="TOWRE_PDE_S",
     ),
     AcademicRowLabels(
@@ -106,17 +108,17 @@ ACADEMIC_ROW_LABELS = (
     ),
     AcademicRowLabels(
         domain="Math",
-        subtest="Math Fluency - Addition",
+        subtest="\tMath Fluency - Addition",
         score_column="WIAT_MF_Add_S",
     ),
     AcademicRowLabels(
         domain="Math",
-        subtest="Math Fluency - Subtraction",
+        subtest="\tMath Fluency - Subtraction",
         score_column="WIAT_MF_Sub_S",
     ),
     AcademicRowLabels(
         domain="Math",
-        subtest="Math Fluency - Multiplication",
+        subtest="\tMath Fluency - Multiplication",
         score_column="WIAT_MF_Mult_S",
     ),
 )
@@ -151,6 +153,14 @@ class _AcademicAchievementDataSource(base.DataProducer):
 
         body_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
         body_formatters[0].merge_top = True
+        left_align = cmi_docx.TableStyle(
+            paragraph=cmi_docx.ParagraphStyle(
+                alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
+            )
+        )
+        body_formatters[1].conditional_styles.append(
+            base.ConditionalStyle(style=left_align)
+        )
         content_rows = []
         for label in ACADEMIC_ROW_LABELS:
             domain_cell = base.WordTableCell(
