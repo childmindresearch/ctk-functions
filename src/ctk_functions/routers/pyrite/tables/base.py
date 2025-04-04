@@ -7,7 +7,7 @@ from typing import Protocol, Self, runtime_checkable
 
 import cmi_docx
 import pydantic
-from docx import document, table
+from docx import document, shared, table
 from docx.text import paragraph
 
 from ctk_functions.core import config
@@ -156,14 +156,17 @@ class Formatter(pydantic.BaseModel):
         conditional_styles: A tuple of styles to apply, conditional on cell contents.
         merge_top: If True, merges cells with identical cells above them.
         merge_right: If True, merges cells with identical cells right of them.
-
+        width: The width of the cell. If None, does not adjust from Word's default.
     """
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     conditional_styles: list[ConditionalStyle] = pydantic.Field(
         default_factory=list,
     )
     merge_top: bool = pydantic.Field(default=False)
     merge_right: bool = pydantic.Field(default=False)
+    width: None | shared.Cm | shared.Inches | shared.Pt = None
 
     def format(self, tbl: table.Table, row_index: int, col_index: int) -> None:
         """Formats the cell content for a table.
@@ -180,9 +183,12 @@ class Formatter(pydantic.BaseModel):
             msg = "Cannot merge right row rightwards."
             raise ValueError(msg)
 
-        cell = tbl.rows[row_index].cells[col_index]
+        cell = tbl.columns[col_index].cells[row_index]
         for style in self.conditional_styles:
             style.apply(cell)
+
+        if self.width:
+            cell.width = self.width
 
         if self.merge_top:
             prev_cell = tbl.rows[row_index - 1].cells[col_index]
@@ -283,6 +289,13 @@ class WordDocumentTableRenderer(pydantic.BaseModel):
                 template_cell = self.markup.rows[row_index][col_index]
 
                 document_cell.text = template_cell.content
+
+        for col_index in range(n_cols):
+            for row_index in range(n_rows):
+                # Formatting must be done after all content is added as
+                # adding more content may conflict with previously set
+                # cell widths.
+                template_cell = self.markup.rows[row_index][col_index]
                 template_cell.formatter.format(tbl, row_index, col_index)
 
 

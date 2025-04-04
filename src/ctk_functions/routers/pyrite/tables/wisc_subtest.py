@@ -5,6 +5,7 @@ import functools
 
 import cmi_docx
 import fastapi
+from docx import shared
 from starlette import status
 
 from ctk_functions.microservices.sql import models
@@ -95,19 +96,32 @@ class _WiscSubtestDataSource(base.DataProducer):
             The markup for the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
+        column_widths = (
+            shared.Cm(4.42),
+            shared.Cm(3.58),
+            shared.Cm(3),
+            shared.Cm(2.3),
+            shared.Cm(3.21),
+        )
+        header_formatters = [base.Formatter(width=width) for width in column_widths]
+
         header = [
-            base.WordTableCell(content="Scale"),
-            base.WordTableCell(content="Subtest"),
-            base.WordTableCell(content="Scaled Score"),
-            base.WordTableCell(content="Percentile"),
-            base.WordTableCell(content="Range"),
+            base.WordTableCell(content="Scale", formatter=header_formatters[0]),
+            base.WordTableCell(content="Subtest", formatter=header_formatters[1]),
+            base.WordTableCell(content="Scaled Score", formatter=header_formatters[2]),
+            base.WordTableCell(content="Percentile", formatter=header_formatters[3]),
+            base.WordTableCell(content="Range", formatter=header_formatters[4]),
         ]
+
+        body_formatters = [base.Formatter(width=width) for width in column_widths]
+        body_formatters[0].merge_top = True
         content_rows = [
             [
-                base.WordTableCell(content=label.scale),
-                base.WordTableCell(content=label.subtest),
+                base.WordTableCell(content=label.scale, formatter=body_formatters[0]),
+                base.WordTableCell(content=label.subtest, formatter=body_formatters[1]),
                 base.WordTableCell(
                     content=getattr(data, label.score_column),
+                    formatter=body_formatters[2],
                 ),
                 base.WordTableCell(
                     content=str(
@@ -115,6 +129,7 @@ class _WiscSubtestDataSource(base.DataProducer):
                             getattr(data, label.score_column),
                         ),
                     ),
+                    formatter=body_formatters[3],
                 ),
                 base.WordTableCell(
                     content=str(
@@ -122,6 +137,7 @@ class _WiscSubtestDataSource(base.DataProducer):
                             getattr(data, label.score_column),
                         ),
                     ),
+                    formatter=body_formatters[4],
                 ),
             ]
             for label in WISC_SUBTEST_ROW_LABELS

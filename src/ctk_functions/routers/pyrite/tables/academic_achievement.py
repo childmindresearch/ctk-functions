@@ -3,6 +3,8 @@
 import dataclasses
 import functools
 
+from docx import shared
+
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -128,39 +130,67 @@ class _AcademicAchievementDataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
 
+        column_widths = (
+            shared.Cm(1.76),
+            shared.Cm(6.11),
+            shared.Cm(3.37),
+            shared.Cm(2.45),
+            shared.Cm(2.8),
+        )
+        header_formatters = [base.Formatter(width=width) for width in column_widths]
         header = [
-            base.WordTableCell(content="Domain"),
-            base.WordTableCell(content="Subtest"),
-            base.WordTableCell(content="Standard Score"),
-            base.WordTableCell(content="Percentile"),
-            base.WordTableCell(content="Range"),
+            base.WordTableCell(content="Domain", formatter=header_formatters[0]),
+            base.WordTableCell(content="Subtest", formatter=header_formatters[1]),
+            base.WordTableCell(
+                content="Standard Score",
+                formatter=header_formatters[2],
+            ),
+            base.WordTableCell(content="Percentile", formatter=header_formatters[3]),
+            base.WordTableCell(content="Range", formatter=header_formatters[4]),
         ]
+
+        body_formatters = [base.Formatter(width=width) for width in column_widths]
+        body_formatters[0].merge_top = True
         content_rows = []
         for label in ACADEMIC_ROW_LABELS:
             domain_cell = base.WordTableCell(
                 content=label.domain,
-                formatter=base.Formatter(merge_top=True),
+                formatter=body_formatters[0],
             )
-            subtest_cell = base.WordTableCell(content=label.subtest)
+            subtest_cell = base.WordTableCell(
+                content=label.subtest, formatter=body_formatters[1]
+            )
 
             score = getattr(data, label.score_column)
             if score is None:
-                n_a_cell = base.WordTableCell(content="N/A")
+                n_a_cells = [
+                    base.WordTableCell(content="N/A", formatter=formatter)
+                    for formatter in body_formatters[2:]
+                ]
                 content_rows.append(
-                    (domain_cell, subtest_cell, n_a_cell, n_a_cell, n_a_cell),
+                    (domain_cell, subtest_cell, *n_a_cells),
                 )
                 continue
 
             percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
             qualifier = utils.standard_score_to_qualifier(score)
-            score_cell = base.WordTableCell(content=f"{score:.0f}")
-            percentile_cell = base.WordTableCell(content=f"{percentile:.0f}")
-            range_cell = base.WordTableCell(content=qualifier)
+            score_cell = base.WordTableCell(
+                content=f"{score:.0f}", formatter=body_formatters[2]
+            )
+            percentile_cell = base.WordTableCell(
+                content=f"{percentile:.0f}",
+                formatter=body_formatters[3],
+            )
+            range_cell = base.WordTableCell(
+                content=qualifier, formatter=body_formatters[4]
+            )
             content_rows.append(
                 (domain_cell, subtest_cell, score_cell, percentile_cell, range_cell),
             )
 
-        return base.WordTableMarkup(rows=[header, *content_rows])
+        return base.WordTableMarkup(
+            rows=[header, *content_rows],
+        )
 
 
 class AcademicAchievementTable(

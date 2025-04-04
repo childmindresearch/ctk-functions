@@ -3,6 +3,8 @@
 import dataclasses
 import functools
 
+from docx import shared
+
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -46,35 +48,42 @@ class _WiscCompositeDataSource(base.DataProducer):
             The markup for the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
-
+        column_widths = (
+            shared.Cm(5.49),
+            shared.Cm(3.5),
+            shared.Cm(3.38),
+            shared.Cm(4.12),
+        )
+        formatters = [base.Formatter(width=width) for width in column_widths]
         header = [
-            base.WordTableCell(content="Composite"),
-            base.WordTableCell(content="Standard Score"),
-            base.WordTableCell(content="Percentile"),
-            base.WordTableCell(content="Range"),
+            base.WordTableCell(content="Composite", formatter=formatters[0]),
+            base.WordTableCell(content="Standard Score", formatter=formatters[1]),
+            base.WordTableCell(content="Percentile", formatter=formatters[2]),
+            base.WordTableCell(content="Range", formatter=formatters[3]),
         ]
         content_rows = [
-            _create_wisc_composite_row(data, label)
+            cls._create_wisc_composite_row(data, label, formatters)
             for label in WISC_COMPOSITE_ROW_LABELS
         ]
 
         return base.WordTableMarkup(rows=[header, *content_rows])
 
+    @staticmethod
+    def _create_wisc_composite_row(
+        data: models.Wisc5,
+        label: WiscCompositeRowLabels,
+        formatters: list[base.Formatter],
+    ) -> list[base.WordTableCell]:
+        score = getattr(data, label.score_column)
+        percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
+        qualifier = utils.standard_score_to_qualifier(score)
 
-def _create_wisc_composite_row(
-    data: models.Wisc5,
-    label: WiscCompositeRowLabels,
-) -> list[base.WordTableCell]:
-    score = getattr(data, label.score_column)
-    percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
-    qualifier = utils.standard_score_to_qualifier(score)
-
-    return [
-        base.WordTableCell(content=label.name),
-        base.WordTableCell(content=score),
-        base.WordTableCell(content=f"{percentile:.0f}"),
-        base.WordTableCell(content=qualifier),
-    ]
+        return [
+            base.WordTableCell(content=label.name, formatter=formatters[0]),
+            base.WordTableCell(content=score, formatter=formatters[1]),
+            base.WordTableCell(content=f"{percentile:.0f}", formatter=formatters[2]),
+            base.WordTableCell(content=qualifier, formatter=formatters[3]),
+        ]
 
 
 class WiscCompositeTable(base.WordTableSectionAddToMixin, base.WordTableSection):
