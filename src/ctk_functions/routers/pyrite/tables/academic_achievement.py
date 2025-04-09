@@ -73,12 +73,12 @@ ACADEMIC_ROW_LABELS = (
     ),
     AcademicRowLabels(
         domain="Writing",
-        subtest="Sentence Building",
+        subtest="\tSentence Building",
         score_column="WIAT_SB_Std",
     ),
     AcademicRowLabels(
         domain="Writing",
-        subtest="Sentence Combining",
+        subtest="\tSentence Combining",
         score_column="WIAT_SC_Std",
     ),
     AcademicRowLabels(

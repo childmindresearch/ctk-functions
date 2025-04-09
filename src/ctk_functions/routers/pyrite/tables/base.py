@@ -149,7 +149,14 @@ class ParagraphBlock(pydantic.BaseModel):
         return para  # type: ignore[no-any-return]
 
 
-def _default_table_style_factory() -> list[ConditionalStyle]:
+def default_table_style_factory() -> list[ConditionalStyle]:
+    """Creates a list of default table styles.
+
+    Uses a factory method instead of a constant as lists are mutable.
+
+    Returns:
+        The default table styles.
+    """
     return [
         ConditionalStyle(
             style=cmi_docx.TableStyle(
@@ -174,7 +181,7 @@ class Formatter(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     conditional_styles: list[ConditionalStyle] = pydantic.Field(
-        default_factory=_default_table_style_factory,
+        default_factory=default_table_style_factory,
     )
     merge_top: bool = pydantic.Field(default=False)
     merge_right: bool = pydantic.Field(default=False)

@@ -3,9 +3,13 @@
 import functools
 
 import cmi_docx
+from docx import shared
 
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
+
+COLUMN_WIDTHS = (shared.Cm(4.74), shared.Cm(5), shared.Cm(6.75))
+
 
 CLINICAL_RELEVANCE = [
     base.ClinicalRelevance(
@@ -49,8 +53,9 @@ class _GarsDataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row("EID", mrn, models.Gars)
 
-        formatter = base.Formatter(
-            conditional_styles=[
+        formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
+        formatters[0].conditional_styles.extend(
+            [
                 base.ConditionalStyle(
                     condition=rele.in_range,
                     style=rele.style,
@@ -59,15 +64,18 @@ class _GarsDataSource(base.DataProducer):
             ],
         )
         header = [
-            base.WordTableCell(content="Autism Index Score"),
-            base.WordTableCell(content="Percentile Rank"),
-            base.WordTableCell(content="Autism Index Interpretation"),
+            base.WordTableCell(content="Autism Index Score", formatter=formatters[0]),
+            base.WordTableCell(content="Percentile Rank", formatter=formatters[1]),
+            base.WordTableCell(
+                content="Autism Index Interpretation", formatter=formatters[2]
+            ),
         ]
         content_row = [
-            base.WordTableCell(content=str(data.GARS_AI), formatter=formatter),
-            base.WordTableCell(content=str(data.GARS_AI_Perc)),
+            base.WordTableCell(content=str(data.GARS_AI), formatter=formatters[0]),
+            base.WordTableCell(content=str(data.GARS_AI_Perc), formatter=formatters[1]),
             base.WordTableCell(
                 content="\n".join(str(rele) for rele in CLINICAL_RELEVANCE),
+                formatter=formatters[2],
             ),
         ]
 
@@ -83,14 +91,14 @@ class GarsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         Args:
             mrn: The participant's unique identifier.'
         """
+        postamble = (
+            "*Caution is advised in interpretation of the Autism Index "
+            "score, because individuals with other diagnoses including ADHD, "
+            "ODD, anxiety, language disorder, and intellectual disability, "
+            "may demonstrate behaviors typical of individuals diagnosed with "
+            "autism. Thus, clinically elevated scores on this assessment are not "
+            "necessarily indicative of an autism diagnosis."
+        )
         self.mrn = mrn
-        self.postamble = [
-            base.ParagraphBlock(
-                content="""*Caution is advised in interpretation of the Autism Index
-score, because individuals with other diagnoses including ADHD, ODD, anxiety, language
-disorder, and intellectual disability, may demonstrate behaviors typical of individuals
-diagnosed with autism. Thus, clinically elevated scores on this assessment are not
-necessarily indicative of an autism diagnosis.""",
-            ),
-        ]
+        self.postamble = [base.ParagraphBlock(content=postamble)]
         self.data_source = _GarsDataSource

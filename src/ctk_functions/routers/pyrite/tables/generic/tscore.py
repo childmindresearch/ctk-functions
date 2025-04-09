@@ -8,7 +8,7 @@ from docx import shared
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base
 
-COLUMN_WIDTHS = (shared.Cm(6.5), shared.Cm(3.5), shared.Cm(6.5))
+COLUMN_WIDTHS = (shared.Cm(6.5), shared.Cm(2.5), shared.Cm(7.5))
 
 
 @dataclasses.dataclass
@@ -74,25 +74,31 @@ def build_tscore_table(
         for content, formatter in zip(header_content, header_formatters, strict=True)
     ]
 
-    content_rows = [
-        [
-            base.WordTableCell(
-                content=label.subscale, formatter=base.Formatter(width=COLUMN_WIDTHS[0])
-            ),
-            base.WordTableCell(
-                content=getattr(data, label.score_column),
-                formatter=base.Formatter(
-                    conditional_styles=_label_to_conditional_styles(label),
-                    width=COLUMN_WIDTHS[1],
-                ),
-            ),
-            base.WordTableCell(
-                content=_label_to_relevance_text(label),
-                formatter=base.Formatter(merge_top=True, width=COLUMN_WIDTHS[2]),
-            ),
-        ]
-        for label in row_labels
-    ]
-    template_rows = [header, *content_rows]
+    body_rows = _build_tscore_table(data, row_labels)
 
-    return base.WordTableMarkup(rows=template_rows)
+    return base.WordTableMarkup(rows=[header, *body_rows])
+
+
+def _build_tscore_table(
+    data: models.Base,
+    row_labels: Sequence[TScoreRowLabel],
+) -> list[list[base.WordTableCell]]:
+    content_rows = []
+    for label in row_labels:
+        subscale_cell = base.WordTableCell(
+            content=label.subscale, formatter=base.Formatter(width=COLUMN_WIDTHS[0])
+        )
+        score_formatter = base.Formatter(
+            conditional_styles=base.default_table_style_factory()
+            + _label_to_conditional_styles(label),
+            width=COLUMN_WIDTHS[1],
+        )
+        score_cell = base.WordTableCell(
+            content=getattr(data, label.score_column), formatter=score_formatter
+        )
+        relevance_cell = base.WordTableCell(
+            content=_label_to_relevance_text(label),
+            formatter=base.Formatter(width=COLUMN_WIDTHS[2], merge_top=True),
+        )
+        content_rows.append([subscale_cell, score_cell, relevance_cell])
+    return content_rows
