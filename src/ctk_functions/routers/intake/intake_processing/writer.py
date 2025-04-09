@@ -1031,6 +1031,7 @@ class ReportWriter:
                 comment="\n\n".join(
                     [str(intervention) for intervention in interventions],
                 ),
+                verify=True,
             )
 
         self._insert("Past Therapeutic Interventions", _StyleName.HEADING_2)
