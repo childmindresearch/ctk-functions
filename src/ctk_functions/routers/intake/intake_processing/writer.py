@@ -788,7 +788,7 @@ class ReportWriter:
 
         llm_text = f"""
             {patient.guardian.title_name} reported that
-            {patient.first_name} has {social_functioning.n_friends} friends
+            {patient.first_name} has {social_functioning.n_friends} close friends
             in {patient.pronouns[2]} peer group.
             {patient.guardian.title_full_name} was concerned about:
             '{social_functioning.social_concerns}'.
@@ -806,6 +806,14 @@ class ReportWriter:
                     3. Hobbies
                 The parent may sometimes provide hobbies in their concerns or
                 concerns in the hobbies. Adjust the text accordingly.
+
+                For the number of friends, use a numeric descriptor like
+                "no", "few", "several", "many", rather than a specific number.
+                As a guideline:
+                    0 should be no friends,
+                    1-2 should be a few friends,
+                    3-4 should be several friends,
+                    5+ should be many friends.
             """,
             verify=True,
             comment=string_utils.remove_excess_whitespace(llm_text),
