@@ -788,7 +788,7 @@ class ReportWriter:
 
         llm_text = f"""
             {patient.guardian.title_name} reported that
-            {patient.pronouns[0]} has {social_functioning.n_friends} friends
+            {patient.first_name} has {social_functioning.n_friends} friends
             in {patient.pronouns[2]} peer group.
             {patient.guardian.title_full_name} was concerned about:
             '{social_functioning.social_concerns}'.
