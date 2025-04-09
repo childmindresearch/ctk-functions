@@ -376,16 +376,19 @@ class PriorDiseases(
         if not negative_diseases:
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
-                {string_utils.join_with_oxford_comma(
+                {
+                string_utils.join_with_oxford_comma(
                     [disease.name for disease in self.base],
-                )}"""
+                )
+            }"""
         elif not positive_diseases:
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} denied any history of
-                {string_utils.join_with_oxford_comma(
-                    [disease.name for disease in self.base],
-                    join_word="or"
-                )}"""
+                {
+                string_utils.join_with_oxford_comma(
+                    [disease.name for disease in self.base], join_word="or"
+                )
+            }"""
         else:
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of

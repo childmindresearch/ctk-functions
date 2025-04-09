@@ -8,6 +8,7 @@ from ctk_functions.routers.health import views as health_views
 from ctk_functions.routers.intake import views as intake_views
 from ctk_functions.routers.language_tool import views as language_tool_views
 from ctk_functions.routers.llm import views as llm_views
+from ctk_functions.routers.pyrite import views as pyrite_views
 
 logger = config.get_logger()
 
@@ -26,5 +27,6 @@ app.include_router(health_views.router)
 app.include_router(intake_views.router)
 app.include_router(language_tool_views.router)
 app.include_router(llm_views.router)
+app.include_router(pyrite_views.router)
 
 app.add_middleware(middleware.LoggingMiddleware)

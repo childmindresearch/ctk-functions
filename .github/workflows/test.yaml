@@ -34,6 +34,13 @@ jobs:
       AZURE_OPENAI_ENDPOINT: test
       CLOAI_SERVICE_URL: http://localhost:8001/v1
       CLOAI_MODEL: test
+      MSSQL_USER: test
+      MSSQL_PASSWORD: test
+      MSSQL_HOST: test
+      MSSQL_PORT: 8000
+      MSSQL_DATABASE: test
+      MSSQL_DRIVER: test
+
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
