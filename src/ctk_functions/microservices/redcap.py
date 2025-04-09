@@ -65,6 +65,15 @@ class GuardianRelationship(enum.Enum):
     other = 12
 
 
+class GuardianTitle(enum.Enum):
+    """The guardian's title."""
+
+    Mr = "1"
+    Mrs = "2"
+    Ms = "3"
+    Other = "4"
+
+
 class SchoolType(enum.Enum):
     """The type of school the patient attends."""
 
@@ -653,6 +662,8 @@ class RedCapData(pydantic.BaseModel):
 
     # Guardian
 
+    title: GuardianTitle | None = None
+    title_other: str | None = None
     guardian_first_name: str
     guardian_last_name: str
     guardian_maritalstatus: GuardianMaritalStatus
@@ -1476,4 +1487,5 @@ def get_intake_data(mrn: str) -> RedCapData:
             records=[record_ids[0]],
         ),
     )
+
     return RedCapData.from_csv(patient_data)

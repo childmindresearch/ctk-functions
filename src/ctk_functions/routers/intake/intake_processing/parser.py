@@ -177,11 +177,20 @@ class Patient:
 
 
 class PersonalRelation(abc.ABC):
-    """Basic string properties for personal relationships."""
+    """Basic string properties for personal relationships.
+
+    Attributes:
+        first_name: The first name of the person.
+        last_name: The last name of the person.
+        relationship: The relationship to the patient.
+        _title: Optional title. If None provided, it is inferred from the
+            relationship.
+    """
 
     first_name: str
     last_name: str
     relationship: str
+    _title: str | None = None
 
     @property
     def title_name(self) -> str:
@@ -203,6 +212,9 @@ class PersonalRelation(abc.ABC):
         Returns:
             str: The title of the relationship based on their inferred gender.
         """
+        if self._title:
+            return self._title
+
         female_keywords = ["mother", "aunt", "carrier", "sister"]
         male_keywords = ["father", "uncle", "brother"]
 
@@ -211,14 +223,6 @@ class PersonalRelation(abc.ABC):
         if any(keyword in self.relationship.lower() for keyword in female_keywords):
             return "Ms./Mrs."
         return "Mr./Ms./Mrs."
-
-    @property
-    def parent_or_guardian(self) -> str:
-        """The parent or guardian."""
-        parent_keywords = ["mother", "father"]
-        if any(keyword in self.relationship.lower() for keyword in parent_keywords):
-            return "parent"
-        return "guardian"
 
 
 class Guardian(PersonalRelation):
@@ -233,6 +237,12 @@ class Guardian(PersonalRelation):
         logger.debug("Parsing guardian information.")
         self.first_name = all_caps_to_title(patient_data.guardian_first_name)
         self.last_name = all_caps_to_title(patient_data.guardian_last_name)
+
+        if patient_data.title == redcap.GuardianTitle.Other:
+            self._title = patient_data.title_other
+        elif patient_data.title:
+            self._title = patient_data.title.name + "."
+
         if patient_data.guardian_relationship == redcap.GuardianRelationship.other:
             self.relationship = patient_data.other_relation or "NOT PROVIDED"
         else:
@@ -240,6 +250,14 @@ class Guardian(PersonalRelation):
                 "_",
                 " ",
             )
+
+    @property
+    def parent_or_guardian(self) -> str:
+        """The parent or guardian."""
+        parent_keywords = ["mother", "father"]
+        if any(keyword in self.relationship.lower() for keyword in parent_keywords):
+            return "parent"
+        return "guardian"
 
 
 class Household:
