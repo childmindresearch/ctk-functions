@@ -54,7 +54,7 @@ requirements:
 - Do not use quotations; make sure the response can be integrated into the text.
 - Your response should be in plain text i.e., do not use Markdown.
 - Do not include an introduction, summary, or conclusion.
-- Report dates in the format "Month YYYY" (e.g., June 2022), unless referring to the child's age of development stage (e.g. during adolesence).
+- If both month and year are provided, report dates as "Month YYYY" (e.g., June 2022). If the month is not provided, use only the year. The exception to this rule is references to the child's development stage (e.g. during adolesence).
 - Do not include an initial message in the response like "Based on the parent input provided here is a suggested completion" or a header like "Excerpt:" or "Parent Input"
 - Do not extrapolate from the source material; i.e. only include information that is stated in the source material.
 - If acronyms are used, maintain the acronyms; do not guess at the meaning of the acronym.
