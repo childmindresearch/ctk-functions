@@ -284,8 +284,8 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                         TableSection(
                             title="Social Responsiveness Scale",
                             level=2,
-                            tables=[tables.scq],
-                            condition=lambda: tables.scq.is_available(),
+                            tables=[tables.srs],
+                            condition=lambda: tables.srs.is_available(),
                         ),
                     ],
                 ),
