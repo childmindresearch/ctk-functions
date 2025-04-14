@@ -16,7 +16,6 @@ from ctk_functions.routers.pyrite.tables import (
     celf5,
     conners3,
     ctopp2,
-    gars,
     grooved_pegboard,
     language,
     mfq,
@@ -97,7 +96,6 @@ class _PyriteTableCollection:
         self.swan = swan.SwanTable(mrn)
         self.conners3 = conners3.Conners3Table(mrn)
         self.scq = scq.ScqTable(mrn)
-        self.gars = gars.GarsTable(mrn)
         self.srs = srs.SrsTable(mrn)
         self.mfq = mfq.MfqTable(mrn)
         self.scared = scared.ScaredTable(mrn)
@@ -179,10 +177,17 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
             ],
         ),
         TableSection(
-            title="Abbreviated Neurocognitive Assessment",
-            level=2,
-            tables=[tables.grooved_pegboard],
+            title="Fine Motor Dexterity",
+            level=1,
+            tables=[],
             condition=lambda: tables.grooved_pegboard.is_available(),
+            subsections=[
+                TableSection(
+                    title="Lafayette Grooved Pegboard Test",
+                    level=2,
+                    tables=[tables.grooved_pegboard],
+                )
+            ],
         ),
         PageBreak(),
         TableSection(
@@ -213,7 +218,6 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                 tables.swan,
                 tables.conners3,
                 tables.scq,
-                tables.gars,
                 tables.srs,
                 tables.mfq,
                 tables.scared,
@@ -263,7 +267,6 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                     tables=[],
                     condition=lambda: is_any_available(
                         tables.scq,
-                        tables.gars,
                         tables.srs,
                     ),
                     subsections=[
@@ -272,14 +275,6 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                             level=2,
                             tables=[tables.scq],
                             condition=lambda: tables.scq.is_available(),
-                        ),
-                        TableSection(
-                            title=(
-                                "Gilliam Autism Rating Scale, Third Edition (GARS-3)"
-                            ),
-                            level=2,
-                            tables=[tables.gars],
-                            condition=lambda: tables.gars.is_available(),
                         ),
                         TableSection(
                             title="Social Responsiveness Scale",
