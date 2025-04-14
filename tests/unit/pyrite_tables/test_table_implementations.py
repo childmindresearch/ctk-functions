@@ -53,7 +53,7 @@ from ctk_functions.routers.pyrite.tables import (
         ),
         (
             grooved_pegboard._GroovedPegboardDataSource,
-            ["Grooved Pegboard", "Z-Score", "Percentile", "Range"],
+            ["Hand", "Z-Score", "Percentile", "Range"],
             grooved_pegboard.PEGBOARD_ROW_LABELS,
         ),
         (
@@ -93,7 +93,7 @@ from ctk_functions.routers.pyrite.tables import (
         ),
         (
             wisc_subtest._WiscSubtestDataSource,
-            ["Scale", "Subtest", "Scaled Score", "Percentile", "Range"],
+            ["Index", "Subtest", "Scaled Score", "Percentile", "Range"],
             wisc_subtest.WISC_SUBTEST_ROW_LABELS,
         ),
         (
