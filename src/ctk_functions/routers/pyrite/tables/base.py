@@ -161,7 +161,9 @@ def default_table_style_factory() -> list[ConditionalStyle]:
         ConditionalStyle(
             style=cmi_docx.TableStyle(
                 paragraph=cmi_docx.ParagraphStyle(
-                    space_after=shared.Pt(3), space_before=shared.Pt(3)
+                    space_after=shared.Pt(3),
+                    space_before=shared.Pt(3),
+                    font_size=11,
                 ),
             ),
         )

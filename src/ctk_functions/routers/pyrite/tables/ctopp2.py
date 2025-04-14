@@ -51,13 +51,10 @@ class _Ctopp2DataSource(base.DataProducer):
         content_rows = [
             [
                 base.WordTableCell(content=label.name),
-                base.WordTableCell(
-                    content=getattr(data, label.score_column)
-                    if getattr(data, label.score_column) is not None
-                    else "N/A",
-                ),
+                base.WordTableCell(content=getattr(data, label.score_column)),
             ]
             for label in CTOPP2_ROW_LABELS
+            if getattr(data, label.score_column) is not None
         ]
 
         return base.WordTableMarkup(rows=[header, *content_rows])

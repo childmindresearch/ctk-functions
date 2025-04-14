@@ -73,7 +73,7 @@ class PyriteReport:
         Returns:
             A row from the CMI_HB_IDTrack_t table.
         """
-        sanitized_mrn = self._mrn.replace('\r', '').replace('\n', '')
+        sanitized_mrn = self._mrn.replace("\r", "").replace("\n", "")
         logger.debug("Fetching participant %s.", sanitized_mrn)
         try:
             return utils.fetch_participant_row("MRN", self._mrn, models.CmiHbnIdTrack)  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.

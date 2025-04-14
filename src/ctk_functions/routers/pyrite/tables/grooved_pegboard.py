@@ -43,7 +43,7 @@ class _GroovedPegboardDataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row("EID", mrn, models.GroovedPegboard)
         header = [
-            base.WordTableCell(content="Grooved Pegboard"),
+            base.WordTableCell(content="Hand"),
             base.WordTableCell(content="Z-Score"),
             base.WordTableCell(content="Percentile"),
             base.WordTableCell(content="Range"),

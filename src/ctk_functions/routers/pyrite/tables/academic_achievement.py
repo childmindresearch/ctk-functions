@@ -53,7 +53,7 @@ ACADEMIC_ROW_LABELS = (
     ),
     AcademicRowLabels(
         domain="Reading",
-        subtest="TOWRE-II Total Word Reading Efficiency",
+        subtest="TOWRE-2 Total Word Reading Efficiency",
         score_column="TOWRE_Total_S",
     ),
     AcademicRowLabels(
@@ -163,6 +163,10 @@ class _AcademicAchievementDataSource(base.DataProducer):
         )
         content_rows = []
         for label in ACADEMIC_ROW_LABELS:
+            score = getattr(data, label.score_column)
+            if score is None:
+                continue
+
             domain_cell = base.WordTableCell(
                 content=label.domain,
                 formatter=body_formatters[0],
@@ -170,17 +174,6 @@ class _AcademicAchievementDataSource(base.DataProducer):
             subtest_cell = base.WordTableCell(
                 content=label.subtest, formatter=body_formatters[1]
             )
-
-            score = getattr(data, label.score_column)
-            if score is None:
-                n_a_cells = [
-                    base.WordTableCell(content="N/A", formatter=formatter)
-                    for formatter in body_formatters[2:]
-                ]
-                content_rows.append(
-                    (domain_cell, subtest_cell, *n_a_cells),
-                )
-                continue
 
             percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
             qualifier = utils.standard_score_to_qualifier(score)

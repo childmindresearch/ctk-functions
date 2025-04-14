@@ -106,7 +106,7 @@ class _WiscSubtestDataSource(base.DataProducer):
         header_formatters = [base.Formatter(width=width) for width in column_widths]
 
         header = [
-            base.WordTableCell(content="Scale", formatter=header_formatters[0]),
+            base.WordTableCell(content="Index", formatter=header_formatters[0]),
             base.WordTableCell(content="Subtest", formatter=header_formatters[1]),
             base.WordTableCell(content="Scaled Score", formatter=header_formatters[2]),
             base.WordTableCell(content="Percentile", formatter=header_formatters[3]),
