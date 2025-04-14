@@ -11,7 +11,6 @@ from ctk_functions.routers.pyrite.tables import (
     celf5,
     conners3,
     ctopp2,
-    gars,
     grooved_pegboard,
     language,
     mfq,
@@ -51,11 +50,6 @@ from ctk_functions.routers.pyrite.tables import (
             ctopp2._Ctopp2DataSource,
             ["CTOPP - 2 Rapid Naming", "Number of Errors"],
             ctopp2.CTOPP2_ROW_LABELS,
-        ),
-        (
-            gars._GarsDataSource,
-            ["Autism Index Score", "Percentile Rank", "Autism Index Interpretation"],
-            ["Has one row, no row labels defined."],
         ),
         (
             grooved_pegboard._GroovedPegboardDataSource,
