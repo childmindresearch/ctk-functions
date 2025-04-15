@@ -228,10 +228,10 @@ class _LanguageDataSource(base.DataProducer):
               and the second columns.
         """
         bold = base.ConditionalStyle(
-            style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
+            style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
         )
         left_align = base.ConditionalStyle(
-            style=cmi_docx.TableStyle(
+            style=cmi_docx.CellStyle(
                 paragraph=cmi_docx.ParagraphStyle(
                     alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
                 )

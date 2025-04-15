@@ -18,7 +18,7 @@ SCARED_ROW_LABELS = (
                 low=6,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -33,7 +33,7 @@ SCARED_ROW_LABELS = (
                 low=8,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -48,7 +48,7 @@ SCARED_ROW_LABELS = (
                 low=4,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -63,7 +63,7 @@ SCARED_ROW_LABELS = (
                 low=7,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -78,7 +78,7 @@ SCARED_ROW_LABELS = (
                 low=2,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -93,7 +93,7 @@ SCARED_ROW_LABELS = (
                 low=24,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),

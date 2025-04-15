@@ -7,7 +7,7 @@ from docx import document, table
 
 from ctk_functions.routers.pyrite.tables import base
 
-BOLD_TABLE_STYLE = cmi_docx.TableStyle(cmi_docx.ParagraphStyle(bold=True))
+BOLD_TABLE_STYLE = cmi_docx.CellStyle(cmi_docx.ParagraphStyle(bold=True))
 
 
 @pytest.fixture

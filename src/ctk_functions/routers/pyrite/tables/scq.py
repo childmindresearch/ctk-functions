@@ -34,7 +34,7 @@ class _ScqDataSource(base.DataProducer):
             low=10,
             high=None,
             label="Evidence of clinical concern of ASD",
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         )
 
         formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]

@@ -18,7 +18,7 @@ MFQ_ROW_LABELS = (
                 low=26,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),

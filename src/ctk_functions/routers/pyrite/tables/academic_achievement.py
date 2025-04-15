@@ -153,7 +153,7 @@ class _AcademicAchievementDataSource(base.DataProducer):
 
         body_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
         body_formatters[0].merge_top = True
-        left_align = cmi_docx.TableStyle(
+        left_align = cmi_docx.CellStyle(
             paragraph=cmi_docx.ParagraphStyle(
                 alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
             )

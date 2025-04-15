@@ -31,7 +31,7 @@ SWAN_ROW_LABELS = (
             high=None,
             label=None,
             low_inclusive=True,
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
     _SwanRowLabels(
@@ -41,7 +41,7 @@ SWAN_ROW_LABELS = (
             high=None,
             label=None,
             low_inclusive=True,
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
     _SwanRowLabels(
@@ -51,7 +51,7 @@ SWAN_ROW_LABELS = (
             high=None,
             label=None,
             low_inclusive=True,
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
 )

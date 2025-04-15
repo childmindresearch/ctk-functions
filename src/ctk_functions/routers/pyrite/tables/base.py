@@ -26,7 +26,7 @@ class ConditionalStyle(pydantic.BaseModel):
     """
 
     condition: Callable[[str], bool] = lambda _: True
-    style: cmi_docx.TableStyle
+    style: cmi_docx.CellStyle
 
     def apply(self, cells: table._Cell | Iterable[table._Cell]) -> None:
         """Applies the style to the cell if the condition is met.
@@ -58,7 +58,7 @@ class ClinicalRelevance(pydantic.BaseModel):
     low: float | None
     high: float | None
     label: str | None
-    style: cmi_docx.TableStyle
+    style: cmi_docx.CellStyle
     low_inclusive: bool = False
     high_inclusive: bool = True
 
@@ -159,7 +159,7 @@ def default_table_style_factory() -> list[ConditionalStyle]:
     """
     return [
         ConditionalStyle(
-            style=cmi_docx.TableStyle(
+            style=cmi_docx.CellStyle(
                 paragraph=cmi_docx.ParagraphStyle(
                     space_after=shared.Pt(3),
                     space_before=shared.Pt(3),

@@ -28,19 +28,19 @@ CLINICAL_RELEVANCE = [
         low=None,
         high=57,
         label="typical range",
-        style=cmi_docx.TableStyle(),
+        style=cmi_docx.CellStyle(),
     ),
     base.ClinicalRelevance(
         low=57,
         high=63,
         label="borderline range",
-        style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
+        style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
     base.ClinicalRelevance(
         low=63,
         high=None,
         label="clinically relevant impairment",
-        style=cmi_docx.TableStyle(
+        style=cmi_docx.CellStyle(
             paragraph=cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
         ),
     ),
