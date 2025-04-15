@@ -83,7 +83,7 @@ def _get_parent_child_data(
         data = session.execute(statement).fetchone()
     if not data:
         msg = f"Could not find MFQ data for {mrn}."
-        raise utils.TableDataNotFoundError(msg)
+        raise base.TableDataNotFoundError(msg)
     return data
 
 

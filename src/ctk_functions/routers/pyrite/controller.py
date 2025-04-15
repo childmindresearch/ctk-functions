@@ -12,6 +12,7 @@ from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite import reports
 from ctk_functions.routers.pyrite.tables import (
+    base,
     utils,
 )
 
@@ -77,7 +78,7 @@ class PyriteReport:
         logger.debug("Fetching participant %s.", sanitized_mrn)
         try:
             return utils.fetch_participant_row("MRN", self._mrn, models.CmiHbnIdTrack)  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.
-        except utils.TableDataNotFoundError as exception_info:
+        except base.TableDataNotFoundError as exception_info:
             raise fastapi.HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="MRN not found.",
