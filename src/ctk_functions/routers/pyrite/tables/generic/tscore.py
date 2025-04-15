@@ -66,6 +66,8 @@ def build_tscore_table(
         data: A row of SQL data to pull the table information from.
         row_labels: Definitions of the table rows, header excluded.
 
+    Returns:
+        The t-score table's markup.
     """
     header_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
     header_content = ["Subscale", "T-Score", "Clinical Relevance"]
@@ -74,15 +76,24 @@ def build_tscore_table(
         for content, formatter in zip(header_content, header_formatters, strict=True)
     ]
 
-    body_rows = _build_tscore_table(data, row_labels)
+    body_rows = _build_tscore_body(data, row_labels)
 
     return base.WordTableMarkup(rows=[header, *body_rows])
 
 
-def _build_tscore_table(
+def _build_tscore_body(
     data: models.Base,
     row_labels: Sequence[TScoreRowLabel],
 ) -> list[list[base.WordTableCell]]:
+    """Builds the body of a t-score table.
+
+    Args:
+        data: A row of SQL data to pull the table information from.
+        row_labels: Definitions of the table rows, header excluded.
+
+    Returns:
+        The cells of the table body as a list of rows.
+    """
     content_rows = []
     for label in row_labels:
         subscale_cell = base.WordTableCell(

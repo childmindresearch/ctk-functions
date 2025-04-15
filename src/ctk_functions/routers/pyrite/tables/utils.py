@@ -31,11 +31,14 @@ class UniqueIdentifiers:
 def add_thick_top_border(
     markup: base.WordTableMarkup, row_index: int
 ) -> base.WordTableMarkup:
-    """Convenience function for adding a thicker borderline within a table.
+    """Convenience function for adding a thicker top borderline within a table.
 
     Args:
         markup: The Word table markup.
         row_index: The row index above which a thicker border will be added.
+
+    Returns:
+        New markup with a thicker top borderline added.
     """
     thick_top_border = base.ConditionalStyle(
         style=cmi_docx.CellStyle(

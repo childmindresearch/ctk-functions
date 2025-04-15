@@ -24,7 +24,7 @@ TABLE_NAMES = Literal["SummaryScores", "Ctopp2"]
 
 
 @dataclasses.dataclass
-class LanguageRowLabel:
+class LanguageRowLabels:
     """Definitions of the rows of the language table."""
 
     test: str
@@ -34,85 +34,85 @@ class LanguageRowLabel:
 
 
 LANGUAGE_ROW_LABELS = (
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="WIAT-4",
         subtest="Listening Comprehension",
         score_column="WIAT_4_LC_Std",
         table="SummaryScores",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="WIAT-4",
         subtest="\tReceptive Vocabulary",
         score_column="WIAT_4_LC_RV_Std",
         table="SummaryScores",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="WIAT-4",
         subtest="\tOral Discourse Comprehension",
         score_column="WIAT_4_LC_ODC_Std",
         table="SummaryScores",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Memory",
         score_column=None,
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tNon-word Repetition",
         score_column="NR_Standard",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Awareness",
         score_column="CTOPP_PA_Comp",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tElision",
         score_column="EL_Standard",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tBlending Words",
         score_column="BW_Standard",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Symbolic Naming",
         score_column="RSN_composite",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Digit Naming",
         score_column="RD_Standard",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Letter Naming",
         score_column="RL_Standard",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Non-Symbolic",
         score_column="RnSN",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Object Naming",
         score_column="RO_Standard",
         table="Ctopp2",
     ),
-    LanguageRowLabel(
+    LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Color Naming",
         score_column="RC_standard",
@@ -159,7 +159,7 @@ class _LanguageDataSource(base.DataProducer):
     @staticmethod
     def _get_content_row(
         data: sqlalchemy.Row[tuple[models.SummaryScores, models.Ctopp2]],
-        label: LanguageRowLabel,
+        label: LanguageRowLabels,
         formatters: list[base.Formatter],
     ) -> tuple[base.WordTableCell, ...] | None:
         """Gets the rows of the table's body.
