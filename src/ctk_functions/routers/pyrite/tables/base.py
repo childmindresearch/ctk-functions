@@ -3,7 +3,7 @@
 import abc
 import functools
 from collections.abc import Callable, Iterable, Sequence
-from typing import Protocol, Self, runtime_checkable
+from typing import Protocol, Self, TypeVar, runtime_checkable
 
 import cmi_docx
 import pydantic
@@ -11,9 +11,16 @@ from docx import document, shared, table
 from docx.text import paragraph
 
 from ctk_functions.core import config
-from ctk_functions.routers.pyrite.tables import utils
+from ctk_functions.microservices.sql import models
 
 logger = config.get_logger()
+
+
+class TableDataNotFoundError(Exception):
+    """Thrown when a table's data is not found."""
+
+
+T = TypeVar("T", bound=models.Base)
 
 
 class ConditionalStyle(pydantic.BaseModel):
@@ -277,7 +284,7 @@ class DataProducer(abc.ABC):
         """Tests whether the required data is available."""
         try:
             cls.fetch(mrn)
-        except utils.TableDataNotFoundError:
+        except TableDataNotFoundError:
             return False
         return True
 

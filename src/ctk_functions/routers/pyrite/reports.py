@@ -3,8 +3,9 @@
 import abc
 import dataclasses
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Literal
 
+import cmi_docx
 import pydantic
 from docx import document
 from docx.enum import text as enum_text
@@ -27,7 +28,7 @@ from ctk_functions.routers.pyrite.tables import (
     wisc_subtest,
 )
 
-VERSIONS = Literal["alabaster", "chalk"]
+VERSIONS = Literal["alabaster"]
 
 
 class Section(abc.ABC):
@@ -48,6 +49,45 @@ class PageBreak(Section):
             doc: The document to add the page break to.
         """
         doc.add_paragraph().add_run().add_break(enum_text.WD_BREAK.PAGE)
+
+
+VALID_STYLES = Literal["Heading 1", "Heading 2", "Heading 3", "Heading 1 Centered"]
+
+
+class ParagraphSection(pydantic.BaseModel, Section):
+    """Represents a text block in the report structure.
+
+    Attributes:
+        content: The textual content of the paragraph.
+        style: Either a ParagraphStyle defining the styling, a string
+            matching a Style name in the document, or None. If None,
+            uses the document's default style.
+        condition: Condition to evaluate for section inclusion.
+        subsections: Subsections of this section, will be appended if
+            this section's condition and the subsection's condition is met.
+    """
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
+    content: str
+    style: cmi_docx.ParagraphStyle | VALID_STYLES | None = None
+    condition: Callable[[], bool] = lambda: True
+    subsections: list[Section] = pydantic.Field(default_factory=list)
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the section to a document.
+
+        Args:
+            doc: The document to add the section to.
+        """
+        if isinstance(self.style, cmi_docx.ParagraphStyle):
+            para = doc.add_paragraph(self.content)
+            extended_paragraph = cmi_docx.ExtendParagraph(para)
+            extended_paragraph.format(self.style)
+        else:
+            doc.add_paragraph(self.content, self.style)
+        for subsection in self.subsections:
+            subsection.add_to(doc)
 
 
 class TableSection(pydantic.BaseModel, Section):
@@ -104,7 +144,6 @@ class _PyriteTableCollection:
 def get_report_structure(
     mrn: str,
     version: VERSIONS,
-    **kwargs: Any,  # noqa: ANN401
 ) -> tuple[Section, ...]:
     """Fetches a report structure based on version name.
 
@@ -116,15 +155,12 @@ def get_report_structure(
     Args:
         mrn: The participant's unique identifier.
         version: The report version name.
-        kwargs: Version-specific keyword arguments.
 
     Returns:
           The structure of the Pyrite report.
     """
     if version == "alabaster":
         return _report_alabaster(mrn)
-    if version == "chalk":
-        return _report_chalk(mrn, **kwargs)
     msg = f"Invalid Pyrite version: {version}."
     raise ValueError(msg)
 
@@ -148,10 +184,11 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
     tables = _PyriteTableCollection(mrn)
 
     return (
-        TableSection(
-            title="General Intellectual Function",
-            level=1,
-            tables=[],
+        PageBreak(),  # Start with a page break from the end of the template file.
+        ParagraphSection(content="Results Appendix", style="Heading 1 Centered"),
+        ParagraphSection(
+            content="General Intellectual Function",
+            style="Heading 1",
             condition=lambda: is_all_available(
                 tables.wisc_composite, tables.wisc_subtest
             ),
@@ -161,30 +198,19 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                         "The Wechsler Intelligence Scale for Children-Fifth "
                         "Edition (WISC-V)"
                     ),
-                    level=2,
-                    tables=[],
-                ),
-                TableSection(
-                    title=None,
-                    level=None,
-                    tables=[tables.wisc_composite],
-                ),
-                TableSection(
-                    title=None,
-                    level=None,
-                    tables=[tables.wisc_subtest],
+                    level=3,
+                    tables=[tables.wisc_composite, tables.wisc_subtest],
                 ),
             ],
         ),
-        TableSection(
-            title="Fine Motor Dexterity",
-            level=1,
-            tables=[],
+        ParagraphSection(
+            content="Fine Motor Dexterity",
+            style="Heading 1",
             condition=lambda: tables.grooved_pegboard.is_available(),
             subsections=[
                 TableSection(
                     title="Lafayette Grooved Pegboard Test",
-                    level=2,
+                    level=3,
                     tables=[tables.grooved_pegboard],
                 )
             ],
@@ -208,10 +234,9 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
             ),
         ),
         PageBreak(),
-        TableSection(
-            title="Social-Emotional and Behavioral Functioning Questionnaires",
-            level=1,
-            tables=[],
+        ParagraphSection(
+            content="Social-Emotional and Behavioral Functioning Questionnaires",
+            style="Heading 1",
             condition=lambda: is_any_available(
                 tables.cbcl,
                 tables.ysr,
@@ -225,20 +250,19 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
             subsections=[
                 TableSection(
                     title="Child Behavior Checklist - Parent Report Form (CBCL)",
-                    level=2,
+                    level=3,
                     tables=[tables.cbcl],
                     condition=lambda: tables.cbcl.is_available(),
                 ),
                 TableSection(
                     title="Child Behavior Checklist - Youth Self Report (YSR)",
-                    level=2,
+                    level=3,
                     tables=[tables.ysr],
                     condition=lambda: tables.ysr.is_available(),
                 ),
-                TableSection(
-                    title="Attention Deficit-Hyperactivity Symptoms and Behaviors",
-                    level=2,
-                    tables=[],
+                ParagraphSection(
+                    content="Attention Deficit-Hyperactivity Symptoms and Behaviors",
+                    style="Heading 1",
                     condition=lambda: is_any_available(
                         tables.swan,
                         tables.conners3,
@@ -249,22 +273,21 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                                 "Strengths and Weaknesses of ADHD Symptoms "
                                 "and Normal Behavior (SWAN)"
                             ),
-                            level=2,
+                            level=3,
                             tables=[tables.swan],
                             condition=lambda: tables.swan.is_available(),
                         ),
                         TableSection(
                             title="Conners 3 - Child Short Form",
-                            level=2,
+                            level=3,
                             tables=[tables.conners3],
                             condition=lambda: tables.conners3.is_available(),
                         ),
                     ],
                 ),
-                TableSection(
-                    title="Autism Spectrum Symptoms and Behaviors",
-                    level=2,
-                    tables=[],
+                ParagraphSection(
+                    content="Autism Spectrum Symptoms and Behaviors",
+                    style="Heading 1",
                     condition=lambda: is_any_available(
                         tables.scq,
                         tables.srs,
@@ -272,23 +295,22 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                     subsections=[
                         TableSection(
                             title="Social Communication Questionnaire",
-                            level=2,
+                            level=3,
                             tables=[tables.scq],
                             condition=lambda: tables.scq.is_available(),
                         ),
                         TableSection(
                             title="Social Responsiveness Scale",
-                            level=2,
+                            level=3,
                             tables=[tables.srs],
                             condition=lambda: tables.srs.is_available(),
                         ),
                     ],
                 ),
                 PageBreak(),
-                TableSection(
-                    title="Depression and Anxiety Symptoms",
-                    level=2,
-                    tables=[],
+                ParagraphSection(
+                    content="Depression and Anxiety Symptoms",
+                    style="Heading 1",
                     condition=lambda: is_any_available(
                         tables.mfq,
                         tables.scared,
@@ -298,13 +320,13 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                             title=(
                                 "Mood and Feelings Questionnaire (MFQ) - Long Version"
                             ),
-                            level=2,
+                            level=3,
                             tables=[tables.mfq],
                             condition=lambda: tables.mfq.is_available(),
                         ),
                         TableSection(
                             title="Screen for Child Anxiety Related Disorders",
-                            level=2,
+                            level=3,
                             tables=[tables.scared],
                             condition=lambda: tables.scared.is_available(),
                         ),
@@ -312,23 +334,4 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
                 ),
             ],
         ),
-    )
-
-
-def _report_chalk(mrn: str, table_names: list[str]) -> tuple[Section, ...]:
-    """Creates the structure of the debug Pyrite report.
-
-    Args:
-        mrn: The participant's unique identifier.
-        table_names: List of table names.
-
-    Returns:
-        The structure of the Pyrite report.
-    """
-    tables = _PyriteTableCollection(mrn)
-    return tuple(
-        [
-            TableSection(title=name, level=1, tables=[getattr(tables, name)])
-            for name in table_names
-        ]
     )

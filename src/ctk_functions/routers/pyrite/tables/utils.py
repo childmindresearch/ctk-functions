@@ -5,19 +5,16 @@ import functools
 import statistics
 from typing import Literal, TypeVar
 
+import cmi_docx
 import fastapi
 import sqlalchemy
 from starlette import status
 
 from ctk_functions.core.config import get_logger
 from ctk_functions.microservices.sql import client, models
+from ctk_functions.routers.pyrite.tables import base
 
 logger = get_logger()
-
-
-class TableDataNotFoundError(Exception):
-    """Thrown when a table's data is not found."""
-
 
 T = TypeVar("T", bound=models.Base)
 
@@ -29,6 +26,30 @@ class UniqueIdentifiers:
     MRN: str
     EID: str
     person_id: str
+
+
+def add_thick_top_border(
+    markup: base.WordTableMarkup, row_index: int
+) -> base.WordTableMarkup:
+    """Convenience function for adding a thicker borderline within a table.
+
+    Args:
+        markup: The Word table markup.
+        row_index: The row index above which a thicker border will be added.
+    """
+    thick_top_border = base.ConditionalStyle(
+        style=cmi_docx.CellStyle(
+            borders=[
+                cmi_docx.CellBorder(
+                    sides=("top",),
+                    sz=16,  # 2pt
+                )
+            ]
+        )
+    )
+    for cell in markup.rows[row_index]:
+        cell.formatter.conditional_styles.append(thick_top_border)
+    return markup
 
 
 @functools.lru_cache
@@ -98,7 +119,7 @@ def fetch_participant_row(
         return data
 
     msg = f"Table data not found for {mrn}."
-    raise TableDataNotFoundError(msg)
+    raise base.TableDataNotFoundError(msg)
 
 
 def standard_score_to_qualifier(score: float) -> str:  # noqa: PLR0911

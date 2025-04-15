@@ -5,7 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base
+from ctk_functions.routers.pyrite.tables import base, utils
 from ctk_functions.routers.pyrite.tables.generic import parent_child
 
 SCARED_ROW_LABELS = (
@@ -116,12 +116,13 @@ class _ScaredDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        return parent_child.build_parent_child_table(
+        markup = parent_child.build_parent_child_table(
             mrn,
             models.ScaredParent,
             models.ScaredSelf,
             SCARED_ROW_LABELS,
         )
+        return utils.add_thick_top_border(markup, row_index=-1)
 
 
 class ScaredTable(base.WordTableSectionAddToMixin, base.WordTableSection):

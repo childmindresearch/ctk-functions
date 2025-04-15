@@ -1,6 +1,7 @@
 """Module for inserting the CBCL and YSR tables."""
 
 import functools
+from typing import Literal
 
 import cmi_docx
 
@@ -138,8 +139,7 @@ class _CbclDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Cbcl)
-        return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["CBCL"])
+        return _run_cbcl_ysr(mrn, "Cbcl")
 
 
 class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -169,8 +169,7 @@ class _YsrDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Ysr)
-        return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["YSR"])
+        return _run_cbcl_ysr(mrn, "Ysr")
 
 
 class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -184,3 +183,14 @@ class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _YsrDataSource
+
+
+def _run_cbcl_ysr(mrn: str, variant: Literal["Cbcl", "Ysr"]) -> base.WordTableMarkup:
+    data = utils.fetch_participant_row("EID", mrn, getattr(models, variant))
+    markup = tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS[variant.upper()])
+    subscale_composite_border = next(
+        index + 1  # +1 to account for the header.
+        for index, row in enumerate(CBCL_YSR_ROW_LABELS[variant.upper()])
+        if row.relevance == CLINICAL_RELEVANCE_LOW
+    )
+    return utils.add_thick_top_border(markup, row_index=subscale_composite_border)

@@ -13,11 +13,11 @@ from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
-    shared.Cm(1.98),
-    shared.Cm(6.33),
-    shared.Cm(2.25),
-    shared.Cm(2.25),
-    shared.Cm(3.75),
+    shared.Cm(2.02),
+    shared.Cm(6.23),
+    shared.Cm(2.01),
+    shared.Cm(2.2),
+    shared.Cm(4.04),
 )
 
 TABLE_NAMES = Literal["SummaryScores", "Ctopp2"]
@@ -273,7 +273,7 @@ def _get_data(mrn: str) -> sqlalchemy.Row[tuple[models.SummaryScores, models.Cto
         data = session.execute(statement).fetchone()
     if not data:
         msg = f"Could not fetch language data for {mrn}."
-        raise utils.TableDataNotFoundError(msg)
+        raise base.TableDataNotFoundError(msg)
     return data
 
 

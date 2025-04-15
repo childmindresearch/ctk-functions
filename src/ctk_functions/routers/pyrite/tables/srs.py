@@ -82,7 +82,8 @@ class _SrsDataSource(base.DataProducer):
             The markup for the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Srs)
-        return tscore.build_tscore_table(data, SRS_ROW_LABELS)
+        markup = tscore.build_tscore_table(data, SRS_ROW_LABELS)
+        return utils.add_thick_top_border(markup, row_index=-1)
 
 
 class SrsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
