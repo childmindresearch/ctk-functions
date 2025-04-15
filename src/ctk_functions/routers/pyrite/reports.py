@@ -236,7 +236,7 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
         PageBreak(),
         ParagraphSection(
             content="Social-Emotional and Behavioral Functioning Questionnaires",
-            style="Heading 1",
+            style="Heading 1 Centered",
             condition=lambda: is_any_available(
                 tables.cbcl,
                 tables.ysr,
