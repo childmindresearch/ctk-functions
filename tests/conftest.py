@@ -115,7 +115,7 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
     return _mock_from_column_names(columns, default_value)
 
 
-def _mock_get_parent_child_data(
+def _mock_parent_child_sql_request(
     mrn: str, parent_table: type[models.Base], child_table: type[models.Base]
 ) -> tuple[object, object]:
     if parent_table == models.MfqParent:
@@ -159,8 +159,8 @@ def mock_sql_calls(mocker: pytest_mock.MockerFixture) -> None:
         side_effect=_mock_fetch_participant_row,
     )
     mocker.patch(
-        "ctk_functions.routers.pyrite.tables.generic.parent_child._get_parent_child_data",
-        side_effect=_mock_get_parent_child_data,
+        "ctk_functions.routers.pyrite.tables.generic.parent_child._parent_child_sql_request",
+        side_effect=_mock_parent_child_sql_request,
     )
     mocker.patch(
         "ctk_functions.routers.pyrite.tables.language._get_data",

@@ -192,6 +192,7 @@ def test_add_to_procotol() -> None:
     class Valid:
         mrn = "a"
         data_source = DataSource()
+        formatters = ((base.Formatter(),),)
 
     assert not isinstance(NotValid, base._AddToProtocol)
     assert isinstance(Valid, base._AddToProtocol)
