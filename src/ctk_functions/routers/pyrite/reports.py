@@ -1,7 +1,6 @@
 """Contains definitions of Pyrite report formats."""
 
 import abc
-import dataclasses
 from collections.abc import Callable
 from typing import Literal
 
@@ -29,6 +28,13 @@ from ctk_functions.routers.pyrite.tables import (
 )
 
 VERSIONS = Literal["alabaster"]
+VALID_PARAGRAPH_STYLES = Literal[
+    "Heading 1",
+    "Heading 2",
+    "Heading 3",
+    "Heading 1 Centered",
+]
+VALID_RUN_STYLES = Literal["Emphasis"]
 
 
 class Section(abc.ABC):
@@ -51,7 +57,40 @@ class PageBreak(Section):
         doc.add_paragraph().add_run().add_break(enum_text.WD_BREAK.PAGE)
 
 
-VALID_STYLES = Literal["Heading 1", "Heading 2", "Heading 3", "Heading 1 Centered"]
+class RunsSection(pydantic.BaseModel, Section):
+    """Represents a text block in the report structure with sub-formatting.
+
+    Attributes:
+        content: The textual content of each run.
+        run_styles: The style of each run. Can be a valid CharacterStyle,
+            a RunStyle object, or None (document's default style).
+        condition: Condition to evaluate for section inclusion.
+        subsections: Subsections of this section, will be appended if
+            this section's condition and the subsection's condition is met.
+    """
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
+    content: tuple[str, ...]
+    run_styles: tuple[cmi_docx.RunStyle | VALID_RUN_STYLES | None, ...]
+    condition: Callable[[], bool] = lambda: True
+    subsections: list[Section] = pydantic.Field(default_factory=list)
+
+    def add_to(self, doc: document.Document) -> None:
+        """Adds the section to a document.
+
+        Args:
+            doc: The document to add the section to.
+        """
+        para = doc.add_paragraph()
+        for text, style in zip(self.content, self.run_styles, strict=True):
+            if style is None or isinstance(style, str):
+                para.add_run(text, style)
+                continue
+
+            run = para.add_run(text)
+            extend_run = cmi_docx.ExtendRun(run)
+            extend_run.format(style)
 
 
 class ParagraphSection(pydantic.BaseModel, Section):
@@ -70,7 +109,7 @@ class ParagraphSection(pydantic.BaseModel, Section):
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     content: str
-    style: cmi_docx.ParagraphStyle | VALID_STYLES | None = None
+    style: cmi_docx.ParagraphStyle | VALID_PARAGRAPH_STYLES | None = None
     condition: Callable[[], bool] = lambda: True
     subsections: list[Section] = pydantic.Field(default_factory=list)
 
@@ -86,6 +125,7 @@ class ParagraphSection(pydantic.BaseModel, Section):
             extended_paragraph.format(self.style)
         else:
             doc.add_paragraph(self.content, self.style)
+
         for subsection in self.subsections:
             subsection.add_to(doc)
 
@@ -118,27 +158,26 @@ class TableSection(pydantic.BaseModel, Section):
             subsection.add_to(doc)
 
 
-@dataclasses.dataclass
 class _PyriteTableCollection:
     """Collection of all tables used in Pyrite reports."""
 
     def __init__(self, mrn: str) -> None:
         """Initializes all tables."""
-        self.wisc_composite = wisc_composite.WiscCompositeTable(mrn)
-        self.wisc_subtest = wisc_subtest.WiscSubtestTable(mrn)
-        self.grooved_pegboard = grooved_pegboard.GroovedPegboardTable(mrn)
         self.academic_achievement = academic_achievement.AcademicAchievementTable(mrn)
-        self.celf5 = celf5.Celf5Table(mrn)
-        self.language = language.LanguageTable(mrn)
-        self.ctopp2 = ctopp2.Ctopp2Table(mrn)
         self.cbcl = cbcl_ysr.CbclTable(mrn)
-        self.ysr = cbcl_ysr.YsrTable(mrn)
-        self.swan = swan.SwanTable(mrn)
+        self.celf5 = celf5.Celf5Table(mrn)
         self.conners3 = conners3.Conners3Table(mrn)
-        self.scq = scq.ScqTable(mrn)
-        self.srs = srs.SrsTable(mrn)
+        self.ctopp2 = ctopp2.Ctopp2Table(mrn)
+        self.grooved_pegboard = grooved_pegboard.GroovedPegboardTable(mrn)
+        self.language = language.LanguageTable(mrn)
         self.mfq = mfq.MfqTable(mrn)
         self.scared = scared.ScaredTable(mrn)
+        self.scq = scq.ScqTable(mrn)
+        self.srs = srs.SrsTable(mrn)
+        self.swan = swan.SwanTable(mrn)
+        self.wisc_composite = wisc_composite.WiscCompositeTable(mrn)
+        self.wisc_subtest = wisc_subtest.WiscSubtestTable(mrn)
+        self.ysr = cbcl_ysr.YsrTable(mrn)
 
 
 def get_report_structure(
@@ -166,6 +205,14 @@ def get_report_structure(
 
 
 def _report_alabaster(mrn: str) -> tuple[Section, ...]:
+    return _table_alabaster(mrn)
+
+
+
+
+
+
+def _table_alabaster(mrn: str) -> tuple[Section, ...]:
     """Creates the structure of the 2024-04-02 Pyrite report.
 
     Args:
@@ -184,7 +231,6 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
     tables = _PyriteTableCollection(mrn)
 
     return (
-        PageBreak(),  # Start with a page break from the end of the template file.
         ParagraphSection(content="Results Appendix", style="Heading 1 Centered"),
         ParagraphSection(
             content="General Intellectual Function",

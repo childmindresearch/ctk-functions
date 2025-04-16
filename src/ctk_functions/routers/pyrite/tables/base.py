@@ -521,7 +521,7 @@ class WordTableSection(abc.ABC):
 
 @runtime_checkable
 class _AddToProtocol(Protocol):
-    """Protocol defining what's required to use the AddToMixin."""
+    """Protocol defining what's required to use the WordTableSectionAddToMixin."""
 
     @property
     def mrn(self) -> str:
