@@ -72,18 +72,17 @@ class _SrsDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches SRS data for the given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Srs)
-        markup = tscore.build_tscore_table(data, SRS_ROW_LABELS)
-        return utils.add_thick_top_border(markup, row_index=-1)
+        return tscore.fetch_tscore_data(data, SRS_ROW_LABELS)
 
 
 class SrsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -97,3 +96,6 @@ class SrsTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _SrsDataSource
+        self.formatters = tscore.fetch_tscore_formatters(
+            row_labels=SRS_ROW_LABELS, top_border_rows=(-1,)
+        )

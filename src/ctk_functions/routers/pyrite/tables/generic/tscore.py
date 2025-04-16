@@ -1,7 +1,7 @@
 """Supports the creation of any t-score table."""
 
 import dataclasses
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from docx import shared
 
@@ -56,10 +56,38 @@ def _label_to_conditional_styles(label: TScoreRowLabel) -> list[base.Conditional
     ]
 
 
-def build_tscore_table(
+def fetch_tscore_formatters(
+    row_labels: Sequence[TScoreRowLabel],
+    *,
+    top_border_rows: Iterable[int] | None = None,
+) -> tuple[tuple[base.Formatter, ...], ...]:
+    """Fetches the formatters for the t-score tables.
+
+    Args:
+        row_labels: Definitions of the table rows, header excluded.
+        top_border_rows: Rows with thickened top borders.
+    """
+    if top_border_rows is None:
+        top_border_rows = []
+
+    top_borders = dict.fromkeys(top_border_rows, (base.Styles.THICK_TOP_BORDER.value,))
+
+    return base.FormatProducer.produce(
+        n_rows=len(row_labels) + 1,
+        column_widths=COLUMN_WIDTHS,
+        cell_styles={
+            (row_index + 1, 1): _label_to_conditional_styles(label)
+            for row_index, label in enumerate(row_labels)
+        },
+        row_styles=top_borders,
+        merge_top=(2,),
+    )
+
+
+def fetch_tscore_data(
     data: models.Base,
     row_labels: Sequence[TScoreRowLabel],
-) -> base.WordTableMarkup:
+) -> tuple[tuple[str, ...], ...]:
     """Add the SRS table to the provided document.
 
     Args:
@@ -69,22 +97,15 @@ def build_tscore_table(
     Returns:
         The t-score table's markup.
     """
-    header_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
-    header_content = ["Subscale", "T-Score", "Clinical Relevance"]
-    header = [
-        base.WordTableCell(content=content, formatter=formatter)
-        for content, formatter in zip(header_content, header_formatters, strict=True)
-    ]
-
+    header = ("Subscale", "T-Score", "Clinical Relevance")
     body_rows = _build_tscore_body(data, row_labels)
-
-    return base.WordTableMarkup(rows=[header, *body_rows])
+    return header, *body_rows
 
 
 def _build_tscore_body(
     data: models.Base,
     row_labels: Sequence[TScoreRowLabel],
-) -> list[list[base.WordTableCell]]:
+) -> tuple[tuple[str, ...], ...]:
     """Builds the body of a t-score table.
 
     Args:
@@ -96,20 +117,7 @@ def _build_tscore_body(
     """
     content_rows = []
     for label in row_labels:
-        subscale_cell = base.WordTableCell(
-            content=label.subscale, formatter=base.Formatter(width=COLUMN_WIDTHS[0])
-        )
-        score_formatter = base.Formatter(
-            conditional_styles=base.default_table_style_factory()
-            + _label_to_conditional_styles(label),
-            width=COLUMN_WIDTHS[1],
-        )
-        score_cell = base.WordTableCell(
-            content=getattr(data, label.score_column), formatter=score_formatter
-        )
-        relevance_cell = base.WordTableCell(
-            content=_label_to_relevance_text(label),
-            formatter=base.Formatter(width=COLUMN_WIDTHS[2], merge_top=True),
-        )
-        content_rows.append([subscale_cell, score_cell, relevance_cell])
-    return content_rows
+        score = getattr(data, label.score_column)
+        relevance = _label_to_relevance_text(label)
+        content_rows.append((label.subscale, f"{score:.0f}", relevance))
+    return tuple(content_rows)

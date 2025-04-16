@@ -32,7 +32,7 @@ class _MfqDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the MFQ data for a given mrn.
 
         Args:
@@ -41,7 +41,7 @@ class _MfqDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        return parent_child.build_parent_child_table(
+        return parent_child.fetch_parent_child_data(
             mrn,
             models.MfqParent,
             models.MfqSelf,
@@ -60,3 +60,6 @@ class MfqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _MfqDataSource
+        self.formatters = parent_child.fetch_parent_child_formatting(
+            row_labels=MFQ_ROW_LABELS
+        )

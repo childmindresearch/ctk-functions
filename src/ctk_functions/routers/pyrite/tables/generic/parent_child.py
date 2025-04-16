@@ -1,6 +1,6 @@
 """Creates a table for surveys that have separate parent/child responses."""
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import TypeVar
 
 import pydantic
@@ -30,13 +30,13 @@ class ParentChildRow(pydantic.BaseModel):
     relevance: list[base.ClinicalRelevance]
 
 
-def build_parent_child_table(
+def fetch_parent_child_data(
     mrn: str,
     parent_table: type[models.Base],
     child_table: type[models.Base],
     row_labels: Sequence[ParentChildRow],
-) -> base.WordTableMarkup:
-    """Creates a parent/child table.
+) -> tuple[tuple[str, ...], ...]:
+    """Fetches parent/child table data.
 
     Args:
         mrn: The participant's unique identifier.
@@ -45,24 +45,53 @@ def build_parent_child_table(
         row_labels: The row labels for the parent/child table.
 
     Returns:
-        The markup for the parent/child table.
+        The text contents of the Word table.
     """
-    data = _get_parent_child_data(mrn, parent_table, child_table)
-
-    formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
-    content = ["Subscales", "Parent", "Child", "Clinical Relevance"]
-    header = [
-        base.WordTableCell(content=content, formatter=formatter)
-        for content, formatter in zip(content, formatters, strict=True)
-    ]
-
+    data = _parent_child_sql_request(mrn, parent_table, child_table)
+    header = ("Subscales", "Parent", "Child", "Clinical Relevance")
     content_rows = [
         _build_parent_child_row(data[0], data[1], label) for label in row_labels
     ]
-    return base.WordTableMarkup(rows=[header, *content_rows])
+    return header, *content_rows
 
 
-def _get_parent_child_data(
+def fetch_parent_child_formatting(
+    row_labels: Sequence[ParentChildRow],
+    *,
+    top_border_rows: Iterable[int] | None = None,
+) -> tuple[tuple[base.Formatter, ...], ...]:
+    """Fetches parent/child table formatting.
+
+    Args:
+        row_labels: The row labels for the parent/child table.
+        top_border_rows: Rows with thickened top borders.
+
+    Returns:
+        The formatting for the parent/child data.
+    """
+    relevance_styles = {
+        (row_index + 1, col_index): (
+            base.ConditionalStyle(
+                condition=relevance.in_range,
+                style=relevance.style,
+            ),
+        )
+        for col_index in (1, 2)
+        for row_index, label in enumerate(row_labels)
+        for relevance in label.relevance
+    }
+    if top_border_rows is None:
+        top_border_rows = []
+    row_styles = dict.fromkeys(top_border_rows, (base.Styles.THICK_TOP_BORDER.value,))
+    return base.FormatProducer.produce(
+        n_rows=len(row_labels) + 1,
+        column_widths=COLUMN_WIDTHS,
+        row_styles=row_styles,
+        cell_styles=relevance_styles,
+    )
+
+
+def _parent_child_sql_request(
     mrn: str, parent_table: type[T_parent], child_table: type[T_child]
 ) -> sqlalchemy.Row[tuple[T_parent, T_child]]:
     eid = utils.mrn_to_ids(mrn).EID
@@ -91,15 +120,7 @@ def _build_parent_child_row(
     parent_data: models.Base | None,
     child_data: models.Base | None,
     label: ParentChildRow,
-) -> list[base.WordTableCell]:
-    styles = [
-        base.ConditionalStyle(condition=relevance.in_range, style=relevance.style)
-        for relevance in label.relevance
-    ]
-    formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
-    formatters[1].conditional_styles.extend(styles)
-    formatters[2].conditional_styles.extend(styles)
-
+) -> tuple[str, str, str, str]:
     def score2label(data: models.Base | None, column: str) -> str:
         if not data:
             return "N/A"
@@ -110,13 +131,6 @@ def _build_parent_child_row(
 
     parent_label = score2label(parent_data, label.parent_column)
     child_label = score2label(child_data, label.child_column)
+    relevance = "\n".join(str(relevance) for relevance in label.relevance)
 
-    return [
-        base.WordTableCell(content=label.subscale, formatter=formatters[0]),
-        base.WordTableCell(content=parent_label, formatter=formatters[1]),
-        base.WordTableCell(content=child_label, formatter=formatters[2]),
-        base.WordTableCell(
-            content="\n".join(str(relevance) for relevance in label.relevance),
-            formatter=formatters[3],
-        ),
-    ]
+    return label.subscale, parent_label, child_label, relevance

@@ -1,7 +1,6 @@
 """Module for inserting the CBCL and YSR tables."""
 
 import functools
-from typing import Literal
 
 import cmi_docx
 
@@ -130,16 +129,17 @@ class _CbclDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches CBCL data for the given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
-        return _run_cbcl_ysr(mrn, "Cbcl")
+        data = utils.fetch_participant_row("EID", mrn, models.Cbcl)
+        return tscore.fetch_tscore_data(data, CBCL_YSR_ROW_LABELS["CBCL"])
 
 
 class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -153,6 +153,18 @@ class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _CbclDataSource
+        labels = CBCL_YSR_ROW_LABELS["CBCL"]
+        border_index = (
+            next(
+                index
+                for index, label in enumerate(labels)
+                if label.relevance == CLINICAL_RELEVANCE_LOW
+            )
+            + 1
+        )
+        self.formatters = tscore.fetch_tscore_formatters(
+            labels, top_border_rows=(border_index,)
+        )
 
 
 class _YsrDataSource(base.DataProducer):
@@ -160,16 +172,17 @@ class _YsrDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches YSR data for the given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
-        return _run_cbcl_ysr(mrn, "Ysr")
+        data = utils.fetch_participant_row("EID", mrn, models.Ysr)
+        return tscore.fetch_tscore_data(data, CBCL_YSR_ROW_LABELS["YSR"])
 
 
 class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -184,13 +197,15 @@ class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         self.mrn = mrn
         self.data_source = _YsrDataSource
 
-
-def _run_cbcl_ysr(mrn: str, variant: Literal["Cbcl", "Ysr"]) -> base.WordTableMarkup:
-    data = utils.fetch_participant_row("EID", mrn, getattr(models, variant))
-    markup = tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS[variant.upper()])
-    subscale_composite_border = next(
-        index + 1  # +1 to account for the header.
-        for index, row in enumerate(CBCL_YSR_ROW_LABELS[variant.upper()])
-        if row.relevance == CLINICAL_RELEVANCE_LOW
-    )
-    return utils.add_thick_top_border(markup, row_index=subscale_composite_border)
+        labels = CBCL_YSR_ROW_LABELS["YSR"]
+        border_index = (
+            next(
+                index
+                for index, label in enumerate(labels)
+                if label.relevance == CLINICAL_RELEVANCE_LOW
+            )
+            + 1
+        )
+        self.formatters = tscore.fetch_tscore_formatters(
+            labels, top_border_rows=(border_index,)
+        )

@@ -1,13 +1,12 @@
 """Module for inserting the language table."""
 
+import copy
 import dataclasses
 import functools
 from typing import Literal
 
-import cmi_docx
 import sqlalchemy
 from docx import shared
-from docx.enum import text
 
 from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
@@ -126,7 +125,7 @@ class _LanguageDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the Language data for a given mrn.
 
         Args:
@@ -136,32 +135,19 @@ class _LanguageDataSource(base.DataProducer):
             The markup for the Word table.
         """
         data = _get_data(mrn)
+        header = ("Test", "Subtest", "Standard Score", "Percentile", "Range")
 
-        header_formatters = [base.Formatter(width=width) for width in COLUMN_WIDTHS]
-        header_content = ["Test", "Subtest", "Standard Score", "Percentile", "Range"]
-        header = [
-            base.WordTableCell(content=content, formatter=formatter)
-            for content, formatter in zip(
-                header_content, header_formatters, strict=True
-            )
-        ]
-
-        body_formatters = cls._get_body_formatters()
         content_rows = [
-            cls._get_content_row(data, label, formatters)
-            for label, formatters in zip(
-                LANGUAGE_ROW_LABELS, body_formatters, strict=False
-            )
+            cls._get_content_row(data, label) for label in LANGUAGE_ROW_LABELS
         ]
-        content_rows = [row for row in content_rows if row]
-        return base.WordTableMarkup(rows=[header, *content_rows])
+        content_rows_no_none = [row for row in content_rows if row]
+        return header, *content_rows_no_none
 
     @staticmethod
     def _get_content_row(
         data: sqlalchemy.Row[tuple[models.SummaryScores, models.Ctopp2]],
         label: LanguageRowLabels,
-        formatters: list[base.Formatter],
-    ) -> tuple[base.WordTableCell, ...] | None:
+    ) -> tuple[str, str, str, str, str] | None:
         """Gets the rows of the table's body.
 
         Note that rows without data are omitted, unless they are explicitly
@@ -186,74 +172,44 @@ class _LanguageDataSource(base.DataProducer):
             # Rows without data should be omitted.
             return None
 
-        test_cell = base.WordTableCell(
-            content=label.test,
-            formatter=formatters[0],
-        )
-        subtest_cell = base.WordTableCell(
-            content=label.subtest, formatter=formatters[1]
-        )
-
         if not label.score_column:
             # Special handling for score_column=None
             # Add an empty row; these are label rows.
-            score_cell = base.WordTableCell(content="", formatter=formatters[2])
-            percentile_cell = base.WordTableCell(content="", formatter=formatters[3])
-            range_cell = base.WordTableCell(content="", formatter=formatters[4])
-        else:
-            score = float(getattr(data_table, label.score_column))
-            percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
-            qualifier = utils.standard_score_to_qualifier(score)
-            score_cell = base.WordTableCell(
-                content=str(int(score)), formatter=formatters[2]
-            )
-            percentile_cell = base.WordTableCell(
-                content=f"{percentile:.0f}", formatter=formatters[3]
-            )
-            range_cell = base.WordTableCell(content=qualifier, formatter=formatters[4])
-        return test_cell, subtest_cell, score_cell, percentile_cell, range_cell
+            return label.test, label.subtest, "", "", ""
 
-    @staticmethod
-    def _get_body_formatters() -> list[list[base.Formatter]]:
-        r"""Creates the formatters for the language table.
-
-        The language table has a lot of specific formatting idiosyncrasies.
-        Specifically: the first column should be merged, the second column
-        left aligned. If the subtest (second column) is a aggregate test
-        (i.e. does not start with a \t), then it is bolded, whereas
-        other rows are not.
-
-        Returns:
-              A list of lists of formatters, where the first list represents rows
-              and the second columns.
-        """
-        bold = base.ConditionalStyle(
-            style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
+        score = getattr(data_table, label.score_column)
+        percentile = (
+            f"{utils.normal_score_to_percentile(float(score), mean=100, std=15):.0f}"
         )
-        left_align = base.ConditionalStyle(
-            style=cmi_docx.CellStyle(
-                paragraph=cmi_docx.ParagraphStyle(
-                    alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
-                )
-            )
-        )
-        body_formatters = []
-        for label in LANGUAGE_ROW_LABELS:
-            row_formatters = []
-            for col_index, width in enumerate(COLUMN_WIDTHS):
-                formatter = base.Formatter(width=width)
-                if col_index == 0:
-                    # Test names are merged across rows.
-                    formatter.merge_top = True
-                if col_index == 1:
-                    # Subtest rows are left-aligned
-                    formatter.conditional_styles.append(left_align)
-                if col_index != 0 and not label.subtest.startswith("\t"):
-                    # Bold aggregate subtest rows, except the first column.
-                    formatter.conditional_styles.append(bold)
-                row_formatters.append(formatter)
-            body_formatters.append(row_formatters)
-        return body_formatters
+        qualifier = utils.standard_score_to_qualifier(float(score))
+        return label.test, label.subtest, score, percentile, qualifier
+
+
+def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
+    r"""Creates the formatters for the language table.
+
+    The language table has a lot of specific formatting idiosyncrasies.
+    Specifically: the first column should be merged, the second column
+    left aligned. If the subtest (second column) is a aggregate test
+    (i.e. does not start with a \t), then it is bolded, whereas
+    other rows are not.
+
+    Returns:
+          A list of lists of formatters, where the first list represents rows
+          and the second columns.
+    """
+    bold_aggregate = copy.deepcopy(base.Styles.BOLD.value)
+    bold_aggregate.condition = lambda text: not text.startswith("\t")
+    subtest_formatting = {
+        (index, 1): (base.Styles.LEFT_ALIGN.value, bold_aggregate)
+        for index in range(1, n_rows)
+    }
+    return base.FormatProducer.produce(
+        n_rows=n_rows,
+        column_widths=COLUMN_WIDTHS,
+        merge_top=(0,),
+        cell_styles=subtest_formatting,
+    )
 
 
 def _get_data(mrn: str) -> sqlalchemy.Row[tuple[models.SummaryScores, models.Ctopp2]]:
@@ -291,3 +247,4 @@ class LanguageTable(
         """
         self.mrn = mrn
         self.data_source = _LanguageDataSource
+        self.formatters = _get_formatters(n_rows=len(self.data_source.fetch(mrn)))

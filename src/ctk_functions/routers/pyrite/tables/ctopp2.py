@@ -34,30 +34,23 @@ class _Ctopp2DataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the CTOPP-2 data for a given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("person_id", mrn, models.Ctopp2)
-        header = [
-            base.WordTableCell(content="CTOPP - 2 Rapid Naming"),
-            base.WordTableCell(content="Number of Errors"),
-        ]
-        content_rows = [
-            [
-                base.WordTableCell(content=label.name),
-                base.WordTableCell(content=getattr(data, label.score_column)),
-            ]
+        header = ("CTOPP - 2 Rapid Naming", "Number of Errors")
+        content = [
+            (label.name, getattr(data, label.score_column))
             for label in CTOPP2_ROW_LABELS
             if getattr(data, label.score_column) is not None
         ]
-
-        return base.WordTableMarkup(rows=[header, *content_rows])
+        return header, *content
 
 
 class Ctopp2Table(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -71,3 +64,6 @@ class Ctopp2Table(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _Ctopp2DataSource
+        self.formatters = base.FormatProducer.produce(
+            n_rows=len(self.data_source.fetch(mrn)), column_widths=(None, None)
+        )

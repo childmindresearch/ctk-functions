@@ -11,6 +11,14 @@ from starlette import status
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import base, utils
 
+COLUMN_WIDTHS = (
+    shared.Cm(4.42),
+    shared.Cm(3.58),
+    shared.Cm(3),
+    shared.Cm(2.3),
+    shared.Cm(3.21),
+)
+
 
 @dataclasses.dataclass
 class _WiscSubtestRowLabels:
@@ -86,63 +94,36 @@ class _WiscSubtestDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the WISC data for a given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
-        column_widths = (
-            shared.Cm(4.42),
-            shared.Cm(3.58),
-            shared.Cm(3),
-            shared.Cm(2.3),
-            shared.Cm(3.21),
-        )
-        header_formatters = [base.Formatter(width=width) for width in column_widths]
-
-        header = [
-            base.WordTableCell(content="Index", formatter=header_formatters[0]),
-            base.WordTableCell(content="Subtest", formatter=header_formatters[1]),
-            base.WordTableCell(content="Scaled Score", formatter=header_formatters[2]),
-            base.WordTableCell(content="Percentile", formatter=header_formatters[3]),
-            base.WordTableCell(content="Range", formatter=header_formatters[4]),
-        ]
-
-        body_formatters = [base.Formatter(width=width) for width in column_widths]
-        body_formatters[0].merge_top = True
+        header = ("Index", "Subtest", "Scaled Score", "Percentile", "Range")
         content_rows = [
-            [
-                base.WordTableCell(content=label.scale, formatter=body_formatters[0]),
-                base.WordTableCell(content=label.subtest, formatter=body_formatters[1]),
-                base.WordTableCell(
-                    content=getattr(data, label.score_column),
-                    formatter=body_formatters[2],
-                ),
-                base.WordTableCell(
-                    content=str(
-                        _wisc_subtest_scaled_score_to_percentile(
-                            getattr(data, label.score_column),
-                        ),
+            (
+                label.scale,
+                label.subtest,
+                getattr(data, label.score_column),
+                str(
+                    _wisc_subtest_scaled_score_to_percentile(
+                        getattr(data, label.score_column),
                     ),
-                    formatter=body_formatters[3],
                 ),
-                base.WordTableCell(
-                    content=str(
-                        _wisc_subtest_scaled_score_to_qualifier(
-                            getattr(data, label.score_column),
-                        ),
+                str(
+                    _wisc_subtest_scaled_score_to_qualifier(
+                        getattr(data, label.score_column),
                     ),
-                    formatter=body_formatters[4],
                 ),
-            ]
+            )
             for label in WISC_SUBTEST_ROW_LABELS
         ]
-        return base.WordTableMarkup(rows=[header, *content_rows])
+        return header, *content_rows
 
 
 class WiscSubtestTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -162,6 +143,11 @@ class WiscSubtestTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             ),
         ]
         self.data_source = _WiscSubtestDataSource
+        self.formatters = base.FormatProducer.produce(
+            n_rows=len(WISC_SUBTEST_ROW_LABELS) + 1,
+            column_widths=COLUMN_WIDTHS,
+            merge_top=(0,),
+        )
 
 
 def _wisc_subtest_scaled_score_to_qualifier(scaled: int) -> str:

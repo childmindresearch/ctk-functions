@@ -1,13 +1,15 @@
 """Base class definition for all tables."""
 
 import abc
+import enum
 import functools
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Protocol, Self, TypeVar, runtime_checkable
 
 import cmi_docx
 import pydantic
 from docx import document, shared, table
+from docx.enum import text
 from docx.text import paragraph
 
 from ctk_functions.core import config
@@ -48,6 +50,24 @@ class ConditionalStyle(pydantic.BaseModel):
         for cell in cells:
             if self.condition(cell.text):
                 cmi_docx.ExtendCell(cell).format(self.style)
+
+
+class Styles(enum.Enum):
+    """Standard styles used throughout the tables."""
+
+    BOLD = ConditionalStyle(
+        style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True))
+    )
+    LEFT_ALIGN = ConditionalStyle(
+        style=cmi_docx.CellStyle(
+            paragraph=cmi_docx.ParagraphStyle(
+                alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
+            )
+        )
+    )
+    THICK_TOP_BORDER = ConditionalStyle(
+        style=cmi_docx.CellStyle(borders=[cmi_docx.CellBorder(sides=("top",), sz=16)])
+    )
 
 
 class ClinicalRelevance(pydantic.BaseModel):
@@ -234,6 +254,119 @@ class Formatter(pydantic.BaseModel):
                 cell.text = current_text
 
 
+class FormatProducer:
+    """Producer for table formatting."""
+
+    @classmethod
+    def produce(  # noqa: PLR0913
+        cls,
+        n_rows: int,
+        column_widths: Sequence[None | shared.Cm | shared.Inches | shared.Pt],
+        global_style: Iterable[ConditionalStyle] | None = None,
+        row_styles: Mapping[int, Iterable[ConditionalStyle]] | None = None,
+        column_styles: Mapping[int, Iterable[ConditionalStyle]] | None = None,
+        cell_styles: Mapping[tuple[int, int], Iterable[ConditionalStyle]] | None = None,
+        merge_top: Sequence[int] | None = None,
+        *,
+        rows_first: bool = True,
+    ) -> tuple[tuple[Formatter, ...], ...]:
+        """Produces formatters for tables.
+
+        Args:
+            n_rows: The number of rows to produce.
+            column_widths: The width of the columns.
+            global_style: The global style to use, if None, uses the default style
+                defined by the default_table_style_factory.
+            row_styles: The styles to use for the rows as a mapping
+                where the key is the row index and the value is the style.
+            column_styles: The styles to use for the columns as a mapping
+                where the key is the row index and the value is the style.
+            cell_styles: The styles to use for the cells as a mapping
+                where the key is the indices (row, column) and the value is the style.
+            merge_top: Columns in which to set merge_top to True. Currently only
+                supports entire columns, not cell-specific.
+            rows_first: If true, applies formatting to rows first, otherwise
+                columns first.
+
+        Returns:
+            Array of formatters, rows first.
+        """
+        if global_style is None:
+            global_style = default_table_style_factory()
+
+        formatters = tuple(
+            [
+                tuple(
+                    [
+                        Formatter(width=width, conditional_styles=global_style)
+                        for width in column_widths
+                    ]
+                )
+                for _ in range(n_rows)
+            ]
+        )
+
+        if rows_first:
+            cls._apply_rows(formatters, row_styles)
+            cls._apply_columns(formatters, column_styles)
+        else:
+            cls._apply_columns(formatters, column_styles)
+            cls._apply_rows(formatters, row_styles)
+
+        cls._apply_cells(formatters, cell_styles)
+        cls._apply_merge_top(formatters, merge_top)
+        return formatters
+
+    @staticmethod
+    def _apply_cells(
+        formatters: Sequence[Sequence[Formatter]],
+        styles: Mapping[tuple[int, int], Iterable[ConditionalStyle]] | None,
+    ) -> None:
+        if not styles:
+            return
+
+        for indices, stls in styles.items():
+            formatters[indices[0]][indices[1]].conditional_styles.extend(stls)
+
+    @staticmethod
+    def _apply_rows(
+        formatters: Sequence[Sequence[Formatter]],
+        styles: Mapping[int, Iterable[ConditionalStyle]] | None,
+    ) -> None:
+        if not styles:
+            return
+
+        for index, stls in styles.items():
+            row = formatters[index]
+            for formatter in row:
+                formatter.conditional_styles.extend(stls)
+
+    @staticmethod
+    def _apply_columns(
+        formatters: Sequence[Sequence[Formatter]],
+        styles: Mapping[int, Iterable[ConditionalStyle]] | None,
+    ) -> None:
+        if not styles:
+            return
+
+        for index, stls in styles.items():
+            for row in formatters:
+                row[index].conditional_styles.extend(stls)
+
+    @staticmethod
+    def _apply_merge_top(
+        formatters: Sequence[Sequence[Formatter]],
+        merge_top: Sequence[int] | None,
+    ) -> None:
+        if not merge_top:
+            return
+
+        for index in merge_top:
+            for row in formatters[1:]:
+                # Top row cannot merge up; skip.
+                row[index].merge_top = True
+
+
 class WordTableCell(pydantic.BaseModel):
     """Definition of a cell in a Word table.
 
@@ -276,7 +409,7 @@ class DataProducer(abc.ABC):
     @classmethod
     @functools.lru_cache
     @abc.abstractmethod
-    def fetch(cls, mrn: str) -> WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Abstract data fetcher."""
 
     @classmethod
@@ -398,6 +531,10 @@ class _AddToProtocol(Protocol):
     def data_source(self) -> DataProducer:
         """The data source to use."""
 
+    @property
+    def formatters(self) -> Sequence[Sequence[Formatter]]:
+        """The formatters to apply to the data."""
+
 
 class WordTableSectionAddToMixin:
     """Adds a standardized add_to method for WordTableSections.
@@ -419,7 +556,15 @@ class WordTableSectionAddToMixin:
             )
             raise TypeError(msg)
 
-        markup = self.data_source.fetch(self.mrn)
+        text = self.data_source.fetch(self.mrn)
+        rows = [
+            [
+                WordTableCell(content=text, formatter=formatter)
+                for text, formatter in zip(text_row, formatter_row, strict=True)
+            ]
+            for text_row, formatter_row in zip(text, self.formatters, strict=True)
+        ]
+        markup = WordTableMarkup(rows=rows)
 
         args = {
             "preamble": getattr(self, "preamble", None),
