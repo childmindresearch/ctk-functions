@@ -470,7 +470,7 @@ class ReportWriter:
             header_row[index].text = header
             header_row[index].width = 10
             cmi_docx.ExtendCell(header_row[index]).format(
-                cmi_docx.TableStyle(
+                cmi_docx.CellStyle(
                     paragraph=cmi_docx.ParagraphStyle(
                         bold=True,
                         alignment=enum_text.WD_ALIGN_PARAGRAPH.CENTER,
@@ -483,7 +483,7 @@ class ReportWriter:
             row.height_rule = enum_table.WD_ROW_HEIGHT_RULE.EXACTLY
             for cell in row.cells:
                 cmi_docx.ExtendCell(cell).format(
-                    cmi_docx.TableStyle(
+                    cmi_docx.CellStyle(
                         paragraph=cmi_docx.ParagraphStyle(
                             line_spacing=1,
                             space_after=0,
