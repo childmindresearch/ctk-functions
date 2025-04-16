@@ -13,11 +13,11 @@ from ctk_functions.microservices.sql import client, models
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
-    shared.Cm(2.02),
-    shared.Cm(6.23),
-    shared.Cm(2.01),
-    shared.Cm(2.2),
-    shared.Cm(4.04),
+    shared.Cm(2.09),
+    shared.Cm(6.4),
+    shared.Cm(2.5),
+    shared.Cm(2.62),
+    shared.Cm(2.88),
 )
 
 TABLE_NAMES = Literal["SummaryScores", "Ctopp2"]
@@ -197,9 +197,9 @@ class _LanguageDataSource(base.DataProducer):
         if not label.score_column:
             # Special handling for score_column=None
             # Add an empty row; these are label rows.
-            score_cell = base.WordTableCell(content="")
-            percentile_cell = base.WordTableCell(content="")
-            range_cell = base.WordTableCell(content="")
+            score_cell = base.WordTableCell(content="", formatter=formatters[2])
+            percentile_cell = base.WordTableCell(content="", formatter=formatters[3])
+            range_cell = base.WordTableCell(content="", formatter=formatters[4])
         else:
             score = float(getattr(data_table, label.score_column))
             percentile = utils.normal_score_to_percentile(score, mean=100, std=15)
