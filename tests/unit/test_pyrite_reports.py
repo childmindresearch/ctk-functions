@@ -36,8 +36,6 @@ def test_paragraph_section_add_to() -> None:
 
     section.add_to(doc)
 
-    doc.save("/Users/reinder.vosdewael/test.docx")
-
     assert doc.paragraphs[0].runs[0].text == "Hello world!"
     assert doc.paragraphs[0].style.name == "Heading 1"  # type: ignore[union-attr]
 
