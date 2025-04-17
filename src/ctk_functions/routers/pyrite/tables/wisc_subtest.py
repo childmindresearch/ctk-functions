@@ -92,6 +92,8 @@ WISC_SUBTEST_ROW_LABELS = (
 class _WiscSubtestDataSource(base.DataProducer):
     """Fetches the data for the WISC table."""
 
+    test_ids = ("wisc_5",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

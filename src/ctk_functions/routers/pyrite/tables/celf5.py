@@ -9,6 +9,8 @@ from ctk_functions.routers.pyrite.tables import base, utils
 class _Celf5DataSource(base.DataProducer):
     """Fetches the data for the Celf5 table."""
 
+    test_ids = ("celf_5",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

@@ -79,6 +79,8 @@ CONNERS3_ROW_LABELS = (
 class _Conners3DataSource(base.DataProducer):
     """Fetches the data for the Conners3 table."""
 
+    test_ids = ("conners_3",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

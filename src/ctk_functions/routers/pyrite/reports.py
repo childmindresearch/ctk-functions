@@ -1,14 +1,16 @@
 """Contains definitions of Pyrite report formats."""
 
 import abc
-from collections.abc import Callable
-from typing import Literal
+import enum
+from collections.abc import Callable, Iterable
+from typing import Literal, TypeVar
 
 import cmi_docx
 import pydantic
 from docx import document
 from docx.enum import text as enum_text
 
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
@@ -34,21 +36,42 @@ VALID_PARAGRAPH_STYLES = Literal[
     "Heading 3",
     "Heading 1 Centered",
 ]
-VALID_RUN_STYLES = Literal["Emphasis"]
+T = TypeVar("T")
 
 
-class Section(abc.ABC):
+class RunStyles(enum.StrEnum):
+    """Valid styles in the Word template for runs."""
+
+    Emphasis = "Emphasis"
+
+
+class Section(pydantic.BaseModel, abc.ABC):
     """Represents a section in the report structure."""
 
-    @abc.abstractmethod
+    subsections: list["Section"] = pydantic.Field(default_factory=list)
+    condition: Callable[[], bool] = lambda: True
+
     def add_to(self, doc: document.Document) -> None:
         """Adds the section to the report."""
+        if not self.condition():
+            return
+
+        self._add_to(doc)
+        for subsection in self.subsections:
+            subsection.add_to(doc)
+
+    @abc.abstractmethod
+    def _add_to(self, doc: document.Document) -> None:
+        """Adds this section to the report.
+
+        Handling of the conditional and subsections is done by self.add_to()
+        """
 
 
 class PageBreak(Section):
     """A page break in the report."""
 
-    def add_to(self, doc: document.Document) -> None:
+    def _add_to(self, doc: document.Document) -> None:
         """Adds a page break to the report.
 
         Args:
@@ -57,7 +80,7 @@ class PageBreak(Section):
         doc.add_paragraph().add_run().add_break(enum_text.WD_BREAK.PAGE)
 
 
-class RunsSection(pydantic.BaseModel, Section):
+class RunsSection(Section):
     """Represents a text block in the report structure with sub-formatting.
 
     Attributes:
@@ -72,11 +95,9 @@ class RunsSection(pydantic.BaseModel, Section):
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     content: tuple[str, ...]
-    run_styles: tuple[cmi_docx.RunStyle | VALID_RUN_STYLES | None, ...]
-    condition: Callable[[], bool] = lambda: True
-    subsections: list[Section] = pydantic.Field(default_factory=list)
+    run_styles: tuple[cmi_docx.RunStyle | RunStyles | None, ...]
 
-    def add_to(self, doc: document.Document) -> None:
+    def _add_to(self, doc: document.Document) -> None:
         """Adds the section to a document.
 
         Args:
@@ -93,7 +114,7 @@ class RunsSection(pydantic.BaseModel, Section):
             extend_run.format(style)
 
 
-class ParagraphSection(pydantic.BaseModel, Section):
+class ParagraphSection(Section):
     """Represents a text block in the report structure.
 
     Attributes:
@@ -110,10 +131,8 @@ class ParagraphSection(pydantic.BaseModel, Section):
 
     content: str
     style: cmi_docx.ParagraphStyle | VALID_PARAGRAPH_STYLES | None = None
-    condition: Callable[[], bool] = lambda: True
-    subsections: list[Section] = pydantic.Field(default_factory=list)
 
-    def add_to(self, doc: document.Document) -> None:
+    def _add_to(self, doc: document.Document) -> None:
         """Adds the section to a document.
 
         Args:
@@ -126,36 +145,27 @@ class ParagraphSection(pydantic.BaseModel, Section):
         else:
             doc.add_paragraph(self.content, self.style)
 
-        for subsection in self.subsections:
-            subsection.add_to(doc)
 
-
-class TableSection(pydantic.BaseModel, Section):
+class TableSection(Section):
     """Represents a table section in the report structure."""
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     title: str | None = None
     level: int | None = None
-    condition: Callable[[], bool] = lambda: True
     tables: list[base.WordTableSection] = pydantic.Field(default_factory=list)
-    subsections: list[Section] = pydantic.Field(default_factory=list)
 
-    def add_to(self, doc: document.Document) -> None:
+    def _add_to(self, doc: document.Document) -> None:
         """Adds the section to a document.
 
         Args:
             doc: The document to add the section to.
         """
-        if not self.condition():
-            return
         if self.title and self.level:
             doc.add_heading(self.title, level=self.level)
         for table in self.tables:
             if table.is_available():
                 table.add_to(doc)
-        for subsection in self.subsections:
-            subsection.add_to(doc)
 
 
 class _PyriteTableCollection:
@@ -205,14 +215,6 @@ def get_report_structure(
 
 
 def _report_alabaster(mrn: str) -> tuple[Section, ...]:
-    return _table_alabaster(mrn)
-
-
-
-
-
-
-def _table_alabaster(mrn: str) -> tuple[Section, ...]:
     """Creates the structure of the 2024-04-02 Pyrite report.
 
     Args:
@@ -221,21 +223,84 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
     Returns:
         The structure of the Pyrite report, containing only available sections.
     """
-
-    def is_any_available(*tbls: base.WordTableSection) -> bool:
-        return any(tbl.is_available() for tbl in tbls)
-
-    def is_all_available(*tbls: base.WordTableSection) -> bool:
-        return all(tbl.is_available() for tbl in tbls)
-
     tables = _PyriteTableCollection(mrn)
+    table_sections = _get_alabaster_table_structure(tables)
+    appendix = _table_sections_to_appendix_a(mrn, table_sections)
+    return PageBreak(), *appendix, PageBreak(), *table_sections
 
+
+def _table_sections_to_appendix_a(
+    mrn: str, table_sections: Iterable[Section]
+) -> tuple[Section, ...]:
+    """Extracts all used DataProducers and converts this information to Appendix A.
+
+    Args:
+        mrn: The participant's unique identifier.
+        table_sections: The list of sections to extract producers from.
+
+    Returns:
+        The section structure for Appendix A.
+    """
+    used_producers = _extract_producers_used(table_sections)
+    available_producers = [
+        producer for producer in used_producers if producer.is_available(mrn)
+    ]
+    test_ids: list[appendix_a.TestId] = _flatten(
+        [tbl.test_ids for tbl in available_producers]  # type: ignore[misc]
+    )
+    unique_test_ids = sorted(dict.fromkeys(test_ids))
+    descriptions = appendix_a.TestDescriptionManager()
+    used_descriptions = [descriptions.fetch(test_id) for test_id in unique_test_ids]
+    sections = [_description_to_section(desc) for desc in used_descriptions]
+    return (
+        ParagraphSection(
+            content="Appendix A. Instruments administered in Healthy Brain Network",
+            style="Heading 1",
+        ),
+        ParagraphSection(content=""),
+        *sections,
+    )
+
+
+def _description_to_section(description: appendix_a.TestDescription) -> Section:
+    """Converts a test description to a section."""
+    return ParagraphSection(
+        content=description.title,
+        style="Heading 2",
+        subsections=[
+            ParagraphSection(
+                content=description.description,
+            ),
+            RunsSection(
+                content=("Reference:", " " + description.reference),
+                run_styles=(RunStyles.Emphasis, None),
+            ),
+        ],
+    )
+
+
+def _extract_producers_used(
+    structure: Iterable[Section],
+) -> tuple[type[base.DataProducer], ...]:
+    """Extracts the data producers used in sections."""
+    producers = []
+    for section in structure:
+        section_tables: list[base.WordTableSection] = getattr(section, "tables", [])
+        producers.extend([tbl.data_source for tbl in section_tables])
+        producers.extend(_extract_producers_used(section.subsections))
+    return tuple(producers)
+
+
+def _get_alabaster_table_structure(
+    tables: _PyriteTableCollection,
+) -> tuple[Section, ...]:
+    """Defines the structure of the Alabaster tables."""
     return (
         ParagraphSection(content="Results Appendix", style="Heading 1 Centered"),
         ParagraphSection(
             content="General Intellectual Function",
             style="Heading 1",
-            condition=lambda: is_all_available(
+            condition=lambda: _all_tables_available(
                 tables.wisc_composite, tables.wisc_subtest
             ),
             subsections=[
@@ -273,7 +338,7 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
             title="Language Skills",
             level=1,
             tables=[tables.celf5, tables.language, tables.ctopp2],
-            condition=lambda: is_any_available(
+            condition=lambda: _any_table_available(
                 tables.celf5,
                 tables.language,
                 tables.ctopp2,
@@ -283,7 +348,7 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
         ParagraphSection(
             content="Social-Emotional and Behavioral Functioning Questionnaires",
             style="Heading 1 Centered",
-            condition=lambda: is_any_available(
+            condition=lambda: _any_table_available(
                 tables.cbcl,
                 tables.ysr,
                 tables.swan,
@@ -309,7 +374,7 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
                 ParagraphSection(
                     content="Attention Deficit-Hyperactivity Symptoms and Behaviors",
                     style="Heading 1",
-                    condition=lambda: is_any_available(
+                    condition=lambda: _any_table_available(
                         tables.swan,
                         tables.conners3,
                     ),
@@ -334,7 +399,7 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
                 ParagraphSection(
                     content="Autism Spectrum Symptoms and Behaviors",
                     style="Heading 1",
-                    condition=lambda: is_any_available(
+                    condition=lambda: _any_table_available(
                         tables.scq,
                         tables.srs,
                     ),
@@ -357,7 +422,7 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
                 ParagraphSection(
                     content="Depression and Anxiety Symptoms",
                     style="Heading 1",
-                    condition=lambda: is_any_available(
+                    condition=lambda: _any_table_available(
                         tables.mfq,
                         tables.scared,
                     ),
@@ -381,3 +446,18 @@ def _table_alabaster(mrn: str) -> tuple[Section, ...]:
             ],
         ),
     )
+
+
+def _any_table_available(*tbls: base.WordTableSection) -> bool:
+    """True if any table's data is available, false otherwise."""
+    return any(tbl.is_available() for tbl in tbls)
+
+
+def _all_tables_available(*tbls: base.WordTableSection) -> bool:
+    """True if all tables' data are available, false otherwise."""
+    return all(tbl.is_available() for tbl in tbls)
+
+
+def _flatten(collection: Iterable[Iterable[T]]) -> list[T]:
+    """Flattens an iterable of iterables into a flat list."""
+    return [item for sub_iterable in collection for item in sub_iterable]

@@ -70,6 +70,8 @@ SRS_ROW_LABELS = (
 class _SrsDataSource(base.DataProducer):
     """Fetches the data for the SRS table."""
 
+    test_ids = ("srs",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

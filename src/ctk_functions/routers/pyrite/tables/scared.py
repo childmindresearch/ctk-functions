@@ -105,6 +105,8 @@ SCARED_ROW_LABELS = (
 class _ScaredDataSource(base.DataProducer):
     """Fetches the data for the Scared table."""
 
+    test_ids = ("scared",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

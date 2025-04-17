@@ -123,6 +123,8 @@ LANGUAGE_ROW_LABELS = (
 class _LanguageDataSource(base.DataProducer):
     """Fetches the data for the Language table."""
 
+    test_ids = ("ctopp_2", "wiat_4")
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

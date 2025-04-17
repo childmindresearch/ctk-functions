@@ -127,6 +127,8 @@ CBCL_YSR_ROW_LABELS = {
 class _CbclDataSource(base.DataProducer):
     """Fetches the data for the CBCL table."""
 
+    test_ids = ("cbcl",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
@@ -169,6 +171,8 @@ class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
 
 class _YsrDataSource(base.DataProducer):
     """Fetches the data for the YSR table."""
+
+    test_ids = ()
 
     @classmethod
     @functools.lru_cache

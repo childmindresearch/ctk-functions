@@ -30,6 +30,8 @@ MFQ_ROW_LABELS = (
 class _MfqDataSource(base.DataProducer):
     """Fetches the data for the MFQ table."""
 
+    test_ids = ("mfq",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

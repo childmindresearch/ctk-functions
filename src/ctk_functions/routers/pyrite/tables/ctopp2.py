@@ -32,6 +32,8 @@ CTOPP2_ROW_LABELS = (
 class _Ctopp2DataSource(base.DataProducer):
     """Fetches the data for the CTOPP-2 table."""
 
+    test_ids = ("ctopp_2",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

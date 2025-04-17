@@ -30,6 +30,8 @@ PEGBOARD_ROW_LABELS = (
 class _GroovedPegboardDataSource(base.DataProducer):
     """Fetches the data for the Grooved Pegboard table."""
 
+    test_ids = ("grooved_pegboard",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

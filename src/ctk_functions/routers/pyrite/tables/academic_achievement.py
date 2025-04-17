@@ -136,6 +136,8 @@ ACADEMIC_ROW_LABELS = (
 class _AcademicAchievementDataSource(base.DataProducer):
     """Fetches the data for the academic achievement table."""
 
+    test_ids = ("towre_2", "wiat_4")
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

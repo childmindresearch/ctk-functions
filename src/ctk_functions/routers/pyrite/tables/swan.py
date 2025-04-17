@@ -61,6 +61,8 @@ SWAN_ROW_LABELS = (
 class _SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
+    test_ids = ("swan",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:

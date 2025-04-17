@@ -14,6 +14,7 @@ from docx.text import paragraph
 
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 
 logger = config.get_logger()
 
@@ -420,6 +421,11 @@ class DataProducer(abc.ABC):
         except TableDataNotFoundError:
             return False
         return True
+
+    @property
+    @abc.abstractmethod
+    def test_ids(self) -> tuple[appendix_a.TestId, ...]:
+        """The IDs of the tests used to produce this data."""
 
 
 class WordDocumentTableRenderer(pydantic.BaseModel):

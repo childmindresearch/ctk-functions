@@ -25,6 +25,8 @@ RELEVANCE = base.ClinicalRelevance(
 class _ScqDataSource(base.DataProducer):
     """Fetches and creates the SCQ table."""
 
+    test_ids = ()
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
@@ -49,6 +51,8 @@ class _ScqDataSource(base.DataProducer):
 
 class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Scq table."""
+
+    test_ids = ("scq",)
 
     def __init__(self, mrn: str) -> None:
         """Initializes the Scq renderer.

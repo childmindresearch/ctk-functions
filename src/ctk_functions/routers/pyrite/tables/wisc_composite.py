@@ -43,6 +43,8 @@ WISC_COMPOSITE_ROW_LABELS = (
 class _WiscCompositeDataSource(base.DataProducer):
     """Fetches data for and creates the WISC composite table."""
 
+    test_ids = ("wisc_5",)
+
     @classmethod
     @functools.lru_cache
     def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
