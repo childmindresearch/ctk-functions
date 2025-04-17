@@ -5,6 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import parent_child
 
@@ -18,7 +19,7 @@ MFQ_ROW_LABELS = (
                 low=26,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -31,8 +32,12 @@ class _MfqDataSource(base.DataProducer):
     """Fetches the data for the MFQ table."""
 
     @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("mfq",)
+
+    @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the MFQ data for a given mrn.
 
         Args:
@@ -41,7 +46,7 @@ class _MfqDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        return parent_child.build_parent_child_table(
+        return parent_child.fetch_parent_child_data(
             mrn,
             models.MfqParent,
             models.MfqSelf,
@@ -60,3 +65,6 @@ class MfqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _MfqDataSource
+        self.formatters = parent_child.fetch_parent_child_formatting(
+            row_labels=MFQ_ROW_LABELS
+        )

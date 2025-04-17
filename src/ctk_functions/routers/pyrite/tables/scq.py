@@ -3,17 +3,36 @@
 import functools
 
 import cmi_docx
+from docx import shared
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
+
+COLUMN_WIDTHS = (
+    shared.Cm(6.99),
+    shared.Cm(2),
+    shared.Cm(7.5),
+)
+
+RELEVANCE = base.ClinicalRelevance(
+    low=10,
+    high=None,
+    label="Evidence of clinical concern of ASD",
+    style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+)
 
 
 class _ScqDataSource(base.DataProducer):
     """Fetches and creates the SCQ table."""
 
     @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ()
+
+    @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the Scq data for a given mrn.
 
         Args:
@@ -23,32 +42,14 @@ class _ScqDataSource(base.DataProducer):
             The markup for the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Scq)
-        relevance = base.ClinicalRelevance(
-            low=10,
-            high=None,
-            label="Evidence of clinical concern of ASD",
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+        return (
+            ("Scale", "Score", "Clinical Relevance"),
+            (
+                "Social Communication Questionnaire",
+                f"{data.SCQ_Total:.0f}",
+                str(RELEVANCE),
+            ),
         )
-        formatter = base.Formatter(
-            conditional_styles=[
-                base.ConditionalStyle(
-                    condition=relevance.in_range,
-                    style=relevance.style,
-                ),
-            ],
-        )
-        header = [
-            base.WordTableCell(content="Scale"),
-            base.WordTableCell(content="Score"),
-            base.WordTableCell(content="Clinical Relevance"),
-        ]
-        content_row = [
-            base.WordTableCell(content="Social Communication Questionnaire"),
-            base.WordTableCell(content=f"{data.SCQ_Total:.0f}", formatter=formatter),
-            base.WordTableCell(content=str(relevance)),
-        ]
-
-        return base.WordTableMarkup(rows=[header, content_row])
 
 
 class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -62,3 +63,15 @@ class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _ScqDataSource
+        self.formatters = base.FormatProducer.produce(
+            n_rows=2,
+            column_widths=COLUMN_WIDTHS,
+            column_styles={
+                1: (
+                    base.ConditionalStyle(
+                        condition=RELEVANCE.in_range,
+                        style=RELEVANCE.style,
+                    ),
+                )
+            },
+        )

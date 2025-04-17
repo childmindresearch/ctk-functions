@@ -6,7 +6,9 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite.tables.scq import COLUMN_WIDTHS
 
 
 @dataclasses.dataclass
@@ -31,7 +33,7 @@ SWAN_ROW_LABELS = (
             high=None,
             label=None,
             low_inclusive=True,
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
     _SwanRowLabels(
@@ -41,7 +43,7 @@ SWAN_ROW_LABELS = (
             high=None,
             label=None,
             low_inclusive=True,
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
     _SwanRowLabels(
@@ -51,7 +53,7 @@ SWAN_ROW_LABELS = (
             high=None,
             label=None,
             low_inclusive=True,
-            style=cmi_docx.TableStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
+            style=cmi_docx.CellStyle(cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0))),
         ),
     ),
 )
@@ -61,22 +63,22 @@ class _SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
     @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("swan",)
+
+    @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the SWAN data for a given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Swan)
-        header = [
-            base.WordTableCell(content="Subscale"),
-            base.WordTableCell(content="Score"),
-            base.WordTableCell(content="Clinical Relevance"),
-        ]
+        header = ("Subscale", "Score", "Clinical Relevance")
 
         # Scores are clipped at 0, the total needs to be adjusted for clipped scores.
         scores = (
@@ -86,24 +88,10 @@ class _SwanDataSource(base.DataProducer):
         )
 
         content_rows = [
-            [
-                base.WordTableCell(content=label.name),
-                base.WordTableCell(
-                    content=f"{score:.2f}",
-                    formatter=base.Formatter(
-                        conditional_styles=[
-                            base.ConditionalStyle(
-                                condition=label.relevance.in_range,
-                                style=label.relevance.style,
-                            ),
-                        ],
-                    ),
-                ),
-                base.WordTableCell(content=str(label.relevance)),
-            ]
+            (label.name, f"{score:.2f}", str(label.relevance))
             for score, label in zip(scores, SWAN_ROW_LABELS, strict=False)
         ]
-        return base.WordTableMarkup(rows=[header, *content_rows])
+        return header, *content_rows
 
 
 class SwanTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -117,3 +105,19 @@ class SwanTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _SwanDataSource
+
+        relevance_styles = {
+            (index + 1, 1): (
+                base.ConditionalStyle(
+                    condition=label.relevance.in_range,
+                    style=label.relevance.style,
+                ),
+            )
+            for index, label in enumerate(SWAN_ROW_LABELS)
+        }
+
+        self.formatters = base.FormatProducer.produce(
+            n_rows=len(SWAN_ROW_LABELS) + 1,
+            column_widths=COLUMN_WIDTHS,
+            cell_styles=relevance_styles,
+        )

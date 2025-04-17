@@ -4,6 +4,7 @@ import dataclasses
 import functools
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -31,29 +32,26 @@ class _GroovedPegboardDataSource(base.DataProducer):
     """Fetches the data for the Grooved Pegboard table."""
 
     @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("grooved_pegboard",)
+
+    @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the Grooved Pegboard data for a given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.GroovedPegboard)
-        header = [
-            base.WordTableCell(content="Grooved Pegboard"),
-            base.WordTableCell(content="Z-Score"),
-            base.WordTableCell(content="Percentile"),
-            base.WordTableCell(content="Range"),
-        ]
-
+        header = ("Hand", "Z-Score", "Percentile", "Range")
         content_rows = [
             _create_pegboard_content_row(label, data) for label in PEGBOARD_ROW_LABELS
         ]
-
-        return base.WordTableMarkup(rows=[header, *content_rows])
+        return header, *content_rows
 
 
 class GroovedPegboardTable(
@@ -70,12 +68,15 @@ class GroovedPegboardTable(
         """
         self.mrn = mrn
         self.data_source = _GroovedPegboardDataSource
+        self.formatters = base.FormatProducer.produce(
+            n_rows=len(PEGBOARD_ROW_LABELS) + 1, column_widths=[None] * 4
+        )
 
 
 def _create_pegboard_content_row(
     label: _PegBoardRowLabels,
     data: models.GroovedPegboard,
-) -> list[base.WordTableCell]:
+) -> tuple[str, str, str, str]:
     """Creates a row for the pegboard table.
 
     Args:
@@ -89,12 +90,7 @@ def _create_pegboard_content_row(
     percentile = utils.normal_score_to_percentile(score, mean=0, std=1)
     qualifier = _grooved_pegboard_percentile_to_qualifier(percentile)
 
-    return [
-        base.WordTableCell(content=label.name),
-        base.WordTableCell(content=f"{score:.2f}"),
-        base.WordTableCell(content=f"{percentile:.0f}"),
-        base.WordTableCell(content=qualifier),
-    ]
+    return label.name, f"{score:.2f}", f"{percentile:.0f}", qualifier
 
 
 def _grooved_pegboard_percentile_to_qualifier(percentile: float) -> str:  # noqa: PLR0911
