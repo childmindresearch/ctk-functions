@@ -55,15 +55,6 @@ class _ScqDataSource(base.DataProducer):
 class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
     """Renderer for the Scq table."""
 
-    @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
-        """The IDs of the tests used to produce this data.
-
-        Args:
-            mrn: The MRN of the test data.
-        """
-        return ()
-
     def __init__(self, mrn: str) -> None:
         """Initializes the Scq renderer.
 
