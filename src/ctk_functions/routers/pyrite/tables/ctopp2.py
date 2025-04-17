@@ -4,6 +4,7 @@ import dataclasses
 import functools
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -32,7 +33,9 @@ CTOPP2_ROW_LABELS = (
 class _Ctopp2DataSource(base.DataProducer):
     """Fetches the data for the CTOPP-2 table."""
 
-    test_ids = ("ctopp_2",)
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("ctopp_2",)
 
     @classmethod
     @functools.lru_cache

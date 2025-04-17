@@ -422,10 +422,14 @@ class DataProducer(abc.ABC):
             return False
         return True
 
-    @property
+    @classmethod
     @abc.abstractmethod
-    def test_ids(self) -> tuple[appendix_a.TestId, ...]:
-        """The IDs of the tests used to produce this data."""
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+        """The IDs of the tests used to produce this data.
+
+        Args:
+            mrn: The MRN of the test data.
+        """
 
 
 class WordDocumentTableRenderer(pydantic.BaseModel):

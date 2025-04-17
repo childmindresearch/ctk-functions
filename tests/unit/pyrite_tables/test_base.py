@@ -1,10 +1,13 @@
 """Tests for the Pyrite tables base module."""
 
+import functools
+
 import cmi_docx
 import docx
 import pytest
 from docx import document, table
 
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base
 
 BOLD_TABLE_STYLE = cmi_docx.CellStyle(cmi_docx.ParagraphStyle(bold=True))
@@ -186,12 +189,18 @@ def test_add_to_procotol() -> None:
         pass
 
     class DataSource(base.DataProducer):
-        def fetch(self, mrn: str) -> None:  # type: ignore[override]
-            pass
+        @classmethod
+        @functools.lru_cache
+        def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:  # noqa: ARG003
+            return ((),)
+
+        @classmethod
+        def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+            return ()
 
     class Valid:
         mrn = "a"
-        data_source = DataSource()  # type: ignore[abstract]
+        data_source = DataSource()
         formatters = ((base.Formatter(),),)
 
     assert not isinstance(NotValid, base._AddToProtocol)

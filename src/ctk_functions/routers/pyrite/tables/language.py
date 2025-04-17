@@ -9,6 +9,7 @@ import sqlalchemy
 from docx import shared
 
 from ctk_functions.microservices.sql import client, models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -123,7 +124,15 @@ LANGUAGE_ROW_LABELS = (
 class _LanguageDataSource(base.DataProducer):
     """Fetches the data for the Language table."""
 
-    test_ids = ("ctopp_2", "wiat_4")
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+        tests = [row[0] for row in cls.fetch(mrn)]
+        test_ids: list[appendix_a.TestId] = []
+        if any("ctopp" in test.lower() for test in tests):
+            test_ids.append("ctopp_2")
+        if any("wiat" in test.lower() for test in tests):
+            test_ids.append("wiat_4")
+        return tuple(test_ids)
 
     @classmethod
     @functools.lru_cache

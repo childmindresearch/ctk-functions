@@ -9,6 +9,7 @@ from docx import shared
 from starlette import status
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -92,7 +93,9 @@ WISC_SUBTEST_ROW_LABELS = (
 class _WiscSubtestDataSource(base.DataProducer):
     """Fetches the data for the WISC table."""
 
-    test_ids = ("wisc_5",)
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("wisc_5",)
 
     @classmethod
     @functools.lru_cache

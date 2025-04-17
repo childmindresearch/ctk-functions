@@ -5,6 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 from ctk_functions.routers.pyrite.tables.generic import tscore
 
@@ -127,7 +128,9 @@ CBCL_YSR_ROW_LABELS = {
 class _CbclDataSource(base.DataProducer):
     """Fetches the data for the CBCL table."""
 
-    test_ids = ("cbcl",)
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("cbcl",)
 
     @classmethod
     @functools.lru_cache
@@ -172,7 +175,9 @@ class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
 class _YsrDataSource(base.DataProducer):
     """Fetches the data for the YSR table."""
 
-    test_ids = ()
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ()
 
     @classmethod
     @functools.lru_cache

@@ -246,7 +246,7 @@ def _table_sections_to_appendix_a(
         producer for producer in used_producers if producer.is_available(mrn)
     ]
     test_ids: list[appendix_a.TestId] = _flatten(
-        [tbl.test_ids for tbl in available_producers]  # type: ignore[misc]
+        [tbl.test_ids(mrn) for tbl in available_producers]
     )
     unique_test_ids = sorted(dict.fromkeys(test_ids))
     descriptions = appendix_a.TestDescriptionManager()

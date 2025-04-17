@@ -6,6 +6,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 from ctk_functions.routers.pyrite.tables.scq import COLUMN_WIDTHS
 
@@ -61,7 +62,9 @@ SWAN_ROW_LABELS = (
 class _SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
-    test_ids = ("swan",)
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("swan",)
 
     @classmethod
     @functools.lru_cache
