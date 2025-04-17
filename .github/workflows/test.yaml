@@ -90,3 +90,17 @@ jobs:
     - run: |
         uv sync
         uv run mypy .
+
+  deptry:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv
+      run: pipx install uv
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: pip
+    - run: |-
+        uv sync
+        uv run deptry ./src
