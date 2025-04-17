@@ -5,20 +5,21 @@ description = "Clinician Toolkit API."
 readme = "README.md"
 requires-python = ">=3.12, <3.13"
 dependencies = [
-  "aiofiles>=24.1.0",
   "aiohttp>=3.11.11",
   "fastapi[standard]>=0.115.6",
   "pycap>=2.6.0",
   "pydantic>=2.10.4",
   "pydantic-settings>=2.7.0",
-  "pypandoc-binary>=1.14",
   "python-dateutil>=2.9.0.post0",
   "pytz>=2024.2",
   "spacy>=3.8.3",
   "en-core-web-sm",
   "jsonpickle>=4.0.1",
   "tenacity>=9.0.0",
-  "cmi-docx>=0.3.11"
+  "cmi-docx>=0.3.11",
+  "starlette>=0.41.3",
+  "pypandoc-binary>=1.15",
+  "python-docx>=1.1.2"
 ]
 
 [tool.uv]
@@ -34,7 +35,8 @@ dev-dependencies = [
   "types-aiofiles>=24.1.0.20241221",
   "types-python-dateutil>=2.9.0.20241206",
   "types-pytz>=2024.2.0.20241221",
-  "types-requests>=2.32.0.20241016"
+  "types-requests>=2.32.0.20241016",
+  "deptry>=0.23.0"
 ]
 
 [tool.uv.sources]
@@ -118,6 +120,12 @@ min_confidence = 80
 paths = ["src"]
 sort_by_size = true
 verbose = true
+
+[tool.deptry.package_module_name_map]
+en-core-web-sm = "spacy"
+pycap = "redcap"
+pypandoc-binary = "pypandoc"
+python-docx = "docx"
 
 [build-system]
 requires = ["hatchling"]
