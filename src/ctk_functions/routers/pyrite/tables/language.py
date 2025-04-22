@@ -168,8 +168,7 @@ class _LanguageDataSource(base.DataProducer):
             "Ctopp2": 1,
         }
         data_table = data[table_indices[label.table]]
-        if label.score_column and not getattr(data_table, label.score_column):
-            # Rows without data should be omitted.
+        if label.score_column and getattr(data_table, label.score_column) is None:
             return None
 
         if not label.score_column:
