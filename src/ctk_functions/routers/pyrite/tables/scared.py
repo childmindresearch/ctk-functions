@@ -18,7 +18,7 @@ SCARED_ROW_LABELS = (
                 low=6,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -33,7 +33,7 @@ SCARED_ROW_LABELS = (
                 low=8,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -48,7 +48,7 @@ SCARED_ROW_LABELS = (
                 low=4,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -63,7 +63,7 @@ SCARED_ROW_LABELS = (
                 low=7,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -78,7 +78,7 @@ SCARED_ROW_LABELS = (
                 low=2,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -93,7 +93,7 @@ SCARED_ROW_LABELS = (
                 low=24,
                 high=None,
                 label=None,
-                style=cmi_docx.TableStyle(
+                style=cmi_docx.CellStyle(
                     cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
                 ),
             ),
@@ -107,7 +107,7 @@ class _ScaredDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches the Scared data for a given mrn.
 
         Args:
@@ -116,7 +116,7 @@ class _ScaredDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        return parent_child.build_parent_child_table(
+        return parent_child.fetch_parent_child_data(
             mrn,
             models.ScaredParent,
             models.ScaredSelf,
@@ -135,3 +135,6 @@ class ScaredTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _ScaredDataSource
+        self.formatters = parent_child.fetch_parent_child_formatting(
+            row_labels=SCARED_ROW_LABELS, top_border_rows=(-1,)
+        )

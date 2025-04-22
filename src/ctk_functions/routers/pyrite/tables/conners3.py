@@ -28,19 +28,19 @@ CLINICAL_RELEVANCE = [
         low=None,
         high=57,
         label="typical range",
-        style=cmi_docx.TableStyle(),
+        style=cmi_docx.CellStyle(),
     ),
     base.ClinicalRelevance(
         low=57,
         high=63,
         label="borderline range",
-        style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
+        style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
     base.ClinicalRelevance(
         low=63,
         high=None,
         label="clinically relevant impairment",
-        style=cmi_docx.TableStyle(
+        style=cmi_docx.CellStyle(
             paragraph=cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
         ),
     ),
@@ -81,17 +81,17 @@ class _Conners3DataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches Conners3 data for the given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Conners3)
-        return tscore.build_tscore_table(data, CONNERS3_ROW_LABELS)
+        return tscore.fetch_tscore_data(data, CONNERS3_ROW_LABELS)
 
 
 class Conners3Table(
@@ -108,3 +108,4 @@ class Conners3Table(
         """
         self.mrn = mrn
         self.data_source = _Conners3DataSource
+        self.formatters = tscore.fetch_tscore_formatters(row_labels=CONNERS3_ROW_LABELS)

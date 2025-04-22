@@ -16,20 +16,20 @@ CLINICAL_RELEVANCE_HIGH = [
         high=65,
         high_inclusive=False,
         label="typical range",
-        style=cmi_docx.TableStyle(),
+        style=cmi_docx.CellStyle(),
     ),
     base.ClinicalRelevance(
         low=65,
         high=70,
         low_inclusive=True,
         label="borderline range",
-        style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
+        style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
     base.ClinicalRelevance(
         low=70,
         high=None,
         label="clinically relevant impairment",
-        style=cmi_docx.TableStyle(
+        style=cmi_docx.CellStyle(
             paragraph=cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
         ),
     ),
@@ -41,20 +41,20 @@ CLINICAL_RELEVANCE_LOW = [
         high=60,
         high_inclusive=False,
         label="typical range",
-        style=cmi_docx.TableStyle(),
+        style=cmi_docx.CellStyle(),
     ),
     base.ClinicalRelevance(
         low=60,
         high=65,
         low_inclusive=True,
         label="borderline range",
-        style=cmi_docx.TableStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
+        style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True)),
     ),
     base.ClinicalRelevance(
         low=65,
         high=None,
         label="clinically relevant impairment",
-        style=cmi_docx.TableStyle(
+        style=cmi_docx.CellStyle(
             paragraph=cmi_docx.ParagraphStyle(font_rgb=(255, 0, 0)),
         ),
     ),
@@ -129,17 +129,17 @@ class _CbclDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches CBCL data for the given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Cbcl)
-        return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["CBCL"])
+        return tscore.fetch_tscore_data(data, CBCL_YSR_ROW_LABELS["CBCL"])
 
 
 class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -153,6 +153,18 @@ class CbclTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _CbclDataSource
+        labels = CBCL_YSR_ROW_LABELS["CBCL"]
+        border_index = (
+            next(
+                index
+                for index, label in enumerate(labels)
+                if label.relevance == CLINICAL_RELEVANCE_LOW
+            )
+            + 1
+        )
+        self.formatters = tscore.fetch_tscore_formatters(
+            labels, top_border_rows=(border_index,)
+        )
 
 
 class _YsrDataSource(base.DataProducer):
@@ -160,17 +172,17 @@ class _YsrDataSource(base.DataProducer):
 
     @classmethod
     @functools.lru_cache
-    def fetch(cls, mrn: str) -> base.WordTableMarkup:
+    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
         """Fetches YSR data for the given mrn.
 
         Args:
             mrn: The participant's unique identifier.
 
         Returns:
-            The markup for the Word table.
+            The text contents of the Word table.
         """
         data = utils.fetch_participant_row("EID", mrn, models.Ysr)
-        return tscore.build_tscore_table(data, CBCL_YSR_ROW_LABELS["YSR"])
+        return tscore.fetch_tscore_data(data, CBCL_YSR_ROW_LABELS["YSR"])
 
 
 class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
@@ -184,3 +196,16 @@ class YsrTable(base.WordTableSectionAddToMixin, base.WordTableSection):
         """
         self.mrn = mrn
         self.data_source = _YsrDataSource
+
+        labels = CBCL_YSR_ROW_LABELS["YSR"]
+        border_index = (
+            next(
+                index
+                for index, label in enumerate(labels)
+                if label.relevance == CLINICAL_RELEVANCE_LOW
+            )
+            + 1
+        )
+        self.formatters = tscore.fetch_tscore_formatters(
+            labels, top_border_rows=(border_index,)
+        )
