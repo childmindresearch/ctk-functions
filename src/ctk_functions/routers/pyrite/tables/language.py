@@ -130,7 +130,6 @@ class _LanguageDataSource(base.DataProducer):
         """
         data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
         header = ("Test", "Subtest", "Standard Score", "Percentile", "Range")
-        header = ("Test", "Subtest", "Standard Score", "Percentile", "Range")
 
         content_rows = [
             cls._get_content_row(data, label) for label in LANGUAGE_ROW_LABELS
