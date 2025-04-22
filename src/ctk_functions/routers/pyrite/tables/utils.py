@@ -68,7 +68,8 @@ def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
     Returns:
         The EID of the participant.
     """
-    logger.debug("Fetching participant %s.", mrn)
+    sanitized_mrn = mrn.replace('\r', '').replace('\n', '')
+    logger.debug("Fetching participant %s.", sanitized_mrn)
     with client.get_session() as session:
         participant = session.execute(
             sqlalchemy.select(models.CmiHbnIdTrack).where(
@@ -108,7 +109,8 @@ def fetch_participant_row(
     Returns:
         The participant's row in the given table.
     """
-    logger.debug("Fetching table %s, participant %s.", table.__name__, mrn)
+    sanitized_mrn = mrn.replace('\r', '').replace('\n', '')
+    logger.debug("Fetching table %s, participant %s.", table.__name__, sanitized_mrn)
     identifier = getattr(mrn_to_ids(mrn), id_property)
     statement = sqlalchemy.select(table).where(
         getattr(table, id_property) == identifier,
@@ -117,7 +119,7 @@ def fetch_participant_row(
     with client.get_session() as session:
         data = session.execute(statement).scalar_one_or_none()
 
-    logger.debug("Fetched table %s, participant %s,", table.__name__, mrn)
+    logger.debug("Fetched table %s, participant %s,", table.__name__, sanitized_mrn)
     if data:
         return data
 
