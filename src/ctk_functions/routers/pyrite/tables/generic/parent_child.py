@@ -82,7 +82,7 @@ def fetch_parent_child_formatting(
     }
     if top_border_rows is None:
         top_border_rows = []
-    row_styles = dict.fromkeys(top_border_rows, (base.Styles.THICK_TOP_BORDER.value,))
+    row_styles = dict.fromkeys(top_border_rows, (base.Styles.THICK_TOP_BORDER,))
     return base.FormatProducer.produce(
         n_rows=len(row_labels) + 1,
         column_widths=COLUMN_WIDTHS,
