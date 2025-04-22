@@ -70,7 +70,7 @@ def fetch_tscore_formatters(
     if top_border_rows is None:
         top_border_rows = []
 
-    top_borders = dict.fromkeys(top_border_rows, (base.Styles.THICK_TOP_BORDER.value,))
+    top_borders = dict.fromkeys(top_border_rows, (base.Styles.THICK_TOP_BORDER,))
 
     return base.FormatProducer.produce(
         n_rows=len(row_labels) + 1,

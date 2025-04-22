@@ -1,10 +1,12 @@
 """Base class definition for all tables."""
 
 import abc
-import enum
+import contextlib
+import copy
+import dataclasses
 import functools
-from collections.abc import Callable, Iterable, Mapping, Sequence
-from typing import Protocol, Self, TypeVar, runtime_checkable
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
+from typing import Literal, Protocol, Self, TypeVar, cast, runtime_checkable
 
 import cmi_docx
 import pydantic
@@ -52,8 +54,27 @@ class ConditionalStyle(pydantic.BaseModel):
                 cmi_docx.ExtendCell(cell).format(self.style)
 
 
-class Styles(enum.Enum):
+@dataclasses.dataclass(frozen=True)
+class Styles:
     """Standard styles used throughout the tables."""
+
+    @classmethod
+    @contextlib.contextmanager
+    def get(
+        cls, attr: Literal["BOLD", "LEFT_ALIGN", "THICK_TOP_BORDER"]
+    ) -> Generator[ConditionalStyle, None, None]:
+        """Creates a copy of an attribute's value.
+
+        Used when the style needs to be modified before its used.
+
+        Args:
+            attr: The attribute to copy.
+
+        Returns:
+            A copy of the attribute's value.
+        """
+        style = copy.deepcopy(getattr(cls, attr))
+        yield cast("ConditionalStyle", style)
 
     BOLD = ConditionalStyle(
         style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True))
@@ -295,15 +316,11 @@ class FormatProducer:
             global_style = default_table_style_factory()
 
         formatters = tuple(
-            [
-                tuple(
-                    [
-                        Formatter(width=width, conditional_styles=global_style)
-                        for width in column_widths
-                    ]
-                )
-                for _ in range(n_rows)
-            ]
+            tuple(
+                Formatter(width=width, conditional_styles=global_style)
+                for width in column_widths
+            )
+            for _ in range(n_rows)
         )
 
         if rows_first:
