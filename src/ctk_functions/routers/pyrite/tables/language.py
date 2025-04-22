@@ -1,6 +1,5 @@
 """Module for inserting the language table."""
 
-import copy
 import dataclasses
 import functools
 from typing import Literal
@@ -179,8 +178,7 @@ class _LanguageDataSource(base.DataProducer):
             "Ctopp2": 1,
         }
         data_table = data[table_indices[label.table]]
-        if label.score_column and not getattr(data_table, label.score_column):
-            # Rows without data should be omitted.
+        if label.score_column and getattr(data_table, label.score_column) is None:
             return None
 
         if not label.score_column:
@@ -209,12 +207,11 @@ def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
           A list of lists of formatters, where the first list represents rows
           and the second columns.
     """
-    bold_aggregate = copy.deepcopy(base.Styles.BOLD.value)
-    bold_aggregate.condition = lambda text: not text.startswith("\t")
-    subtest_formatting = {
-        (index, 1): (base.Styles.LEFT_ALIGN.value, bold_aggregate)
-        for index in range(1, n_rows)
-    }
+    with base.Styles.get("BOLD") as style:
+        style.condition = lambda text: not text.startswith("\t")
+        subtest_formatting = {
+            (index, 1): (base.Styles.LEFT_ALIGN, style) for index in range(1, n_rows)
+        }
     return base.FormatProducer.produce(
         n_rows=n_rows,
         column_widths=COLUMN_WIDTHS,

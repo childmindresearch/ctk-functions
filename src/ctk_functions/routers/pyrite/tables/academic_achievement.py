@@ -1,6 +1,5 @@
 """Module for inserting the academic achievement table."""
 
-import copy
 import dataclasses
 import functools
 
@@ -62,7 +61,7 @@ ACADEMIC_ROW_LABELS = (
         domain="Reading",
         subtest="TOWRE-2 Total Word Reading Efficiency",
         score_column="TOWRE_Total_S",
-        style=base.Styles.BOLD.value,
+        style=base.Styles.BOLD,
     ),
     AcademicRowLabels(
         domain="Reading",
@@ -78,7 +77,7 @@ ACADEMIC_ROW_LABELS = (
         domain="Writing",
         subtest="WIAT-4 Sentence Composition",
         score_column="WIAT_SComp_Std",
-        style=base.Styles.BOLD.value,
+        style=base.Styles.BOLD,
     ),
     AcademicRowLabels(
         domain="Writing",
@@ -114,7 +113,7 @@ ACADEMIC_ROW_LABELS = (
         domain="Math",
         subtest="WIAT-4 Math Fluency",
         score_column="WIAT_MF_S",
-        style=base.Styles.BOLD.value,
+        style=base.Styles.BOLD,
     ),
     AcademicRowLabels(
         domain="Math",
@@ -202,15 +201,15 @@ class AcademicAchievementTable(
         bold_subtests = [
             label.subtest
             for label in ACADEMIC_ROW_LABELS
-            if label.style == base.Styles.BOLD.value
+            if label.style == base.Styles.BOLD
         ]
-        bold_aggregates = copy.deepcopy(base.Styles.BOLD.value)
-        bold_aggregates.condition = lambda text: text in bold_subtests
-        self.formatters = base.FormatProducer.produce(
-            n_rows=len(self.data_source.fetch(mrn)),
-            column_widths=COLUMN_WIDTHS,
-            merge_top=(0,),
-            column_styles={
-                1: (base.Styles.LEFT_ALIGN.value, bold_aggregates),
-            },
-        )
+        with base.Styles.get("BOLD") as style:
+            style.condition = lambda text: text in bold_subtests
+            self.formatters = base.FormatProducer.produce(
+                n_rows=len(self.data_source.fetch(mrn)),
+                column_widths=COLUMN_WIDTHS,
+                merge_top=(0,),
+                column_styles={
+                    1: (base.Styles.LEFT_ALIGN, style),
+                },
+            )
