@@ -5,6 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 from ctk_functions.routers.pyrite.tables.generic import tscore
 
@@ -69,6 +70,10 @@ SRS_ROW_LABELS = (
 
 class _SrsDataSource(base.DataProducer):
     """Fetches the data for the SRS table."""
+
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("srs",)
 
     @classmethod
     @functools.lru_cache

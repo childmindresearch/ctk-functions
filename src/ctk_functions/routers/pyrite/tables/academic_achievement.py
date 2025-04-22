@@ -3,9 +3,11 @@
 import dataclasses
 import functools
 
+import cmi_docx
 from docx import shared
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -33,6 +35,10 @@ class AcademicRowLabels:
     score_column: str
     style: base.ConditionalStyle | None = None
 
+
+BOLD_STYLE = base.ConditionalStyle(
+    style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True))
+)
 
 # Defines the rows and their order of appearance.
 ACADEMIC_ROW_LABELS = (
@@ -129,6 +135,16 @@ ACADEMIC_ROW_LABELS = (
 
 class _AcademicAchievementDataSource(base.DataProducer):
     """Fetches the data for the academic achievement table."""
+
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+        subtests = [row[1] for row in cls.fetch(mrn)]
+        test_ids: list[appendix_a.TestId] = []
+        if any("towre" in test.lower() for test in subtests):
+            test_ids.append("towre_2")
+        if any("wiat" in test.lower() for test in subtests):
+            test_ids.append("wiat_4")
+        return tuple(test_ids)
 
     @classmethod
     @functools.lru_cache

@@ -5,6 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import parent_child
 
@@ -29,6 +30,10 @@ MFQ_ROW_LABELS = (
 
 class _MfqDataSource(base.DataProducer):
     """Fetches the data for the MFQ table."""
+
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("mfq",)
 
     @classmethod
     @functools.lru_cache

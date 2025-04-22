@@ -5,6 +5,7 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import parent_child
 
@@ -104,6 +105,10 @@ SCARED_ROW_LABELS = (
 
 class _ScaredDataSource(base.DataProducer):
     """Fetches the data for the Scared table."""
+
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ("scared",)
 
     @classmethod
     @functools.lru_cache

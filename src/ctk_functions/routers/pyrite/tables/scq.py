@@ -6,6 +6,7 @@ import cmi_docx
 from docx import shared
 
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -24,6 +25,10 @@ RELEVANCE = base.ClinicalRelevance(
 
 class _ScqDataSource(base.DataProducer):
     """Fetches and creates the SCQ table."""
+
+    @classmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        return ()
 
     @classmethod
     @functools.lru_cache

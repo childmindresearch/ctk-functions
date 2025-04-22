@@ -16,6 +16,7 @@ from docx.text import paragraph
 
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import appendix_a
 
 logger = config.get_logger()
 
@@ -438,6 +439,15 @@ class DataProducer(abc.ABC):
             return False
         return True
 
+    @classmethod
+    @abc.abstractmethod
+    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+        """The IDs of the tests used to produce this data.
+
+        Args:
+            mrn: The MRN of the test data.
+        """
+
 
 class WordDocumentTableRenderer(pydantic.BaseModel):
     """Creates Word tables.
@@ -538,7 +548,7 @@ class WordTableSection(abc.ABC):
 
 @runtime_checkable
 class _AddToProtocol(Protocol):
-    """Protocol defining what's required to use the AddToMixin."""
+    """Protocol defining what's required to use the WordTableSectionAddToMixin."""
 
     @property
     def mrn(self) -> str:
