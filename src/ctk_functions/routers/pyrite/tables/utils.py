@@ -68,7 +68,7 @@ def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
     Returns:
         The EID of the participant.
     """
-    sanitized_mrn = mrn.replace('\r', '').replace('\n', '')
+    sanitized_mrn = mrn.replace("\r", "").replace("\n", "")
     logger.debug("Fetching participant %s.", sanitized_mrn)
     with client.get_session() as session:
         participant = session.execute(
@@ -80,10 +80,10 @@ def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
     if not participant:
         raise fastapi.HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"MRN {mrn} could not be converted to EID.",
+            detail=f"MRN {sanitized_mrn } could not be converted to EID.",
         )
 
-    logger.debug("Fetched participant %s.", mrn)
+    logger.debug("Fetched participant %s.", sanitized_mrn)
     return UniqueIdentifiers(
         MRN=mrn,
         EID=participant.GUID,
@@ -109,7 +109,7 @@ def fetch_participant_row(
     Returns:
         The participant's row in the given table.
     """
-    sanitized_mrn = mrn.replace('\r', '').replace('\n', '')
+    sanitized_mrn = mrn.replace("\r", "").replace("\n", "")
     logger.debug("Fetching table %s, participant %s.", table.__name__, sanitized_mrn)
     identifier = getattr(mrn_to_ids(mrn), id_property)
     statement = sqlalchemy.select(table).where(
@@ -123,7 +123,7 @@ def fetch_participant_row(
     if data:
         return data
 
-    msg = f"Table data not found for {mrn}."
+    msg = f"Table data not found for {sanitized_mrn }."
     raise base.TableDataNotFoundError(msg)
 
 
