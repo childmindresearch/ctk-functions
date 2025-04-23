@@ -35,6 +35,37 @@ def test_guardian_parser_other_relationship(
     assert guardian.relationship == test_redcap_data.other_relation
 
 
+def test_guardian_parser_title(
+    test_redcap_data: redcap.RedCapData,
+) -> None:
+    """Tests default title parsing."""
+    test_redcap_data = test_redcap_data.model_copy(
+        update={
+            "title": redcap.GuardianTitle.Mr,
+        },
+    )
+
+    guardian = parser.Guardian(test_redcap_data)
+
+    assert guardian.title == "Mr."
+
+
+def test_guardian_parser_title_other(
+    test_redcap_data: redcap.RedCapData,
+) -> None:
+    """Tests other title parsing.."""
+    test_redcap_data = test_redcap_data.model_copy(
+        update={
+            "title": redcap.GuardianTitle.Other,
+            "title_other": "Jedi",
+        },
+    )
+
+    guardian = parser.Guardian(test_redcap_data)
+
+    assert guardian.title == "Jedi"
+
+
 def test_household_parser(
     test_redcap_data: redcap.RedCapData,
 ) -> None:
