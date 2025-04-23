@@ -1,6 +1,6 @@
 """Tests for the table implementations."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -20,6 +20,9 @@ from ctk_functions.routers.pyrite.tables import (
     wisc_subtest,
 )
 from ctk_functions.routers.pyrite.tables.generic import tscore
+
+if TYPE_CHECKING:
+    from ctk_functions.routers.pyrite import appendix_a
 
 
 @pytest.mark.parametrize(
@@ -99,7 +102,7 @@ def test_data_sources(
 def test_t_score_data_producer(mock_sql_calls: None) -> None:
     """Tests the t-score data producer factory."""
     model = models.Cbcl
-    test_ids = ("cbcl",)
+    test_ids: tuple[appendix_a.TestId] = ("cbcl",)
     labels = [
         tscore.TScoreRowLabel(subscale="CBCL", score_column="CBCL_AD_T", relevance=[])
     ]
