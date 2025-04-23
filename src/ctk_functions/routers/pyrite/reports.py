@@ -14,7 +14,7 @@ from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
-    cbcl_ysr,
+    cbc,
     celf5,
     conners3,
     ctopp2,
@@ -173,8 +173,9 @@ class _PyriteTableCollection:
 
     def __init__(self, mrn: str) -> None:
         """Initializes all tables."""
+        self.asr = cbc.AsrTable(mrn)
         self.academic_achievement = academic_achievement.AcademicAchievementTable(mrn)
-        self.cbcl = cbcl_ysr.CbclTable(mrn)
+        self.cbcl = cbc.CbclTable(mrn)
         self.celf5 = celf5.Celf5Table(mrn)
         self.conners3 = conners3.Conners3Table(mrn)
         self.ctopp2 = ctopp2.Ctopp2Table(mrn)
@@ -185,9 +186,10 @@ class _PyriteTableCollection:
         self.scq = scq.ScqTable(mrn)
         self.srs = srs.SrsTable(mrn)
         self.swan = swan.SwanTable(mrn)
+        self.trf = cbc.TrfTable(mrn)
         self.wisc_composite = wisc_composite.WiscCompositeTable(mrn)
         self.wisc_subtest = wisc_subtest.WiscSubtestTable(mrn)
-        self.ysr = cbcl_ysr.YsrTable(mrn)
+        self.ysr = cbc.YsrTable(mrn)
 
 
 def get_report_structure(
@@ -370,6 +372,18 @@ def _get_alabaster_table_structure(
                     level=3,
                     tables=[tables.ysr],
                     condition=lambda: tables.ysr.is_available(),
+                ),
+                TableSection(
+                    title="Child Behavior Checklist - Teacher Report Form (TRF)",
+                    level=3,
+                    tables=[tables.trf],
+                    condition=lambda: tables.trf.is_available(),
+                ),
+                TableSection(
+                    title="Child Behavior Checklist - Adult Self Report Form (ASR)",
+                    level=3,
+                    tables=[tables.asr],
+                    condition=lambda: tables.asr.is_available(),
                 ),
                 ParagraphSection(
                     content="Attention Deficit-Hyperactivity Symptoms and Behaviors",
