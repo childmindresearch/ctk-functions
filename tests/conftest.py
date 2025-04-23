@@ -53,7 +53,7 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
     if table == models.Asr:
         columns = [label.score_column for label in cbc.get_row_labels(cbc.CbcTests.ASR)]
         default_value = 100
-    if table == models.Cbcl:
+    elif table == models.Cbcl:
         columns = [
             label.score_column for label in cbc.get_row_labels(cbc.CbcTests.CBCL)
         ]
