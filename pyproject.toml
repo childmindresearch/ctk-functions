@@ -20,6 +20,8 @@ dependencies = [
     "sqlalchemy>=2.0.39",
     "cmi-docx>=0.4.0",
     "psycopg2>=2.9.10",
+    "docx>=0.2.4",
+    "starlette>=0.41.3",
 ]
 
 [tool.uv]
@@ -142,6 +144,9 @@ en-core-web-sm = "spacy"
 pycap = "redcap"
 pypandoc-binary = "pypandoc"
 python-docx = "docx"
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["psycopg2"]
 
 [build-system]
 requires = ["hatchling"]
