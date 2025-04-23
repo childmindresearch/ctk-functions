@@ -76,13 +76,13 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
         default_value = 100
     elif table == models.SummaryScores:
         columns = [
-            label.score_column
+            label.score_column  # type: ignore[attr-defined]
             for label in [
                 *academic_achievement.ACADEMIC_ROW_LABELS,
                 *language.LANGUAGE_ROW_LABELS,
                 *ctopp2.CTOPP2_ROW_LABELS,
             ]
-            if label.score_column is not None
+            if label.score_column is not None  # type: ignore[attr-defined]
         ]
         default_value = 100
     elif table == models.Swan:
