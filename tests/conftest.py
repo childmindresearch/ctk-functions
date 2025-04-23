@@ -62,9 +62,6 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
     elif table == models.CmiHbnIdTrack:
         columns = ["first_name", "last_name", "GUID", "MRN", "person_id"]
         default_value = "abc"
-    elif table == models.Ctopp2:
-        columns = [label.score_column for label in ctopp2.CTOPP2_ROW_LABELS]
-        default_value = 100
     elif table == models.Gars:
         columns = ["GARS_AI", "GARS_AI_Perc"]
         default_value = 100
@@ -78,9 +75,14 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
         columns = [label.score_column for label in srs.SRS_ROW_LABELS]
         default_value = 100
     elif table == models.SummaryScores:
-        # Currently only used in academic_achievement.
         columns = [
-            label.score_column for label in academic_achievement.ACADEMIC_ROW_LABELS
+            label.score_column  # type: ignore[attr-defined]
+            for label in [
+                *academic_achievement.ACADEMIC_ROW_LABELS,
+                *language.LANGUAGE_ROW_LABELS,
+                *ctopp2.CTOPP2_ROW_LABELS,
+            ]
+            if label.score_column is not None  # type: ignore[attr-defined]
         ]
         default_value = 100
     elif table == models.Swan:
@@ -133,24 +135,6 @@ def _mock_parent_child_sql_request(
     )
 
 
-def _mock_get_language_data(mrn: str) -> list[object]:
-    """Creates mock data for the language table."""
-    summary_scores_columns = [
-        label.score_column
-        for label in language.LANGUAGE_ROW_LABELS
-        if label.table == "SummaryScores" and label.score_column is not None
-    ]
-    ctopp2_columns = [
-        label.score_column
-        for label in language.LANGUAGE_ROW_LABELS
-        if label.table == "Ctopp2" and label.score_column is not None
-    ]
-    return [
-        _mock_from_column_names(summary_scores_columns, 100),
-        _mock_from_column_names(ctopp2_columns, 100),
-    ]
-
-
 @pytest.fixture
 def mock_sql_calls(mocker: pytest_mock.MockerFixture) -> None:
     """Mocks requests to the SQL database."""
@@ -161,8 +145,4 @@ def mock_sql_calls(mocker: pytest_mock.MockerFixture) -> None:
     mocker.patch(
         "ctk_functions.routers.pyrite.tables.generic.parent_child._parent_child_sql_request",
         side_effect=_mock_parent_child_sql_request,
-    )
-    mocker.patch(
-        "ctk_functions.routers.pyrite.tables.language._get_data",
-        side_effect=_mock_get_language_data,
     )

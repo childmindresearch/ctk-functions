@@ -34,12 +34,12 @@ jobs:
       AZURE_OPENAI_ENDPOINT: test
       CLOAI_SERVICE_URL: http://localhost:8001/v1
       CLOAI_MODEL: test
-      MSSQL_USER: test
-      MSSQL_PASSWORD: test
-      MSSQL_HOST: test
-      MSSQL_PORT: 8000
-      MSSQL_DATABASE: test
-      MSSQL_DRIVER: test
+
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_HOST: test
+      POSTGRES_PORT: 8000
+      POSTGRES_DATABASE: test
 
     runs-on: ubuntu-latest
     steps:

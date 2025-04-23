@@ -33,12 +33,11 @@ class Settings(pydantic_settings.BaseSettings):
         ),
     )
 
-    MSSQL_USER: str
-    MSSQL_PASSWORD: pydantic.SecretStr
-    MSSQL_HOST: str
-    MSSQL_PORT: int
-    MSSQL_DATABASE: str
-    MSSQL_DRIVER: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: pydantic.SecretStr
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_DATABASE: str
 
     @pydantic.model_validator(mode="after")
     def check_phi_logging(self) -> Self:

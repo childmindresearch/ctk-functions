@@ -327,7 +327,7 @@ class CmiHbnIdTrack(Base):
     identifiers, personal information, and demographic data.
     """
 
-    __tablename__ = "CMI_HBN_IDTrack_t"
+    __tablename__ = "CMI_HBN_IDTrack"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     # Primary identification fields
@@ -499,114 +499,6 @@ class Conners3(Base):
         sqlalchemy.String(1, "SQL_Latin1_General_CP1_CI_AS"),
         nullable=True,
     )
-
-
-class Ctopp2(Base):
-    """SQLAlchemy model representing the CMI_HBN_CTOPP_ table in the dbo schema."""
-
-    __tablename__ = "CMI_HBN_CTOPP_"
-    __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
-
-    # Administrative fields
-    enterprise_id = orm.mapped_column(sqlalchemy.CHAR(5), nullable=False)
-    practice_id = orm.mapped_column(sqlalchemy.CHAR(4), nullable=False)
-    person_id = orm.mapped_column(sqlalchemy.Uuid, nullable=False)
-    created_by = orm.mapped_column(sqlalchemy.Integer, nullable=False)
-    create_timestamp = orm.mapped_column(sqlalchemy.DateTime, nullable=False)
-    create_timestamp_tz = orm.mapped_column(sqlalchemy.SmallInteger, nullable=True)
-    modified_by = orm.mapped_column(sqlalchemy.Integer, nullable=False)
-    modify_timestamp = orm.mapped_column(sqlalchemy.DateTime, nullable=False)
-    modify_timestamp_tz = orm.mapped_column(sqlalchemy.SmallInteger, nullable=True)
-    row_timestamp = orm.mapped_column(sqlalchemy.TIMESTAMP, nullable=False)
-    enc_id = orm.mapped_column(sqlalchemy.Uuid, nullable=False, primary_key=True)
-
-    # Assessment metadata
-    ctopp_date = orm.mapped_column(sqlalchemy.String(10), nullable=True)
-    ctopp_admin = orm.mapped_column(sqlalchemy.String(100), nullable=True)
-    complete = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    incomplete_reason = orm.mapped_column(sqlalchemy.String(100), nullable=True)
-    incomplete_other_reason = orm.mapped_column(sqlalchemy.String(140), nullable=True)
-    valid = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    reason = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    valid_possible = orm.mapped_column(sqlalchemy.String(140), nullable=True)
-    valid_reason_other = orm.mapped_column(sqlalchemy.String(140), nullable=True)
-    notes = orm.mapped_column(sqlalchemy.String(1000), nullable=True)
-    CTOPP_Visit = orm.mapped_column(sqlalchemy.String(15), nullable=True)
-    CTOPP_RA = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-    remote_visit = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    Age = orm.mapped_column(sqlalchemy.DECIMAL(16, 10), nullable=True)
-
-    # Elision (EL) subtest
-    EL_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    EL_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    EL_Scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    EL_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    EL_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-
-    # Blending Words (BW) subtest
-    BW_Raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    BW_Percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    BW_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    BW_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    BW_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-
-    # Number Repetition (NR) subtest
-    NR_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    NR_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    NR_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    NR_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    NR_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-
-    # Rapid Digit Naming (RD) subtest
-    RD_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RD_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    RD_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RD_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RD_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-    RD_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-
-    # Rapid Letter Naming (RL) subtest
-    RL_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RL_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    RL_scale = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RL_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RL_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-    RL_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-
-    # Rapid Object Naming (RO) subtest
-    RO_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RO_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    RO_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RO_Standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RO_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-    RO_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-
-    # Rapid Color Naming (RC) subtest
-    RC_raw = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RC_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RC_scaled = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RC_standard = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RC_desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-    RC_errors = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-
-    # Rapid Symbolic Naming (RSN) composite
-    RSN_sum = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RSN_percentile = orm.mapped_column(sqlalchemy.DECIMAL(16, 2), nullable=True)
-    RSN_composite = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RSN_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-
-    # Rapid Non-Symbolic Naming (RnS) composite
-    RnS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RsNS_percentile = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RnSN = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    RnSN_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
-
-    # Phonological Awareness (PA) composite
-    CTOPP_PA_SS = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_PA_P = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_PA_Comp = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_PA_D = orm.mapped_column(sqlalchemy.Integer, nullable=True)
-    CTOPP_PA_Desc = orm.mapped_column(sqlalchemy.String(30), nullable=True)
 
 
 class Gars(Base):

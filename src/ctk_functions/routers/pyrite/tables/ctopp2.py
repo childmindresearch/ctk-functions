@@ -23,10 +23,10 @@ class Ctopp2RowLabels:
 
 # Defines the rows and their order of appearance.
 CTOPP2_ROW_LABELS = (
-    Ctopp2RowLabels(name="Rapid Digit Naming", score_column="RD_errors"),
-    Ctopp2RowLabels(name="Rapid Letter Naming", score_column="RL_errors"),
-    Ctopp2RowLabels(name="Rapid Object Naming", score_column="RO_errors"),
-    Ctopp2RowLabels(name="Rapid Color Naming", score_column="RC_errors"),
+    Ctopp2RowLabels(name="Rapid Digit Naming", score_column="RD_Errors"),
+    Ctopp2RowLabels(name="Rapid Letter Naming", score_column="RL_Errors"),
+    Ctopp2RowLabels(name="Rapid Object Naming", score_column="RO_Errors"),
+    Ctopp2RowLabels(name="Rapid Color Naming", score_column="RC_Errors"),
 )
 
 
@@ -48,7 +48,7 @@ class _Ctopp2DataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("person_id", mrn, models.Ctopp2)
+        data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
         header = ("CTOPP - 2 Rapid Naming", "Number of Errors")
         content = [
             (label.name, getattr(data, label.score_column))
