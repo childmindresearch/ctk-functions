@@ -4,10 +4,9 @@ import dataclasses
 import functools
 from typing import Literal
 
-import sqlalchemy
 from docx import shared
 
-from ctk_functions.microservices.sql import client, models
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
@@ -29,7 +28,6 @@ class LanguageRowLabels:
     test: str
     subtest: str
     score_column: str | None
-    table: TABLE_NAMES
 
 
 LANGUAGE_ROW_LABELS = (
@@ -37,85 +35,71 @@ LANGUAGE_ROW_LABELS = (
         test="WIAT-4",
         subtest="Listening Comprehension",
         score_column="WIAT_4_LC_Std",
-        table="SummaryScores",
     ),
     LanguageRowLabels(
         test="WIAT-4",
         subtest="\tReceptive Vocabulary",
         score_column="WIAT_4_LC_RV_Std",
-        table="SummaryScores",
     ),
     LanguageRowLabels(
         test="WIAT-4",
         subtest="\tOral Discourse Comprehension",
         score_column="WIAT_4_LC_ODC_Std",
-        table="SummaryScores",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Memory",
         score_column=None,
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tNon-word Repetition",
         score_column="NR_Standard",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Phonological Awareness",
         score_column="CTOPP_PA_Comp",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tElision",
         score_column="EL_Standard",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tBlending Words",
         score_column="BW_Standard",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Symbolic Naming",
         score_column="RSN_composite",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Digit Naming",
         score_column="RD_Standard",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Letter Naming",
         score_column="RL_Standard",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="Rapid Non-Symbolic",
-        score_column="RnSN",
-        table="Ctopp2",
+        score_column="RnSN_composite",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Object Naming",
         score_column="RO_Standard",
-        table="Ctopp2",
     ),
     LanguageRowLabels(
         test="CTOPP-2",
         subtest="\tRapid Color Naming",
         score_column="RC_standard",
-        table="Ctopp2",
     ),
 )
 
@@ -144,7 +128,7 @@ class _LanguageDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = _get_data(mrn)
+        data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
         header = ("Test", "Subtest", "Standard Score", "Percentile", "Range")
 
         content_rows = [
@@ -155,7 +139,7 @@ class _LanguageDataSource(base.DataProducer):
 
     @staticmethod
     def _get_content_row(
-        data: sqlalchemy.Row[tuple[models.SummaryScores, models.Ctopp2]],
+        data: models.SummaryScores,
         label: LanguageRowLabels,
     ) -> tuple[str, str, str, str, str] | None:
         """Gets the rows of the table's body.
@@ -173,12 +157,8 @@ class _LanguageDataSource(base.DataProducer):
             In this order: the test cell, the subtest cell, the score cell, the
             percentile cell, and the qualifier cell.
         """
-        table_indices: dict[TABLE_NAMES, int] = {
-            "SummaryScores": 0,
-            "Ctopp2": 1,
-        }
-        data_table = data[table_indices[label.table]]
-        if label.score_column and getattr(data_table, label.score_column) is None:
+        if label.score_column and not getattr(data, label.score_column):
+            # Rows without data should be omitted.
             return None
 
         if not label.score_column:
@@ -186,7 +166,7 @@ class _LanguageDataSource(base.DataProducer):
             # Add an empty row; these are label rows.
             return label.test, label.subtest, "", "", ""
 
-        score = getattr(data_table, label.score_column)
+        score = getattr(data, label.score_column)
         percentile = (
             f"{utils.normal_score_to_percentile(float(score), mean=100, std=15):.0f}"
         )
@@ -218,27 +198,6 @@ def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
         merge_top=(0,),
         cell_styles=subtest_formatting,
     )
-
-
-def _get_data(mrn: str) -> sqlalchemy.Row[tuple[models.SummaryScores, models.Ctopp2]]:
-    """Fetches the language data for the given mrn."""
-    identifiers = utils.mrn_to_ids(mrn)
-    statement = (
-        sqlalchemy.select(models.SummaryScores, models.Ctopp2)
-        .where(
-            models.SummaryScores.person_id == identifiers.person_id,
-        )
-        .outerjoin(
-            models.Ctopp2,
-            models.Ctopp2.person_id == models.SummaryScores.person_id,
-        )
-    )
-    with client.get_session() as session:
-        data = session.execute(statement).fetchone()
-    if not data:
-        msg = f"Could not fetch language data for {mrn}."
-        raise base.TableDataNotFoundError(msg)
-    return data
 
 
 class LanguageTable(

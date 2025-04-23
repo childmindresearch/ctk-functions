@@ -68,7 +68,7 @@ def mrn_to_ids(mrn: str) -> UniqueIdentifiers:
     Returns:
         The EID of the participant.
     """
-    sanitized_mrn = mrn.replace('\r', '').replace('\n', '')
+    sanitized_mrn = mrn.replace("\r", "").replace("\n", "")
     logger.debug("Fetching participant %s.", sanitized_mrn)
     with client.get_session() as session:
         participant = session.execute(
@@ -109,7 +109,7 @@ def fetch_participant_row(
     Returns:
         The participant's row in the given table.
     """
-    sanitized_mrn = mrn.replace('\r', '').replace('\n', '')
+    sanitized_mrn = mrn.replace("\r", "").replace("\n", "")
     logger.debug("Fetching table %s, participant %s.", table.__name__, sanitized_mrn)
     identifier = getattr(mrn_to_ids(mrn), id_property)
     statement = sqlalchemy.select(table).where(

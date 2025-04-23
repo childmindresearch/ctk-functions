@@ -11,19 +11,16 @@ from ctk_functions.core import config
 settings = config.get_settings()
 
 engine = sqlalchemy.create_engine(
-    "mssql+pyodbc://"
-    + settings.MSSQL_USER
+    "postgresql://"
+    + settings.POSTGRES_USER
     + ":"
-    + settings.MSSQL_PASSWORD.get_secret_value()
+    + settings.POSTGRES_PASSWORD.get_secret_value()
     + "@"
-    + settings.MSSQL_HOST
+    + settings.POSTGRES_HOST
     + ":"
-    + str(settings.MSSQL_PORT)
+    + str(settings.POSTGRES_PORT)
     + "/"
-    + settings.MSSQL_DATABASE
-    + "?driver="
-    + settings.MSSQL_DRIVER
-    + "&Encrypt=no&TrustServerCertificate=no",
+    + settings.POSTGRES_DATABASE
 )
 
 
