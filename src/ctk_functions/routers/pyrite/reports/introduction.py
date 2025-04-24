@@ -238,18 +238,20 @@ def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
         data = sql_data.fetch_participant_row(
             "person_id", mrn, overview.date_table.model
         )
-        administer_date = str(getattr(data, overview.date_table.column))
+        administer_date = (
+            f"Administered on: {getattr(data, overview.date_table.column)}"
+        )
     else:
-        administer_date = ""
+        administer_date = "Administered on: UNKNOWN"
 
     if not overview.description:
-        texts: tuple[str, ...] = (overview.title + "\n", "Administered on: ")
+        texts: tuple[str, ...] = (overview.title + "\n", administer_date)
         run_styles: tuple[None | sections.RunStyles, ...] = (None, None)
     else:
         texts = (
             overview.title + "\n",
             overview.description + "\n",
-            f"Administered on: {administer_date}",
+            administer_date,
         )
         run_styles = (None, sections.RunStyles.Emphasis, None)
 
