@@ -2,18 +2,16 @@
 
 import functools
 
-import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data, types
+from ctk_functions.routers.pyrite.tables import base
 
 
 class _Celf5DataSource(base.DataProducer):
     """Fetches the data for the Celf5 table."""
 
     @classmethod
-    def test_ids(
-        cls, mrn: str
-    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ("celf_5",)
 
     @classmethod
@@ -27,7 +25,7 @@ class _Celf5DataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Celf5)
+        data = sql_data.fetch_participant_row("EID", mrn, models.Celf5)
         cutoff = (
             "Meets criterion cutoff"
             if data.CELF_ExceedCutoff

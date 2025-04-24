@@ -8,9 +8,9 @@ import fastapi
 from docx import shared
 from starlette import status
 
-import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data, types
+from ctk_functions.routers.pyrite.tables import base
 
 COLUMN_WIDTHS = (
     shared.Cm(4.42),
@@ -94,9 +94,7 @@ class _WiscSubtestDataSource(base.DataProducer):
     """Fetches the data for the WISC table."""
 
     @classmethod
-    def test_ids(
-        cls, mrn: str
-    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ("wisc_5",)
 
     @classmethod
@@ -110,7 +108,7 @@ class _WiscSubtestDataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
+        data = sql_data.fetch_participant_row("EID", mrn, models.Wisc5)
         header = ("Index", "Subtest", "Scaled Score", "Percentile", "Range")
         content_rows = [
             (

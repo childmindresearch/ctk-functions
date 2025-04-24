@@ -5,9 +5,9 @@ import functools
 import cmi_docx
 from docx import shared
 
-import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data, types
+from ctk_functions.routers.pyrite.tables import base
 
 COLUMN_WIDTHS = (
     shared.Cm(6.99),
@@ -27,9 +27,7 @@ class _ScqDataSource(base.DataProducer):
     """Fetches and creates the SCQ table."""
 
     @classmethod
-    def test_ids(
-        cls, mrn: str
-    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ()
 
     @classmethod
@@ -43,7 +41,7 @@ class _ScqDataSource(base.DataProducer):
         Returns:
             The markup for the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Scq)
+        data = sql_data.fetch_participant_row("EID", mrn, models.Scq)
         return (
             ("Scale", "Score", "Clinical Relevance"),
             (

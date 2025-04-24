@@ -6,9 +6,9 @@ from collections.abc import Iterable, Sequence
 
 from docx import shared
 
-import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data, types
+from ctk_functions.routers.pyrite.tables import base
 
 COLUMN_WIDTHS = (shared.Cm(6.5), shared.Cm(2.5), shared.Cm(7.5))
 
@@ -126,7 +126,7 @@ def _build_tscore_body(
 
 
 def create_data_producer(
-    test_ids: tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...],
+    test_ids: tuple[types.TestId, ...],
     model: type[models.Base],
     labels: Sequence[TScoreRowLabel],
 ) -> type[base.DataProducer]:
@@ -145,9 +145,7 @@ def create_data_producer(
         """Fetches the data for a t-score table."""
 
         @classmethod
-        def test_ids(
-            cls, mrn: str
-        ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
+        def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
             return test_ids
 
         @classmethod
@@ -161,7 +159,7 @@ def create_data_producer(
             Returns:
                 The text contents of the Word table.
             """
-            data = utils.fetch_participant_row("EID", mrn, model)
+            data = sql_data.fetch_participant_row("EID", mrn, model)
             return fetch_tscore_data(data, labels)
 
     return _DataSource

@@ -6,8 +6,8 @@ import functools
 import cmi_docx
 from docx import shared
 
-import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
+from ctk_functions.routers.pyrite import sql_data, types
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -137,11 +137,9 @@ class _AcademicAchievementDataSource(base.DataProducer):
     """Fetches the data for the academic achievement table."""
 
     @classmethod
-    def test_ids(
-        cls, mrn: str
-    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:
         subtests = [row[1] for row in cls.fetch(mrn)]
-        test_ids: list[ctk_functions.routers.pyrite.reports.utils.TestId] = []
+        test_ids: list[types.TestId] = []
         if any("towre" in test.lower() for test in subtests):
             test_ids.append("towre_2")
         if any("wiat" in test.lower() for test in subtests):
@@ -159,7 +157,7 @@ class _AcademicAchievementDataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
+        data = sql_data.fetch_participant_row("person_id", mrn, models.SummaryScores)
         header = ("Domain", "Subtest", "Standard Score", "Percentile", "Range")
         body = []
         for label in ACADEMIC_ROW_LABELS:

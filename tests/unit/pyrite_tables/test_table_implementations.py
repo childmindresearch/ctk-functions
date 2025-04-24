@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
@@ -23,7 +22,7 @@ from ctk_functions.routers.pyrite.tables import (
 from ctk_functions.routers.pyrite.tables.generic import tscore
 
 if TYPE_CHECKING:
-    from ctk_functions.routers.pyrite.reports import appendix_a
+    from ctk_functions.routers.pyrite import types
 
 
 @pytest.mark.parametrize(
@@ -103,7 +102,7 @@ def test_data_sources(
 def test_t_score_data_producer(mock_sql_calls: None) -> None:
     """Tests the t-score data producer factory."""
     model = models.Cbcl
-    test_ids: tuple[ctk_functions.routers.pyrite.reports.utils.TestId] = ("cbcl",)
+    test_ids: tuple[types.TestId] = ("cbcl",)
     labels = [
         tscore.TScoreRowLabel(subscale="CBCL", score_column="CBCL_AD_T", relevance=[])
     ]

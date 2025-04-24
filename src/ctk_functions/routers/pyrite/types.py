@@ -1,4 +1,4 @@
-"""Utilities for Pyrite reports."""
+"""Types used across Pyrite reports."""
 
 from typing import Literal
 
