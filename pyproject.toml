@@ -5,21 +5,23 @@ description = "Clinician Toolkit API."
 readme = "README.md"
 requires-python = ">=3.12, <3.13"
 dependencies = [
-  "aiohttp>=3.11.11",
-  "fastapi[standard]>=0.115.6",
-  "pycap>=2.6.0",
-  "pydantic>=2.10.4",
-  "pydantic-settings>=2.7.0",
-  "python-dateutil>=2.9.0.post0",
-  "pytz>=2024.2",
-  "spacy>=3.8.3",
-  "en-core-web-sm",
-  "jsonpickle>=4.0.1",
-  "tenacity>=9.0.0",
-  "cmi-docx>=0.3.11",
-  "starlette>=0.41.3",
-  "pypandoc-binary>=1.15",
-  "python-docx>=1.1.2"
+    "aiohttp>=3.11.11",
+    "fastapi[standard]>=0.115.6",
+    "pycap>=2.6.0",
+    "pydantic>=2.10.4",
+    "pydantic-settings>=2.7.0",
+    "pypandoc-binary>=1.15",
+    "python-dateutil>=2.9.0.post0",
+    "pytz>=2024.2",
+    "spacy>=3.8.3",
+    "en-core-web-sm",
+    "jsonpickle>=4.0.1",
+    "tenacity>=9.0.0",
+    "sqlalchemy>=2.0.39",
+    "cmi-docx>=0.4.0",
+    "psycopg2>=2.9.10",
+    "docx>=0.2.4",
+    "starlette>=0.41.3",
 ]
 
 [tool.uv]
@@ -31,7 +33,7 @@ dev-dependencies = [
   "pytest-cov>=6.0.0",
   "pytest-dotenv>=0.5.2",
   "pytest-mock>=3.14.0",
-  "ruff>=0.8.4",
+  "ruff>=0.11.2",
   "types-aiofiles>=24.1.0.20241221",
   "types-python-dateutil>=2.9.0.20241206",
   "types-pytz>=2024.2.0.20241221",
@@ -40,17 +42,17 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-en-core-web-sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz"}
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ctk_functions"]
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "src"
+    "src"
 ]
 testpaths = [
-  "tests"
+    "tests"
 ]
 
 [tool.mypy]
@@ -91,7 +93,22 @@ target-version = "py311"
 preview = false
 select = ["ALL"]
 ignore = [
-  "PYI063"  # Preview rule not correctly ignored.
+    "PYI063", # Preview rule not correctly ignored.
+    "SIM300", # Can cause mypy issues in SQLAlchemy where statements.
+    # Recommended ignores by Astral https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules)
+    "W191", # Tab indentation
+    "E111", # Indentation with invalid multiple
+    "E114", # Indentation with invalid multiple comment
+    "E117", # Over indented
+    "D206", # Docstring tab indentation
+    "D300", # Triple single quotes
+    "Q000", # Bad quotes inline string
+    "Q001", # Bad quotes multiline string
+    "Q002", # Bad quotes docstring
+    "Q003", # Avoidable escaped quote
+    "COM812", # Missing trailing comma
+    "COM819", # Prohibited trailing comma
+    "ISC002", # Multi-line implicit string concatenation
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -102,9 +119,10 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-  "S101",  # asserts should be used in pytest
-  "SLF001",  # accessing private members in tests is fine
-  "INP001"  # tests should not be a module
+    "S101", # asserts should be used in pytest
+    "SLF001", # accessing private members in tests is fine
+    "INP001", # tests should not be a module
+    "ARG001" # tests can have ununsed arguments (fixtures with side-effects)
 ]
 "local/**/*" = ["ALL"]
 
@@ -126,6 +144,9 @@ en-core-web-sm = "spacy"
 pycap = "redcap"
 pypandoc-binary = "pypandoc"
 python-docx = "docx"
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["psycopg2"]
 
 [build-system]
 requires = ["hatchling"]

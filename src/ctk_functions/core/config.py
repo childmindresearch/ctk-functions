@@ -33,6 +33,12 @@ class Settings(pydantic_settings.BaseSettings):
         ),
     )
 
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: pydantic.SecretStr
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_DATABASE: str
+
     @pydantic.model_validator(mode="after")
     def check_phi_logging(self) -> Self:
         """Checks if the PHI logging level is set too low."""

@@ -34,6 +34,13 @@ jobs:
       AZURE_OPENAI_ENDPOINT: test
       CLOAI_SERVICE_URL: http://localhost:8001/v1
       CLOAI_MODEL: test
+
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_HOST: test
+      POSTGRES_PORT: 8000
+      POSTGRES_DATABASE: test
+
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

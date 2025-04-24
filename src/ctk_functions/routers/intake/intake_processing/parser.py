@@ -518,7 +518,7 @@ class Development:
                 duration=getattr(patient_data, f"{service[0]}_dur"),
             )
             for index, service in enumerate(cpse_encodings)
-            if getattr(patient_data, f"schoolservices___{index+1}")
+            if getattr(patient_data, f"schoolservices___{index + 1}")
         ]
 
         self.cpse_services = [
@@ -529,7 +529,7 @@ class Development:
                 duration=getattr(patient_data, f"cpse_{service[0]}_dur"),
             )
             for index, service in enumerate(cpse_encodings)
-            if getattr(patient_data, f"cpse_services___{index+1}")
+            if getattr(patient_data, f"cpse_services___{index + 1}")
         ]
 
         self.started_walking = transformers.DevelopmentSkill(
