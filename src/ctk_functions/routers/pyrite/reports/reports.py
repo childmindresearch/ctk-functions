@@ -29,6 +29,7 @@ from ctk_functions.routers.pyrite.tables import (
     wisc_composite,
     wisc_subtest,
 )
+from ctk_functions.routers.pyrite.tables import utils as tables_utils
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -81,7 +82,7 @@ class PageBreak(Section):
         """Adds a page break to the report.
 
         If any paragraph exists, appends it to the last paragraph. Otherwise,
-        creates a new paragraph.
+        create
 
         Args:
             doc: The document to add the page break to.
@@ -280,7 +281,9 @@ def _table_sections_to_introduction(
     overviews = introduction.TestOverviewManager()
     used_overviews = [overviews.fetch(test_id) for test_id in unique_test_ids]
     sections = [
-        _description_to_overview(overview) for overview in used_overviews if overview
+        _description_to_overview(mrn, overview)
+        for overview in used_overviews
+        if overview
     ]
     return (
         ParagraphSection(
@@ -393,8 +396,16 @@ def _description_to_section(description: appendix_a.TestDescription) -> Section:
     )
 
 
-def _description_to_overview(overview: introduction.TestOverview) -> Section:
+def _description_to_overview(mrn: str, overview: introduction.TestOverview) -> Section:
     """Converts a test description to a section."""
+    if overview.date_table:
+        data = tables_utils.fetch_participant_row(
+            "person_id", mrn, overview.date_table.model
+        )
+        administer_date = str(getattr(data, overview.date_table.column))
+    else:
+        administer_date = ""
+
     if not overview.description:
         texts: tuple[str, ...] = (overview.title + "\n", "Administered on: ")
         run_styles: tuple[None | RunStyles, ...] = (None, None)
@@ -402,7 +413,7 @@ def _description_to_overview(overview: introduction.TestOverview) -> Section:
         texts = (
             overview.title + "\n",
             overview.description + "\n",
-            "Administered on: ",
+            f"Administered on: {administer_date}",
         )
         run_styles = (None, RunStyles.Emphasis, None)
 
