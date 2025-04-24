@@ -1,12 +1,14 @@
 """Supports the creation of any t-score table."""
 
 import dataclasses
+import functools
 from collections.abc import Iterable, Sequence
 
 from docx import shared
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite.tables import base
+from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (shared.Cm(6.5), shared.Cm(2.5), shared.Cm(7.5))
 
@@ -121,3 +123,43 @@ def _build_tscore_body(
         relevance = _label_to_relevance_text(label)
         content_rows.append((label.subscale, f"{score:.0f}", relevance))
     return tuple(content_rows)
+
+
+def create_data_producer(
+    test_ids: tuple[appendix_a.TestId, ...],
+    model: type[models.Base],
+    labels: Sequence[TScoreRowLabel],
+) -> type[base.DataProducer]:
+    """Creates a t-score data producer.
+
+    Args:
+        test_ids: The test ids for Appendix A.
+        model: The SQL model to use.
+        labels: Definitions of the table rows, header excluded.
+
+    Returns:
+        The data producer.
+    """
+
+    class _DataSource(base.DataProducer):
+        """Fetches the data for a t-score table."""
+
+        @classmethod
+        def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+            return test_ids
+
+        @classmethod
+        @functools.lru_cache
+        def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
+            """Fetches data for the given mrn.
+
+            Args:
+                mrn: The participant's unique identifier.
+
+            Returns:
+                The text contents of the Word table.
+            """
+            data = utils.fetch_participant_row("EID", mrn, model)
+            return fetch_tscore_data(data, labels)
+
+    return _DataSource

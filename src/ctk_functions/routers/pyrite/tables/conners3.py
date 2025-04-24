@@ -1,13 +1,11 @@
 """Module for inserting the Conners3 table."""
 
 import dataclasses
-import functools
 
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import tscore
 
 
@@ -77,28 +75,6 @@ CONNERS3_ROW_LABELS = (
 )
 
 
-class _Conners3DataSource(base.DataProducer):
-    """Fetches the data for the Conners3 table."""
-
-    @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
-        return ("conners_3",)
-
-    @classmethod
-    @functools.lru_cache
-    def fetch(cls, mrn: str) -> tuple[tuple[str, ...], ...]:
-        """Fetches Conners3 data for the given mrn.
-
-        Args:
-            mrn: The participant's unique identifier.
-
-        Returns:
-            The text contents of the Word table.
-        """
-        data = utils.fetch_participant_row("EID", mrn, models.Conners3)
-        return tscore.fetch_tscore_data(data, CONNERS3_ROW_LABELS)
-
-
 class Conners3Table(
     base.WordTableSectionAddToMixin,
     base.WordTableSection,
@@ -112,5 +88,9 @@ class Conners3Table(
             mrn: The participant's unique identifier.'
         """
         self.mrn = mrn
-        self.data_source = _Conners3DataSource
+        self.data_source = tscore.create_data_producer(
+            test_ids=("conners_3",),
+            model=models.Conners3,
+            labels=CONNERS3_ROW_LABELS,
+        )
         self.formatters = tscore.fetch_tscore_formatters(row_labels=CONNERS3_ROW_LABELS)

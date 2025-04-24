@@ -1,26 +1,28 @@
 """Tests for the table implementations."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
+from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
-    cbcl_ysr,
     celf5,
-    conners3,
     ctopp2,
     grooved_pegboard,
     language,
     mfq,
     scared,
     scq,
-    srs,
     swan,
     wisc_composite,
     wisc_subtest,
 )
+from ctk_functions.routers.pyrite.tables.generic import tscore
+
+if TYPE_CHECKING:
+    from ctk_functions.routers.pyrite import appendix_a
 
 
 @pytest.mark.parametrize(
@@ -32,19 +34,9 @@ from ctk_functions.routers.pyrite.tables import (
             academic_achievement.ACADEMIC_ROW_LABELS,
         ),
         (
-            cbcl_ysr._CbclDataSource,
-            ("Subscale", "T-Score", "Clinical Relevance"),
-            cbcl_ysr.CBCL_YSR_ROW_LABELS["CBCL"],
-        ),
-        (
             celf5._Celf5DataSource,
             ("Test", "Total Score", "Age Based Cutoff", "Range"),
             ["Has one row, no row labels defined."],
-        ),
-        (
-            conners3._Conners3DataSource,
-            ("Subscale", "T-Score", "Clinical Relevance"),
-            conners3.CONNERS3_ROW_LABELS,
         ),
         (
             ctopp2._Ctopp2DataSource,
@@ -82,11 +74,6 @@ from ctk_functions.routers.pyrite.tables import (
             swan.SWAN_ROW_LABELS,
         ),
         (
-            srs._SrsDataSource,
-            ("Subscale", "T-Score", "Clinical Relevance"),
-            srs.SRS_ROW_LABELS,
-        ),
-        (
             wisc_composite._WiscCompositeDataSource,
             ("Composite", "Standard Score", "Percentile", "Range"),
             wisc_composite.WISC_COMPOSITE_ROW_LABELS,
@@ -95,11 +82,6 @@ from ctk_functions.routers.pyrite.tables import (
             wisc_subtest._WiscSubtestDataSource,
             ("Index", "Subtest", "Scaled Score", "Percentile", "Range"),
             wisc_subtest.WISC_SUBTEST_ROW_LABELS,
-        ),
-        (
-            cbcl_ysr._YsrDataSource,
-            ("Subscale", "T-Score", "Clinical Relevance"),
-            cbcl_ysr.CBCL_YSR_ROW_LABELS["YSR"],
         ),
     ],
 )
@@ -115,3 +97,18 @@ def test_data_sources(
     assert isinstance(actual, tuple)
     assert headers == actual[0]
     assert len(actual) == len(labels) + 1
+
+
+def test_t_score_data_producer(mock_sql_calls: None) -> None:
+    """Tests the t-score data producer factory."""
+    model = models.Cbcl
+    test_ids: tuple[appendix_a.TestId] = ("cbcl",)
+    labels = [
+        tscore.TScoreRowLabel(subscale="CBCL", score_column="CBCL_AD_T", relevance=[])
+    ]
+
+    producer = tscore.create_data_producer(test_ids, model, labels)
+    data = producer.fetch("")
+
+    assert producer.test_ids("") == test_ids
+    assert len(data) == len(labels) + 1

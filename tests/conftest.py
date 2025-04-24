@@ -12,7 +12,7 @@ from ctk_functions.microservices import redcap
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
-    cbcl_ysr,
+    cbc,
     conners3,
     ctopp2,
     grooved_pegboard,
@@ -50,8 +50,13 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
 ) -> object:
     """Redirects requests of fetch_participant_row to the correct mock."""
     default_value: str | int
-    if table == models.Cbcl:
-        columns = [label.score_column for label in cbcl_ysr.CBCL_YSR_ROW_LABELS["CBCL"]]
+    if table == models.Asr:
+        columns = [label.score_column for label in cbc.get_row_labels(cbc.CbcTests.ASR)]
+        default_value = 100
+    elif table == models.Cbcl:
+        columns = [
+            label.score_column for label in cbc.get_row_labels(cbc.CbcTests.CBCL)
+        ]
         default_value = 100
     elif table == models.Celf5:
         columns = ["CELF_Total", "CELF_CriterionScore", "CELF_ExceedCutoff"]
@@ -88,6 +93,9 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
     elif table == models.Swan:
         columns = ["SWAN_IN", "SWAN_HY"]
         default_value = 100
+    elif table == models.Trf:
+        columns = [label.score_column for label in cbc.get_row_labels(cbc.CbcTests.TRF)]
+        default_value = 100
     elif table == models.Wisc5:
         columns = [
             "WISC_VCI",
@@ -109,7 +117,7 @@ def _mock_fetch_participant_row(  # noqa: C901, PLR0912
         ]
         default_value = 100
     elif table == models.Ysr:
-        columns = [label.score_column for label in cbcl_ysr.CBCL_YSR_ROW_LABELS["YSR"]]
+        columns = [label.score_column for label in cbc.get_row_labels(cbc.CbcTests.YSR)]
         default_value = 100
     else:
         msg = "Did not implemented this table's mock yet."
