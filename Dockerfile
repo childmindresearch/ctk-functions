@@ -1,6 +1,6 @@
 # Dockerfile for building the ctk-functions container.
 
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm as builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS builder
 
 WORKDIR /app
 ARG AZURE_BLOB_SIGNATURES_CONNECTION_STRING
@@ -19,8 +19,12 @@ RUN uv sync --frozen --no-cache --no-dev
 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
+RUN apt-get update &&  \
+    apt-get install -y libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8000
 WORKDIR /app
 COPY --from=builder /app /app
 
-CMD ["uv", "run", "fastapi", "run", "src/ctk_functions/app.py", "--port", "8000",  "--host", "0.0.0.0"]
+CMD ["uv", "run", "--no-dev", "fastapi", "run", "src/ctk_functions/app.py", "--port", "8000",  "--host", "0.0.0.0"]
