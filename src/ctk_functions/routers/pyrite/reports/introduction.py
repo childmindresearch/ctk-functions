@@ -1,7 +1,6 @@
 """Contains dataclasses to build the introduction page."""
 
-from collections.abc import Iterable
-from typing import cast
+from collections.abc import Generator, Iterable
 
 import pydantic
 
@@ -15,11 +14,20 @@ DATA_DIR = settings.DATA_DIR
 
 
 @pydantic.dataclasses.dataclass(frozen=True)
-class TableColumn:
-    """Stores the location of a column in a table."""
+class SqlTableColumn:
+    """Stores the location of a column in a table.
+
+    The WIAT table requires a fallback option, hence columns
+    is an iterable.
+
+    Args:
+        model: The model to fetch data from.
+        columns: List of columns to use in order of priority i.e.
+            data from the first non-null column is used.
+    """
 
     model: type[models.Base]
-    column: str
+    columns: tuple[str, ...]
 
 
 @pydantic.dataclasses.dataclass(frozen=True)
@@ -29,87 +37,81 @@ class TestOverview:
     id: types.TestId
     title: str
     description: str
-    date_table: TableColumn | None
+    date_table: SqlTableColumn | None
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
-class TestOverviewManager:
+class TestOverviewManager(pydantic.BaseModel):
     """Dataclass for all test descriptions."""
 
-    def fetch(self, test_id: types.TestId) -> TestOverview | None:
-        """Convenience method that mimics getattr with correct typing."""
-        try:
-            return cast("TestOverview", getattr(self, test_id))
-        except AttributeError:
-            return None
-
-    cbcl = TestOverview(
+    cbcl: TestOverview = TestOverview(
         id="cbcl",
         title="Child Behavior Checklist - Parent Report Form (CBCL)",
         description="",
         date_table=None,
     )
 
-    celf_5 = TestOverview(
+    celf_5: TestOverview = TestOverview(
         id="celf_5",
         title=(
             "Clinical Evaluation of Language Fundamentals - 5th Edition Screener "
             "(CELF-5 Screener)"
         ),
         description="",
-        date_table=TableColumn(model=models.SummaryScores, column="CELF_Date"),
+        date_table=SqlTableColumn(model=models.SummaryScores, columns=("CELF_Date",)),
     )
 
-    conners_3 = TestOverview(
+    conners_3: TestOverview = TestOverview(
         id="conners_3",
         title="Conners 3 Child Self-Report Assessment Form",
         description="",
         date_table=None,
     )
 
-    ctopp_2 = TestOverview(
+    ctopp_2: TestOverview = TestOverview(
         id="ctopp_2",
         title="Comprehensive Test of Phonological Processing - 2nd Edition (CTOPP-2)",
         description="",
-        date_table=TableColumn(model=models.SummaryScores, column="CTOPP_Date"),
+        date_table=SqlTableColumn(model=models.SummaryScores, columns=("CTOPP_Date",)),
     )
 
-    grooved_pegboard = TestOverview(
+    grooved_pegboard: TestOverview = TestOverview(
         id="grooved_pegboard",
         title="Lafayette Grooved Pegboard Test",
         description="",
-        date_table=None,
+        date_table=SqlTableColumn(
+            model=models.SummaryScores, columns=("Pegboard_Date",)
+        ),
     )
 
-    ksads = TestOverview(
+    ksads: TestOverview = TestOverview(
         id="ksads",
         title="Kiddie Schedule for Affective Disorders and Schizophrenia (K-SADS)",
         description="",
         date_table=None,
     )
 
-    mfq = TestOverview(
+    mfq: TestOverview = TestOverview(
         id="mfq",
         title="Mood and Feelings Questionnaire (MFQ)",
         description="Child and Parent Report Forms",
         date_table=None,
     )
 
-    scared = TestOverview(
+    scared: TestOverview = TestOverview(
         id="scared",
         title="Screen for Child Anxiety and Related Disorders (SCARED)",
         description="Child and Parent Report Forms",
         date_table=None,
     )
 
-    srs = TestOverview(
+    srs: TestOverview = TestOverview(
         id="srs",
         title="Social Responsiveness Scale - 2 (SRS)",
         description="",
         date_table=None,
     )
 
-    swan = TestOverview(
+    swan: TestOverview = TestOverview(
         id="swan",
         title=(
             "Extended Strengths and Weaknesses of ADHD Symptoms and Normal Behavior "
@@ -119,46 +121,60 @@ class TestOverviewManager:
         date_table=None,
     )
 
-    towre_2 = TestOverview(
+    towre_2: TestOverview = TestOverview(
         id="towre_2",
         title="Test of Word Reading Efficiency-2nd Edition (TOWRE-2)",
         description="",
-        date_table=TableColumn(model=models.SummaryScores, column="TOWRE_Date"),
+        date_table=SqlTableColumn(model=models.SummaryScores, columns=("TOWRE_Date",)),
     )
 
-    wiat_4_essay = TestOverview(
+    wiat_4_essay: TestOverview = TestOverview(
         id="wiat_4",
         title="Wechsler Individual Achievement Test, 4th Edition (WIAT-4)",
         description="Sentence Composition, Essay Composition",
-        date_table=TableColumn(model=models.SummaryScores, column="WIAT_Writing_date"),
+        date_table=SqlTableColumn(
+            model=models.SummaryScores, columns=("WIAT_Writing_date", "WIAT_Date")
+        ),
     )
 
-    wiat_4_extended = TestOverview(
+    wiat_4_extended: TestOverview = TestOverview(
         id="wiat_4",
         title="Wechsler Individual Achievement Test, 4th Edition (WIAT-4)",
         description=(
             "Reading Comprehension, Listening Comprehension, Math Problem Solving, "
             "Math Fluency Subtests"
         ),
-        date_table=TableColumn(model=models.SummaryScores, column="WIAT_Part2_Date"),
+        date_table=SqlTableColumn(
+            model=models.SummaryScores, columns=("WIAT_Part2_Date", "WIAT_Date")
+        ),
     )
 
-    wiat_4_screening = TestOverview(
+    wiat_4_screening: TestOverview = TestOverview(
         id="wiat_4",
         title="Wechsler Individual Achievement Test, 4th Edition (WIAT-4)",
         description="Word Reading, Pseudoword Decoding, Spelling, Numerical Operations",
-        date_table=TableColumn(model=models.SummaryScores, column="WIAT_Screen_Date"),
+        date_table=SqlTableColumn(
+            model=models.SummaryScores, columns=("WIAT_Screen_Date", "WIAT_Date")
+        ),
     )
 
-    wisc_5 = TestOverview(
+    wisc_5: TestOverview = TestOverview(
         id="wisc_5",
         title="Wechsler Intelligence Scale for Children, 5th Edition (WISC-V)",
         description=(
             "Vocabulary, Similarities, Block Design, Visual Puzzles, Matrix Reasoning, "
             "Figure Weights, Digit Span, Picture Memory, Coding, Symbol Search"
         ),
-        date_table=TableColumn(model=models.SummaryScores, column="WISC_Date"),
+        date_table=SqlTableColumn(model=models.SummaryScores, columns=("WISC_Date",)),
     )
+
+
+def _fetch_overviews(test_id: types.TestId) -> Generator[TestOverview, None, None]:
+    """Convenience method that gets all tests with an ID."""
+    overviews = TestOverviewManager()
+    for _, value in overviews:
+        if value.id == test_id:
+            yield value
 
 
 def test_ids_to_introduction(
@@ -173,11 +189,13 @@ def test_ids_to_introduction(
     Returns:
         The introduction section of the report.
     """
-    overviews = TestOverviewManager()
-    used_overviews = [overviews.fetch(test_id) for test_id in test_ids]
-    introduction_sections = [
-        _overview_to_sections(mrn, overview) for overview in used_overviews if overview
+    used_overviews = [
+        overview for test_id in test_ids for overview in _fetch_overviews(test_id)
     ]
+    introduction_sections = [
+        _overview_to_sections(mrn, overview) for overview in used_overviews
+    ]
+
     return (
         sections.ParagraphSection(
             content="STANDARDIZED TESTING, INTERVIEW AND QUESTIONNAIRE RESULTS",
@@ -238,11 +256,17 @@ def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
         data = sql_data.fetch_participant_row(
             "person_id", mrn, overview.date_table.model
         )
-        administer_date = (
-            f"Administered on: {getattr(data, overview.date_table.column)}"
+        test_date = next(
+            (
+                getattr(data, col)
+                for col in overview.date_table.columns
+                if getattr(data, col)
+            ),
+            None,
         )
     else:
-        administer_date = "Administered on: UNKNOWN"
+        test_date = None
+    administer_date = f"Administered on: {test_date if test_date else 'UNKNOWN'}"
 
     if not overview.description:
         texts: tuple[str, ...] = (overview.title + "\n", administer_date)
