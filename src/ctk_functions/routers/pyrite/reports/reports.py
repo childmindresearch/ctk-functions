@@ -10,7 +10,8 @@ import pydantic
 from docx import document
 from docx.enum import text as enum_text
 
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.core import config
+from ctk_functions.routers.pyrite.reports import appendix_a, introduction, utils
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
@@ -29,14 +30,19 @@ from ctk_functions.routers.pyrite.tables import (
     wisc_subtest,
 )
 
+settings = config.get_settings()
+DATA_DIR = settings.DATA_DIR
 VERSIONS = Literal["alabaster"]
 VALID_PARAGRAPH_STYLES = Literal[
     "Heading 1",
     "Heading 2",
     "Heading 3",
     "Heading 1 Centered",
+    "Normal",
+    "Normal Hanging",  # After first line, 0.7cm indent.
 ]
 T = TypeVar("T")
+U = TypeVar("U")
 
 
 class RunStyles(enum.StrEnum):
@@ -74,10 +80,14 @@ class PageBreak(Section):
     def _add_to(self, doc: document.Document) -> None:
         """Adds a page break to the report.
 
+        If any paragraph exists, appends it to the last paragraph. Otherwise,
+        creates a new paragraph.
+
         Args:
             doc: The document to add the page break to.
         """
-        doc.add_paragraph().add_run().add_break(enum_text.WD_BREAK.PAGE)
+        para = doc.paragraphs[-1] if doc.paragraphs else doc.add_paragraph()
+        para.add_run().add_break(enum_text.WD_BREAK.PAGE)
 
 
 class RunsSection(Section):
@@ -95,6 +105,7 @@ class RunsSection(Section):
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     content: tuple[str, ...]
+    paragraph_style: cmi_docx.ParagraphStyle | VALID_PARAGRAPH_STYLES | None = None
     run_styles: tuple[cmi_docx.RunStyle | RunStyles | None, ...]
 
     def _add_to(self, doc: document.Document) -> None:
@@ -103,7 +114,13 @@ class RunsSection(Section):
         Args:
             doc: The document to add the section to.
         """
-        para = doc.add_paragraph()
+        if isinstance(self.paragraph_style, cmi_docx.ParagraphStyle):
+            para = doc.add_paragraph("")
+            extended_paragraph = cmi_docx.ExtendParagraph(para)
+            extended_paragraph.format(self.paragraph_style)
+        else:
+            para = doc.add_paragraph("", self.paragraph_style)
+
         for text, style in zip(self.content, self.run_styles, strict=True):
             if style is None or isinstance(style, str):
                 para.add_run(text, style)
@@ -168,6 +185,21 @@ class TableSection(Section):
                 table.add_to(doc)
 
 
+class ImageSection(Section):
+    """Represents a image section in the report structure."""
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+    path: pydantic.FilePath
+
+    def _add_to(self, doc: document.Document) -> None:
+        """Adds the image to a document.
+
+        Args:
+            doc: The document to add the image to.
+        """
+        doc.add_picture(str(self.path))
+
+
 class _PyriteTableCollection:
     """Collection of all tables used in Pyrite reports."""
 
@@ -227,8 +259,73 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
     """
     tables = _PyriteTableCollection(mrn)
     table_sections = _get_alabaster_table_structure(tables)
+    intro = _table_sections_to_introduction(mrn, table_sections)
     appendix = _table_sections_to_appendix_a(mrn, table_sections)
-    return PageBreak(), *appendix, PageBreak(), *table_sections
+    return *intro, PageBreak(), *appendix, PageBreak(), *table_sections
+
+
+def _table_sections_to_introduction(
+    mrn: str, table_sections: Iterable[Section]
+) -> tuple[Section, ...]:
+    """Creates the introduction section of the report.
+
+    Args:
+        mrn: The participant's unique identifier.
+        table_sections: The list of sections included in the tables.
+
+    Returns:
+        The introduction section of the report.
+    """
+    unique_test_ids = _tables_to_test_ids(mrn, table_sections)
+    overviews = introduction.TestOverviewManager()
+    used_overviews = [overviews.fetch(test_id) for test_id in unique_test_ids]
+    sections = [
+        _description_to_overview(overview) for overview in used_overviews if overview
+    ]
+    return (
+        ParagraphSection(
+            content="STANDARDIZED TESTING, INTERVIEW AND QUESTIONNAIRE RESULTS",
+            style="Heading 1",
+        ),
+        ParagraphSection(
+            content=(
+                "This report provides a summary of the following tests, "
+                "questionnaires, and clinical interviews that were administered during "
+                "participation in the study. Areas assessed include general cognitive "
+                "ability, academic achievement, language and fine motor coordination. "
+                "Clinical interviews and questionnaires were used to assess social, "
+                "emotional and behavioral functioning. Please reference Appendix A for "
+                "a full description of the measures administered in the Healthy Brain "
+                "Network research protocol."
+            ),
+            style=None,
+        ),
+        *sections,
+        PageBreak(),
+        ParagraphSection(
+            content="What do the scores represent?",
+            style="Heading 2",
+        ),
+        ParagraphSection(
+            content=(
+                "Standard scores, T scores, and percentile ranks can indicate "
+                "{{FIRST_NAME_POSSESSIVE}} performance compared to other children in "
+                "the same age or same grade (see Figure below). A standard score of "
+                "100 is the mean of the normative sample (individuals in the same age "
+                "or same grade), and a standard score within the range of 90-109 "
+                "indicates that an individual's performance or rating is within the "
+                "average or typical range. A T score of 50 is the mean of the "
+                "normative sample, and a T score within the range of 43-57 indicates "
+                "that an individual's performance or ratings is within the average "
+                "range. A percentile rank of 50 is the median of the normative sample, "
+                "meaning that an individual's performance equals or exceeds 50% of the "
+                "same-age peers. A percentile rank within the range of 25-75 indicates "
+                "that an individual's performance or rating is within the average."
+            ),
+            style=None,
+        ),
+        ImageSection(path=DATA_DIR / "pyrite_tscore_distribution.png"),
+    )
 
 
 def _table_sections_to_appendix_a(
@@ -243,14 +340,7 @@ def _table_sections_to_appendix_a(
     Returns:
         The section structure for Appendix A.
     """
-    used_producers = _extract_producers_used(table_sections)
-    available_producers = [
-        producer for producer in used_producers if producer.is_available(mrn)
-    ]
-    test_ids: list[appendix_a.TestId] = _flatten(
-        [tbl.test_ids(mrn) for tbl in available_producers]
-    )
-    unique_test_ids = sorted(dict.fromkeys(test_ids))
+    unique_test_ids = _tables_to_test_ids(mrn, table_sections)
     descriptions = appendix_a.TestDescriptionManager()
     used_descriptions = [descriptions.fetch(test_id) for test_id in unique_test_ids]
     sections = [_description_to_section(desc) for desc in used_descriptions]
@@ -262,6 +352,28 @@ def _table_sections_to_appendix_a(
         ParagraphSection(content=""),
         *sections,
     )
+
+
+def _tables_to_test_ids(
+    mrn: str, table_sections: Iterable[Section]
+) -> list[utils.TestId]:
+    """Converts tables to the test_ids that they use.
+
+    Args:
+        mrn: The participant's unique identifier.
+        table_sections: The list of sections to extract IDs from.
+
+    Returns:
+        Unique test IDs sorted alphabetically.
+    """
+    used_producers = _extract_producers_used(table_sections)
+    available_producers = [
+        producer for producer in used_producers if producer.is_available(mrn)
+    ]
+    test_ids: list[utils.TestId] = _flatten(
+        [tbl.test_ids(mrn) for tbl in available_producers]
+    )
+    return sorted(dict.fromkeys(test_ids))
 
 
 def _description_to_section(description: appendix_a.TestDescription) -> Section:
@@ -278,6 +390,26 @@ def _description_to_section(description: appendix_a.TestDescription) -> Section:
                 run_styles=(RunStyles.Emphasis, None),
             ),
         ],
+    )
+
+
+def _description_to_overview(overview: introduction.TestOverview) -> Section:
+    """Converts a test description to a section."""
+    if not overview.description:
+        texts: tuple[str, ...] = (overview.title + "\n", "Administered on: ")
+        run_styles: tuple[None | RunStyles, ...] = (None, None)
+    else:
+        texts = (
+            overview.title + "\n",
+            overview.description + "\n",
+            "Administered on: ",
+        )
+        run_styles = (None, RunStyles.Emphasis, None)
+
+    return RunsSection(
+        content=texts,
+        paragraph_style="Normal Hanging",
+        run_styles=run_styles,
     )
 
 

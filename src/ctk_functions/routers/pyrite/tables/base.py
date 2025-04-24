@@ -14,9 +14,9 @@ from docx import document, shared, table
 from docx.enum import text
 from docx.text import paragraph
 
+import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
 
 logger = config.get_logger()
 
@@ -441,7 +441,9 @@ class DataProducer(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+    def test_ids(
+        cls, mrn: str
+    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:
         """The IDs of the tests used to produce this data.
 
         Args:

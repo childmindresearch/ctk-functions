@@ -4,8 +4,8 @@ import functools
 
 import cmi_docx
 
+import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import parent_child
 
@@ -32,7 +32,9 @@ class _MfqDataSource(base.DataProducer):
     """Fetches the data for the MFQ table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(
+        cls, mrn: str
+    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
         return ("mfq",)
 
     @classmethod

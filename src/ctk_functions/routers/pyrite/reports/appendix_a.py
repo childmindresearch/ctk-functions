@@ -1,30 +1,17 @@
 """Descriptions of the HBN tests for Appendix A."""
 
-from typing import Literal, cast
+from typing import cast
 
 import pydantic
 
-TestId = Literal[
-    "cbcl",
-    "celf_5",
-    "conners_3",
-    "ctopp_2",
-    "grooved_pegboard",
-    "mfq",
-    "scared",
-    "srs",
-    "swan",
-    "towre_2",
-    "wiat_4",
-    "wisc_5",
-]
+from ctk_functions.routers.pyrite.reports import utils
 
 
 @pydantic.dataclasses.dataclass
 class TestDescription:
     """Definition of the Appendix A description of a test."""
 
-    id: TestId
+    id: utils.TestId
     title: str
     description: str
     reference: str
@@ -34,7 +21,7 @@ class TestDescription:
 class TestDescriptionManager:
     """Dataclass for all test descriptions."""
 
-    def fetch(self, test_id: TestId) -> TestDescription:
+    def fetch(self, test_id: utils.TestId) -> TestDescription:
         """Convenience method that mimics getattr with correct typing."""
         return cast("TestDescription", getattr(self, test_id))
 

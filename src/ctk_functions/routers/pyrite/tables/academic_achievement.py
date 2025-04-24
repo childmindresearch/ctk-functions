@@ -6,8 +6,8 @@ import functools
 import cmi_docx
 from docx import shared
 
+import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -137,9 +137,11 @@ class _AcademicAchievementDataSource(base.DataProducer):
     """Fetches the data for the academic achievement table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+    def test_ids(
+        cls, mrn: str
+    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:
         subtests = [row[1] for row in cls.fetch(mrn)]
-        test_ids: list[appendix_a.TestId] = []
+        test_ids: list[ctk_functions.routers.pyrite.reports.utils.TestId] = []
         if any("towre" in test.lower() for test in subtests):
             test_ids.append("towre_2")
         if any("wiat" in test.lower() for test in subtests):

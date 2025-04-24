@@ -5,8 +5,8 @@ import functools
 
 import cmi_docx
 
+import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 from ctk_functions.routers.pyrite.tables.scq import COLUMN_WIDTHS
 
@@ -63,7 +63,9 @@ class _SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(
+        cls, mrn: str
+    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
         return ("swan",)
 
     @classmethod

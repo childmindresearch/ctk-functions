@@ -6,11 +6,12 @@ from typing import Any
 import cmi_docx
 import docx
 import fastapi
+from docx.text import paragraph as docx_paragraph
 from fastapi import status
 
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import reports
+from ctk_functions.routers.pyrite.reports import reports
 from ctk_functions.routers.pyrite.tables import (
     base,
     utils,
@@ -66,6 +67,11 @@ class PyriteReport:
         structure = reports.get_report_structure(self._mrn, version, **kwargs)
         for section in structure:
             section.add_to(self.document)
+
+        # As an artifact from using a template file, the first paragraph is empty.
+        # Delete it.
+        self._delete_paragraph(self.document.paragraphs[0])
+
         self._replace_participant_information()
 
     def _get_participant(self) -> models.CmiHbnIdTrack:
@@ -104,3 +110,14 @@ class PyriteReport:
                 template_formatted,
                 replacement,
             )
+
+    @staticmethod
+    def _delete_paragraph(para: docx_paragraph.Paragraph) -> None:
+        """Deletes a pargraph.
+
+        Args:
+            para: The paragraph to delete.
+        """
+        p_elem = para._element  # noqa: SLF001
+        p_elem.getparent().remove(p_elem)
+        p_elem._p = p_elem._element = None  # noqa: SLF001

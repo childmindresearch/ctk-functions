@@ -5,8 +5,8 @@ import functools
 
 from docx import shared
 
+import ctk_functions.routers.pyrite.reports.utils
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -45,7 +45,9 @@ class _WiscCompositeDataSource(base.DataProducer):
     """Fetches data for and creates the WISC composite table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(
+        cls, mrn: str
+    ) -> tuple[ctk_functions.routers.pyrite.reports.utils.TestId, ...]:  # noqa: ARG003
         return ("wisc_5",)
 
     @classmethod
