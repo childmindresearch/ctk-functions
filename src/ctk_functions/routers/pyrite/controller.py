@@ -115,7 +115,7 @@ class PyriteReport:
 
     @staticmethod
     def _delete_paragraph(para: docx_paragraph.Paragraph) -> None:
-        """Deletes a pargraph.
+        """Deletes a paragraph.
 
         Args:
             para: The paragraph to delete.
