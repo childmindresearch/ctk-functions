@@ -87,6 +87,8 @@ def _report_alabaster(mrn: str) -> tuple[sections.Section, ...]:
     tables = _PyriteTableCollection(mrn)
     table_sections = _get_alabaster_table_structure(tables)
     test_ids = _tables_to_test_ids(mrn, table_sections)
+    # KSADS is always done, but no table is included.
+    test_ids = sorted([*test_ids, "ksads"])
     intro = introduction.test_ids_to_introduction(mrn, test_ids)
     appendix = appendix_a.test_ids_to_appendix_a(test_ids)
     return (

@@ -3,6 +3,7 @@
 from collections.abc import Generator, Iterable
 from typing import cast
 
+import cmi_docx
 import pydantic
 import sqlalchemy
 from sqlalchemy import orm
@@ -260,18 +261,24 @@ def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
         The section for this test.
     """
     test_date = overview.get_data(mrn)
-    administer_date = f"Administered on: {test_date if test_date else 'UNKNOWN'}"
+    administer_date = str(test_date) if test_date else "FILL-IN"
+    date_style = None if test_date else cmi_docx.RunStyle(font_rgb=(255, 0, 0))
 
     if not overview.description:
-        texts: tuple[str, ...] = (overview.title + "\n", administer_date)
-        run_styles: tuple[None | sections.RunStyles, ...] = (None, None)
+        texts: tuple[str, ...] = (
+            overview.title + "\n",
+            "Administered on: ",
+            administer_date,
+        )
+        run_styles: tuple[None | sections.RunStyles, ...] = (None, None, date_style)
     else:
         texts = (
             overview.title + "\n",
             overview.description + "\n",
+            "Administered on: ",
             administer_date,
         )
-        run_styles = (None, sections.RunStyles.Emphasis, None)
+        run_styles = (None, sections.RunStyles.Emphasis, date_style)
 
     return sections.RunsSection(
         content=texts,

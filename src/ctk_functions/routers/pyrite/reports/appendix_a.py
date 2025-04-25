@@ -106,6 +106,25 @@ class TestDescriptionManager:
         ),
     )
 
+    ksads = TestDescription(
+        id="ksads",
+        title=(
+            "Kiddie Schedule for Affective Disorders and Schizophrenia-Present and "
+            "Lifetime Version (K-SADS-PL)"
+        ),
+        description=(
+            "The K-SADS is a semi-structured diagnostic interview designed to assess "
+            "current and past episodes of psychopathology in children and adolescents "
+            "according to DSM-5 criteria."
+        ),
+        reference=(
+            "Kaufman, J., et al. (1997). Schedule for affective disorders and "
+            "schizophrenia for school-age children-present and lifetime version "
+            "(K-SADS-PL): Initial reliability and validity data. Journal of the "
+            "American Academy of Child & Adolescent Psychiatry, 36(7), 980-988."
+        ),
+    )
+
     mfq = TestDescription(
         id="mfq",
         title="Mood and Feelings Questionnaire (MFQ)",
