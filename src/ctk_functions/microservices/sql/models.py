@@ -18,7 +18,7 @@ class Base(orm.DeclarativeBase):
 class Asr(Base):
     """SQLAlchemy model representing the I2B2_Export_ASR table."""
 
-    __tablename__ = "I2B2_Export_ASR"
+    __tablename__ = "I2B2_Export_ASR_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(sqlalchemy.String(10), nullable=True)
@@ -208,7 +208,7 @@ class Cbcl(Base):
     This table stores the Child Behavior Checklist (CBCL) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_CBCL"
+    __tablename__ = "I2B2_Export_CBCL_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -445,7 +445,7 @@ class Celf5(Base):
     This table stores Clinical Evaluation of Language Fundamentals assessment data,
     """
 
-    __tablename__ = "I2B2_Export_CELF"
+    __tablename__ = "I2B2_Export_CELF_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -514,7 +514,7 @@ class CmiHbnIdTrack(Base):
     identifiers, personal information, and demographic data.
     """
 
-    __tablename__ = "CMI_HBN_IDTrack"
+    __tablename__ = "CMI_HBN_IDTrack_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     # Primary identification fields
@@ -568,7 +568,7 @@ class Conners3(Base):
     This table stores the Conners-3 Self-Report Scale (C3SR) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_C3SR"
+    __tablename__ = "I2B2_Export_C3SR_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -699,7 +699,7 @@ class Gars(Base):
     the Autism Index (AI) composite score.
     """
 
-    __tablename__ = "I2B2_Export_GARS"
+    __tablename__ = "I2B2_Export_GARS_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -856,7 +856,7 @@ class GroovedPegboard(Base):
     This table stores Grooved Pegboard Test data.
     """
 
-    __tablename__ = "I2B2_Export_GroovedPeg"
+    __tablename__ = "I2B2_Export_GroovedPeg_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -934,7 +934,7 @@ class MfqParent(Base):
     This table stores the Mood and Feelings Questionnaire (MFQ) Parent Report data.
     """
 
-    __tablename__ = "I2B2_Export_MFQ_Parent"
+    __tablename__ = "I2B2_Export_MFQ_Parent_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -1026,7 +1026,7 @@ class MfqSelf(Base):
     This table stores the Mood and Feelings Questionnaire (MFQ) Self Report data.
     """
 
-    __tablename__ = "I2B2_Export_MFQ_Self"
+    __tablename__ = "I2B2_Export_MFQ_Self_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -1118,7 +1118,7 @@ class ScaredParent(Base):
     Report data,
     """
 
-    __tablename__ = "I2B2_Export_SCARED_Parent"
+    __tablename__ = "I2B2_Export_SCARED_Parent_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -1234,7 +1234,7 @@ class ScaredSelf(Base):
     Report data,
     """
 
-    __tablename__ = "I2B2_Export_SCARED_Self"
+    __tablename__ = "I2B2_Export_SCARED_Self_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -1349,7 +1349,7 @@ class Scq(Base):
     This table stores the Social Communication Questionnaire (SCQ) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_SCQ"
+    __tablename__ = "I2B2_Export_SCQ_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -1452,7 +1452,7 @@ class Srs(Base):
     corresponding T-scores for different domains of social functioning.
     """
 
-    __tablename__ = "I2B2_Export_SRS"
+    __tablename__ = "I2B2_Export_SRS_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -1601,7 +1601,7 @@ class Srs(Base):
 class SummaryScores(Base):
     """SQLAlchemy model representing CMI_HBN_SummaryScores in the dbo schema."""
 
-    __tablename__ = "CMI_HBN_SummaryScores"
+    __tablename__ = "CMI_HBN_SummaryScores_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     # Primary demographic information
@@ -2574,7 +2574,7 @@ class Swan(Base):
     (SWAN) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_SWAN"
+    __tablename__ = "I2B2_Export_SWAN_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -2657,7 +2657,7 @@ class Swan(Base):
 class Trf(Base):
     """SQLAlchemy model representing the I2B2_Export_TRF table."""
 
-    __tablename__ = "I2B2_Export_TRF"
+    __tablename__ = "I2B2_Export_TRF_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(sqlalchemy.String(10), nullable=True)
@@ -2862,7 +2862,7 @@ class Wisc5(Base):
     including raw scores, scaled scores, indexes, and percentiles.
     """
 
-    __tablename__ = "I2B2_Export_WISC_V"
+    __tablename__ = "I2B2_Export_WISC_V_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
@@ -2972,7 +2972,7 @@ class Ysr(Base):
     This table stores the Youth Self-Report (YSR) assessment data.
     """
 
-    __tablename__ = "I2B2_Export_YSR"
+    __tablename__ = "I2B2_Export_YSR_T"
     __table_args__ = {"schema": "nextgen"}  # noqa: RUF012
 
     URSI = orm.mapped_column(
