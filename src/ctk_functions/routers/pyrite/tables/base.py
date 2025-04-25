@@ -16,7 +16,7 @@ from docx.text import paragraph
 
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite import types
 
 logger = config.get_logger()
 
@@ -441,7 +441,7 @@ class DataProducer(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:
         """The IDs of the tests used to produce this data.
 
         Args:

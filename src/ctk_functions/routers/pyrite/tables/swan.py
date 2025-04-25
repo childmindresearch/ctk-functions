@@ -6,8 +6,8 @@ import functools
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data, types
+from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.scq import COLUMN_WIDTHS
 
 
@@ -63,7 +63,7 @@ class _SwanDataSource(base.DataProducer):
     """Fetches and creates the SWAN table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ("swan",)
 
     @classmethod
@@ -77,7 +77,7 @@ class _SwanDataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Swan)
+        data = sql_data.fetch_participant_row("EID", mrn, models.Swan)
         header = ("Subscale", "Score", "Clinical Relevance")
 
         # Scores are clipped at 0, the total needs to be adjusted for clipped scores.

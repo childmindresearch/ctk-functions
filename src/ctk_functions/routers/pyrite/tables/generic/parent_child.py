@@ -8,7 +8,8 @@ import sqlalchemy
 from docx import shared
 
 from ctk_functions.microservices.sql import client, models
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data
+from ctk_functions.routers.pyrite.tables import base
 
 COLUMN_WIDTHS = (
     shared.Cm(6.99),
@@ -94,7 +95,7 @@ def fetch_parent_child_formatting(
 def _parent_child_sql_request(
     mrn: str, parent_table: type[T_parent], child_table: type[T_child]
 ) -> sqlalchemy.Row[tuple[T_parent, T_child]]:
-    eid = utils.mrn_to_ids(mrn).EID
+    eid = sql_data.mrn_to_ids(mrn).EID
     statement = (
         sqlalchemy.select(
             parent_table,

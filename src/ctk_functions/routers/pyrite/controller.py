@@ -6,14 +6,15 @@ from typing import Any
 import cmi_docx
 import docx
 import fastapi
+from docx.text import paragraph as docx_paragraph
 from fastapi import status
 
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import reports
+from ctk_functions.routers.pyrite import sql_data
+from ctk_functions.routers.pyrite.reports import reports
 from ctk_functions.routers.pyrite.tables import (
     base,
-    utils,
 )
 
 logger = config.get_logger()
@@ -66,6 +67,11 @@ class PyriteReport:
         structure = reports.get_report_structure(self._mrn, version, **kwargs)
         for section in structure:
             section.add_to(self.document)
+
+        # As an artifact from using a template file, the first paragraph is empty.
+        # Delete it.
+        self._delete_paragraph(self.document.paragraphs[0])
+
         self._replace_participant_information()
 
     def _get_participant(self) -> models.CmiHbnIdTrack:
@@ -77,7 +83,9 @@ class PyriteReport:
         sanitized_mrn = self._mrn.replace("\r", "").replace("\n", "")
         logger.debug("Fetching participant %s.", sanitized_mrn)
         try:
-            return utils.fetch_participant_row("MRN", self._mrn, models.CmiHbnIdTrack)  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.
+            return sql_data.fetch_participant_row(  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.
+                "MRN", self._mrn, models.CmiHbnIdTrack
+            )
         except base.TableDataNotFoundError as exception_info:
             raise fastapi.HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -104,3 +112,14 @@ class PyriteReport:
                 template_formatted,
                 replacement,
             )
+
+    @staticmethod
+    def _delete_paragraph(para: docx_paragraph.Paragraph) -> None:
+        """Deletes a paragraph.
+
+        Args:
+            para: The paragraph to delete.
+        """
+        p_elem = para._element  # noqa: SLF001
+        p_elem.getparent().remove(p_elem)
+        p_elem._p = p_elem._element = None  # noqa: SLF001

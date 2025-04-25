@@ -4,8 +4,8 @@ import dataclasses
 import functools
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
-from ctk_functions.routers.pyrite.tables import base, utils
+from ctk_functions.routers.pyrite import sql_data, types
+from ctk_functions.routers.pyrite.tables import base
 
 
 @dataclasses.dataclass
@@ -34,7 +34,7 @@ class _Ctopp2DataSource(base.DataProducer):
     """Fetches the data for the CTOPP-2 table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ("ctopp_2",)
 
     @classmethod
@@ -48,7 +48,7 @@ class _Ctopp2DataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("person_id", mrn, models.SummaryScores)
+        data = sql_data.fetch_participant_row("person_id", mrn, models.SummaryScores)
         header = ("CTOPP - 2 Rapid Naming", "Number of Errors")
         content = [
             (label.name, getattr(data, label.score_column))
