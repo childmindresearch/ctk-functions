@@ -1,4 +1,4 @@
-"""Utility functions for fetchign data from the SQL database."""
+"""Utility functions for fetching data from the SQL database."""
 
 import dataclasses
 import functools
