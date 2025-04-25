@@ -90,7 +90,7 @@ def fetch_participant_row(
     with client.get_session() as session:
         data = session.execute(statement).scalar_one_or_none()
 
-    logger.debug("Fetched table %s, participant %s,", table.__name__, sanitized_mrn)
+    logger.debug("Fetched table %s, participant %s.", table.__name__, sanitized_mrn)
     if data:
         return data
 

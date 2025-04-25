@@ -264,21 +264,15 @@ def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
     administer_date = str(test_date) if test_date else "FILL-IN"
     date_style = None if test_date else cmi_docx.RunStyle(font_rgb=(255, 0, 0))
 
-    if not overview.description:
-        texts: tuple[str, ...] = (
-            overview.title + "\n",
-            "Administered on: ",
-            administer_date,
-        )
-        run_styles: tuple[None | sections.RunStyles, ...] = (None, None, date_style)
-    else:
-        texts = (
-            overview.title + "\n",
-            overview.description + "\n",
-            "Administered on: ",
-            administer_date,
-        )
-        run_styles = (None, sections.RunStyles.Emphasis, date_style)
+    texts = [overview.title + "\n"]
+    run_styles: list[sections.RunStyles | None | cmi_docx.RunStyle] = [None]
+
+    if overview.description:
+        texts.append(overview.description + "\n")
+        run_styles.append(sections.RunStyles.Emphasis)
+
+    texts.extend(["Administered on: ", administer_date])
+    run_styles.extend([None, date_style])
 
     return sections.RunsSection(
         content=texts,
