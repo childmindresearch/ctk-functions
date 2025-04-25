@@ -83,9 +83,9 @@ class PyriteReport:
         sanitized_mrn = self._mrn.replace("\r", "").replace("\n", "")
         logger.debug("Fetching participant %s.", sanitized_mrn)
         try:
-            return sql_data.fetch_participant_row(
+            return sql_data.fetch_participant_row(  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.
                 "MRN", self._mrn, models.CmiHbnIdTrack
-            )  # type: ignore[no-any-return, unused-ignore] # Getting errors both when no-any-return is, and is not used.
+            )
         except base.TableDataNotFoundError as exception_info:
             raise fastapi.HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

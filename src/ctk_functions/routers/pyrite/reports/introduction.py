@@ -1,8 +1,11 @@
 """Contains dataclasses to build the introduction page."""
 
 from collections.abc import Generator, Iterable
+from typing import cast
 
 import pydantic
+import sqlalchemy
+from sqlalchemy import orm
 
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
@@ -13,41 +16,57 @@ settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
-class SqlTableColumn:
-    """Stores the location of a column in a table.
+class TestOverview(pydantic.BaseModel):
+    """Definition of the introduction overview of a test.
 
     The WIAT table requires a fallback option, hence columns
     is an iterable.
 
     Args:
-        model: The model to fetch data from.
+        id: The test ID.
+        title: Title to use in the document.
+        description: Description to use in the document.
         columns: List of columns to use in order of priority i.e.
             data from the first non-null column is used.
     """
 
-    model: type[models.Base]
-    columns: tuple[str, ...]
-
-
-@pydantic.dataclasses.dataclass(frozen=True)
-class TestOverview:
-    """Definition of the introduction overview of a test."""
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     id: types.TestId
     title: str
-    description: str
-    date_table: SqlTableColumn | None
+    description: str | None = None
+    columns: tuple[orm.InstrumentedAttribute[sqlalchemy.Date], ...] | None = None
+
+    def get_data(self, mrn: str) -> sqlalchemy.Date | None:
+        """Gets data from the first non-null column.
+
+        Args:
+            mrn: The participant's unique identifier.
+
+        Returns:
+            The associated data.
+        """
+        if not self.columns:
+            return None
+
+        for column in self.columns:
+            data = sql_data.fetch_participant_row(
+                "person_id", mrn, column.parent.entity
+            )
+            test_date = getattr(data, column.key, None)
+            if test_date:
+                return cast("sqlalchemy.Date", test_date)
+        return None
 
 
 class TestOverviewManager(pydantic.BaseModel):
     """Dataclass for all test descriptions."""
 
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
     cbcl: TestOverview = TestOverview(
         id="cbcl",
         title="Child Behavior Checklist - Parent Report Form (CBCL)",
-        description="",
-        date_table=None,
     )
 
     celf_5: TestOverview = TestOverview(
@@ -56,59 +75,47 @@ class TestOverviewManager(pydantic.BaseModel):
             "Clinical Evaluation of Language Fundamentals - 5th Edition Screener "
             "(CELF-5 Screener)"
         ),
-        description="",
-        date_table=SqlTableColumn(model=models.SummaryScores, columns=("CELF_Date",)),
+        columns=(models.SummaryScores.CELF_Date,),
     )
 
     conners_3: TestOverview = TestOverview(
         id="conners_3",
         title="Conners 3 Child Self-Report Assessment Form",
-        description="",
-        date_table=None,
     )
 
     ctopp_2: TestOverview = TestOverview(
         id="ctopp_2",
         title="Comprehensive Test of Phonological Processing - 2nd Edition (CTOPP-2)",
-        description="",
-        date_table=SqlTableColumn(model=models.SummaryScores, columns=("CTOPP_Date",)),
+        columns=(models.SummaryScores.CTOPP_Date,),
     )
 
     grooved_pegboard: TestOverview = TestOverview(
         id="grooved_pegboard",
         title="Lafayette Grooved Pegboard Test",
         description="",
-        date_table=SqlTableColumn(
-            model=models.SummaryScores, columns=("Pegboard_Date",)
-        ),
+        columns=(models.SummaryScores.Pegboard_Date,),
     )
 
     ksads: TestOverview = TestOverview(
         id="ksads",
         title="Kiddie Schedule for Affective Disorders and Schizophrenia (K-SADS)",
-        description="",
-        date_table=None,
     )
 
     mfq: TestOverview = TestOverview(
         id="mfq",
         title="Mood and Feelings Questionnaire (MFQ)",
         description="Child and Parent Report Forms",
-        date_table=None,
     )
 
     scared: TestOverview = TestOverview(
         id="scared",
         title="Screen for Child Anxiety and Related Disorders (SCARED)",
         description="Child and Parent Report Forms",
-        date_table=None,
     )
 
     srs: TestOverview = TestOverview(
         id="srs",
         title="Social Responsiveness Scale - 2 (SRS)",
-        description="",
-        date_table=None,
     )
 
     swan: TestOverview = TestOverview(
@@ -117,23 +124,21 @@ class TestOverviewManager(pydantic.BaseModel):
             "Extended Strengths and Weaknesses of ADHD Symptoms and Normal Behavior "
             "Scale (ESWAN)"
         ),
-        description="",
-        date_table=None,
     )
 
     towre_2: TestOverview = TestOverview(
         id="towre_2",
         title="Test of Word Reading Efficiency-2nd Edition (TOWRE-2)",
-        description="",
-        date_table=SqlTableColumn(model=models.SummaryScores, columns=("TOWRE_Date",)),
+        columns=(models.SummaryScores.TOWRE_Date,),
     )
 
     wiat_4_essay: TestOverview = TestOverview(
         id="wiat_4",
         title="Wechsler Individual Achievement Test, 4th Edition (WIAT-4)",
         description="Sentence Composition, Essay Composition",
-        date_table=SqlTableColumn(
-            model=models.SummaryScores, columns=("WIAT_Writing_date", "WIAT_Date")
+        columns=(
+            models.SummaryScores.WIAT_Writing_date,
+            models.SummaryScores.WIAT_Date,
         ),
     )
 
@@ -144,8 +149,9 @@ class TestOverviewManager(pydantic.BaseModel):
             "Reading Comprehension, Listening Comprehension, Math Problem Solving, "
             "Math Fluency Subtests"
         ),
-        date_table=SqlTableColumn(
-            model=models.SummaryScores, columns=("WIAT_Part2_Date", "WIAT_Date")
+        columns=(
+            models.SummaryScores.WIAT_Part2_Date,
+            models.SummaryScores.WIAT_Date,
         ),
     )
 
@@ -153,8 +159,9 @@ class TestOverviewManager(pydantic.BaseModel):
         id="wiat_4",
         title="Wechsler Individual Achievement Test, 4th Edition (WIAT-4)",
         description="Word Reading, Pseudoword Decoding, Spelling, Numerical Operations",
-        date_table=SqlTableColumn(
-            model=models.SummaryScores, columns=("WIAT_Screen_Date", "WIAT_Date")
+        columns=(
+            models.SummaryScores.WIAT_Screen_Date,
+            models.SummaryScores.WIAT_Date,
         ),
     )
 
@@ -165,7 +172,7 @@ class TestOverviewManager(pydantic.BaseModel):
             "Vocabulary, Similarities, Block Design, Visual Puzzles, Matrix Reasoning, "
             "Figure Weights, Digit Span, Picture Memory, Coding, Symbol Search"
         ),
-        date_table=SqlTableColumn(model=models.SummaryScores, columns=("WISC_Date",)),
+        columns=(models.SummaryScores.WISC_Date,),
     )
 
 
@@ -250,22 +257,9 @@ def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
         overview: The description of the test.
 
     Returns:
-        The section for this test..
+        The section for this test.
     """
-    if overview.date_table:
-        data = sql_data.fetch_participant_row(
-            "person_id", mrn, overview.date_table.model
-        )
-        test_date = next(
-            (
-                getattr(data, col)
-                for col in overview.date_table.columns
-                if getattr(data, col)
-            ),
-            None,
-        )
-    else:
-        test_date = None
+    test_date = overview.get_data(mrn)
     administer_date = f"Administered on: {test_date if test_date else 'UNKNOWN'}"
 
     if not overview.description:
