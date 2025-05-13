@@ -44,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        lfs: 'true'
     - name: Install uv
       run: pipx install uv
     - uses: actions/setup-python@v5
