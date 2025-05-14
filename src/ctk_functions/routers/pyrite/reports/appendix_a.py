@@ -1,30 +1,12 @@
 """Descriptions of the HBN tests for Appendix A."""
 
 from collections.abc import Iterable
-from typing import Literal, cast
+from typing import cast
 
 import pydantic
 
 from ctk_functions.routers.pyrite import types
 from ctk_functions.routers.pyrite.reports import sections
-
-TestId = Literal[
-    "asr",
-    "cbcl",
-    "celf_5",
-    "conners_3",
-    "ctopp_2",
-    "grooved_pegboard",
-    "mfq",
-    "scared",
-    "srs",
-    "swan",
-    "towre_2",
-    "trf",
-    "wiat_4",
-    "wisc_5",
-    "ysr",
-]
 
 
 @pydantic.dataclasses.dataclass

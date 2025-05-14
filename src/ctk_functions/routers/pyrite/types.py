@@ -3,6 +3,7 @@
 from typing import Literal
 
 TestId = Literal[
+    "asr",
     "cbcl",
     "celf_5",
     "conners_3",
@@ -14,6 +15,8 @@ TestId = Literal[
     "srs",
     "swan",
     "towre_2",
+    "trf",
     "wiat_4",
     "wisc_5",
+    "ysr",
 ]
