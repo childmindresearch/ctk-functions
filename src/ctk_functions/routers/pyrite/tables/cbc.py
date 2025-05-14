@@ -6,7 +6,7 @@ import enum
 import cmi_docx
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite import types
 from ctk_functions.routers.pyrite.tables import base
 from ctk_functions.routers.pyrite.tables.generic import tscore
 
@@ -16,7 +16,7 @@ class TestDefinition:
     """Stores the model and test ids associated with a CBC test."""
 
     model: type[models.Base]
-    test_ids: tuple[appendix_a.TestId, ...]
+    test_ids: tuple[types.TestId, ...]
 
 
 class CbcTests(enum.Enum):

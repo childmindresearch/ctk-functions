@@ -147,7 +147,7 @@ def _mock_parent_child_sql_request(
 def mock_sql_calls(mocker: pytest_mock.MockerFixture) -> None:
     """Mocks requests to the SQL database."""
     mocker.patch(
-        "ctk_functions.routers.pyrite.tables.utils.fetch_participant_row",
+        "ctk_functions.routers.pyrite.sql_data.fetch_participant_row",
         side_effect=_mock_fetch_participant_row,
     )
     mocker.patch(

@@ -1,16 +1,10 @@
 """Contains definitions of Pyrite report formats."""
 
-import abc
-import enum
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import Literal, TypeVar
 
-import cmi_docx
-import pydantic
-from docx import document
-from docx.enum import text as enum_text
-
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite import types
+from ctk_functions.routers.pyrite.reports import appendix_a, introduction, sections
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
@@ -29,143 +23,8 @@ from ctk_functions.routers.pyrite.tables import (
     wisc_subtest,
 )
 
-VERSIONS = Literal["alabaster"]
-VALID_PARAGRAPH_STYLES = Literal[
-    "Heading 1",
-    "Heading 2",
-    "Heading 3",
-    "Heading 1 Centered",
-]
 T = TypeVar("T")
-
-
-class RunStyles(enum.StrEnum):
-    """Valid styles in the Word template for runs."""
-
-    Emphasis = "Emphasis"
-
-
-class Section(pydantic.BaseModel, abc.ABC):
-    """Represents a section in the report structure."""
-
-    subsections: list["Section"] = pydantic.Field(default_factory=list)
-    condition: Callable[[], bool] = lambda: True
-
-    def add_to(self, doc: document.Document) -> None:
-        """Adds the section to the report."""
-        if not self.condition():
-            return
-
-        self._add_to(doc)
-        for subsection in self.subsections:
-            subsection.add_to(doc)
-
-    @abc.abstractmethod
-    def _add_to(self, doc: document.Document) -> None:
-        """Adds this section to the report.
-
-        Handling of the conditional and subsections is done by self.add_to()
-        """
-
-
-class PageBreak(Section):
-    """A page break in the report."""
-
-    def _add_to(self, doc: document.Document) -> None:
-        """Adds a page break to the report.
-
-        Args:
-            doc: The document to add the page break to.
-        """
-        doc.add_paragraph().add_run().add_break(enum_text.WD_BREAK.PAGE)
-
-
-class RunsSection(Section):
-    """Represents a text block in the report structure with sub-formatting.
-
-    Attributes:
-        content: The textual content of each run.
-        run_styles: The style of each run. Can be a valid CharacterStyle,
-            a RunStyle object, or None (document's default style).
-        condition: Condition to evaluate for section inclusion.
-        subsections: Subsections of this section, will be appended if
-            this section's condition and the subsection's condition is met.
-    """
-
-    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
-
-    content: tuple[str, ...]
-    run_styles: tuple[cmi_docx.RunStyle | RunStyles | None, ...]
-
-    def _add_to(self, doc: document.Document) -> None:
-        """Adds the section to a document.
-
-        Args:
-            doc: The document to add the section to.
-        """
-        para = doc.add_paragraph()
-        for text, style in zip(self.content, self.run_styles, strict=True):
-            if style is None or isinstance(style, str):
-                para.add_run(text, style)
-                continue
-
-            run = para.add_run(text)
-            extend_run = cmi_docx.ExtendRun(run)
-            extend_run.format(style)
-
-
-class ParagraphSection(Section):
-    """Represents a text block in the report structure.
-
-    Attributes:
-        content: The textual content of the paragraph.
-        style: Either a ParagraphStyle defining the styling, a string
-            matching a Style name in the document, or None. If None,
-            uses the document's default style.
-        condition: Condition to evaluate for section inclusion.
-        subsections: Subsections of this section, will be appended if
-            this section's condition and the subsection's condition is met.
-    """
-
-    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
-
-    content: str
-    style: cmi_docx.ParagraphStyle | VALID_PARAGRAPH_STYLES | None = None
-
-    def _add_to(self, doc: document.Document) -> None:
-        """Adds the section to a document.
-
-        Args:
-            doc: The document to add the section to.
-        """
-        if isinstance(self.style, cmi_docx.ParagraphStyle):
-            para = doc.add_paragraph(self.content)
-            extended_paragraph = cmi_docx.ExtendParagraph(para)
-            extended_paragraph.format(self.style)
-        else:
-            doc.add_paragraph(self.content, self.style)
-
-
-class TableSection(Section):
-    """Represents a table section in the report structure."""
-
-    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
-
-    title: str | None = None
-    level: int | None = None
-    tables: list[base.WordTableSection] = pydantic.Field(default_factory=list)
-
-    def _add_to(self, doc: document.Document) -> None:
-        """Adds the section to a document.
-
-        Args:
-            doc: The document to add the section to.
-        """
-        if self.title and self.level:
-            doc.add_heading(self.title, level=self.level)
-        for table in self.tables:
-            if table.is_available():
-                table.add_to(doc)
+VERSIONS = Literal["alabaster"]
 
 
 class _PyriteTableCollection:
@@ -195,7 +54,7 @@ class _PyriteTableCollection:
 def get_report_structure(
     mrn: str,
     version: VERSIONS,
-) -> tuple[Section, ...]:
+) -> tuple[sections.Section, ...]:
     """Fetches a report structure based on version name.
 
     Valid versions are:
@@ -216,7 +75,7 @@ def get_report_structure(
     raise ValueError(msg)
 
 
-def _report_alabaster(mrn: str) -> tuple[Section, ...]:
+def _report_alabaster(mrn: str) -> tuple[sections.Section, ...]:
     """Creates the structure of the 2024-04-02 Pyrite report.
 
     Args:
@@ -227,62 +86,44 @@ def _report_alabaster(mrn: str) -> tuple[Section, ...]:
     """
     tables = _PyriteTableCollection(mrn)
     table_sections = _get_alabaster_table_structure(tables)
-    appendix = _table_sections_to_appendix_a(mrn, table_sections)
-    return PageBreak(), *appendix, PageBreak(), *table_sections
+    test_ids = _tables_to_test_ids(mrn, table_sections)
+    # KSADS is always done, but no table is included.
+    test_ids = sorted([*test_ids, "ksads"])
+    intro = introduction.test_ids_to_introduction(mrn, test_ids)
+    appendix = appendix_a.test_ids_to_appendix_a(test_ids)
+    return (
+        *intro,
+        sections.PageBreak(),
+        *appendix,
+        sections.PageBreak(),
+        *table_sections,
+    )
 
 
-def _table_sections_to_appendix_a(
-    mrn: str, table_sections: Iterable[Section]
-) -> tuple[Section, ...]:
-    """Extracts all used DataProducers and converts this information to Appendix A.
+def _tables_to_test_ids(
+    mrn: str, table_sections: Iterable[sections.Section]
+) -> list[types.TestId]:
+    """Converts tables to the test_ids that they use.
 
     Args:
         mrn: The participant's unique identifier.
-        table_sections: The list of sections to extract producers from.
+        table_sections: The list of sections to extract IDs from.
 
     Returns:
-        The section structure for Appendix A.
+        Unique test IDs sorted alphabetically.
     """
     used_producers = _extract_producers_used(table_sections)
     available_producers = [
         producer for producer in used_producers if producer.is_available(mrn)
     ]
-    test_ids: list[appendix_a.TestId] = _flatten(
+    test_ids: list[types.TestId] = _flatten(
         [tbl.test_ids(mrn) for tbl in available_producers]
     )
-    unique_test_ids = sorted(dict.fromkeys(test_ids))
-    descriptions = appendix_a.TestDescriptionManager()
-    used_descriptions = [descriptions.fetch(test_id) for test_id in unique_test_ids]
-    sections = [_description_to_section(desc) for desc in used_descriptions]
-    return (
-        ParagraphSection(
-            content="Appendix A. Instruments administered in Healthy Brain Network",
-            style="Heading 1",
-        ),
-        ParagraphSection(content=""),
-        *sections,
-    )
-
-
-def _description_to_section(description: appendix_a.TestDescription) -> Section:
-    """Converts a test description to a section."""
-    return ParagraphSection(
-        content=description.title,
-        style="Heading 2",
-        subsections=[
-            ParagraphSection(
-                content=description.description,
-            ),
-            RunsSection(
-                content=("Reference:", " " + description.reference),
-                run_styles=(RunStyles.Emphasis, None),
-            ),
-        ],
-    )
+    return sorted(dict.fromkeys(test_ids))
 
 
 def _extract_producers_used(
-    structure: Iterable[Section],
+    structure: Iterable[sections.Section],
 ) -> tuple[type[base.DataProducer], ...]:
     """Extracts the data producers used in sections."""
     producers = []
@@ -295,18 +136,20 @@ def _extract_producers_used(
 
 def _get_alabaster_table_structure(
     tables: _PyriteTableCollection,
-) -> tuple[Section, ...]:
+) -> tuple[sections.Section, ...]:
     """Defines the structure of the Alabaster tables."""
     return (
-        ParagraphSection(content="Results Appendix", style="Heading 1 Centered"),
-        ParagraphSection(
+        sections.ParagraphSection(
+            content="Results Appendix", style="Heading 1 Centered"
+        ),
+        sections.ParagraphSection(
             content="General Intellectual Function",
             style="Heading 1",
             condition=lambda: _all_tables_available(
                 tables.wisc_composite, tables.wisc_subtest
             ),
             subsections=[
-                TableSection(
+                sections.TableSection(
                     title=(
                         "The Wechsler Intelligence Scale for Children-Fifth "
                         "Edition (WISC-V)"
@@ -316,27 +159,27 @@ def _get_alabaster_table_structure(
                 ),
             ],
         ),
-        ParagraphSection(
+        sections.ParagraphSection(
             content="Fine Motor Dexterity",
             style="Heading 1",
             condition=lambda: tables.grooved_pegboard.is_available(),
             subsections=[
-                TableSection(
+                sections.TableSection(
                     title="Lafayette Grooved Pegboard Test",
                     level=3,
                     tables=[tables.grooved_pegboard],
                 )
             ],
         ),
-        PageBreak(),
-        TableSection(
+        sections.PageBreak(),
+        sections.TableSection(
             title="Academic Achievement",
             level=1,
             tables=[tables.academic_achievement],
             condition=lambda: tables.academic_achievement.is_available(),
         ),
-        PageBreak(),
-        TableSection(
+        sections.PageBreak(),
+        sections.TableSection(
             title="Language Skills",
             level=1,
             tables=[tables.celf5, tables.language, tables.ctopp2],
@@ -346,8 +189,8 @@ def _get_alabaster_table_structure(
                 tables.ctopp2,
             ),
         ),
-        PageBreak(),
-        ParagraphSection(
+        sections.PageBreak(),
+        sections.ParagraphSection(
             content="Social-Emotional and Behavioral Functioning Questionnaires",
             style="Heading 1 Centered",
             condition=lambda: _any_table_available(
@@ -361,31 +204,31 @@ def _get_alabaster_table_structure(
                 tables.scared,
             ),
             subsections=[
-                TableSection(
+                sections.TableSection(
                     title="Child Behavior Checklist - Parent Report Form (CBCL)",
                     level=3,
                     tables=[tables.cbcl],
                     condition=lambda: tables.cbcl.is_available(),
                 ),
-                TableSection(
+                sections.TableSection(
                     title="Child Behavior Checklist - Youth Self Report (YSR)",
                     level=3,
                     tables=[tables.ysr],
                     condition=lambda: tables.ysr.is_available(),
                 ),
-                TableSection(
+                sections.TableSection(
                     title="Child Behavior Checklist - Teacher Report Form (TRF)",
                     level=3,
                     tables=[tables.trf],
                     condition=lambda: tables.trf.is_available(),
                 ),
-                TableSection(
+                sections.TableSection(
                     title="Child Behavior Checklist - Adult Self Report Form (ASR)",
                     level=3,
                     tables=[tables.asr],
                     condition=lambda: tables.asr.is_available(),
                 ),
-                ParagraphSection(
+                sections.ParagraphSection(
                     content="Attention Deficit-Hyperactivity Symptoms and Behaviors",
                     style="Heading 1",
                     condition=lambda: _any_table_available(
@@ -393,7 +236,7 @@ def _get_alabaster_table_structure(
                         tables.conners3,
                     ),
                     subsections=[
-                        TableSection(
+                        sections.TableSection(
                             title=(
                                 "Strengths and Weaknesses of ADHD Symptoms "
                                 "and Normal Behavior (SWAN)"
@@ -402,7 +245,7 @@ def _get_alabaster_table_structure(
                             tables=[tables.swan],
                             condition=lambda: tables.swan.is_available(),
                         ),
-                        TableSection(
+                        sections.TableSection(
                             title="Conners 3 - Child Short Form",
                             level=3,
                             tables=[tables.conners3],
@@ -410,7 +253,7 @@ def _get_alabaster_table_structure(
                         ),
                     ],
                 ),
-                ParagraphSection(
+                sections.ParagraphSection(
                     content="Autism Spectrum Symptoms and Behaviors",
                     style="Heading 1",
                     condition=lambda: _any_table_available(
@@ -418,13 +261,13 @@ def _get_alabaster_table_structure(
                         tables.srs,
                     ),
                     subsections=[
-                        TableSection(
+                        sections.TableSection(
                             title="Social Communication Questionnaire",
                             level=3,
                             tables=[tables.scq],
                             condition=lambda: tables.scq.is_available(),
                         ),
-                        TableSection(
+                        sections.TableSection(
                             title="Social Responsiveness Scale",
                             level=3,
                             tables=[tables.srs],
@@ -432,8 +275,8 @@ def _get_alabaster_table_structure(
                         ),
                     ],
                 ),
-                PageBreak(),
-                ParagraphSection(
+                sections.PageBreak(),
+                sections.ParagraphSection(
                     content="Depression and Anxiety Symptoms",
                     style="Heading 1",
                     condition=lambda: _any_table_available(
@@ -441,7 +284,7 @@ def _get_alabaster_table_structure(
                         tables.scared,
                     ),
                     subsections=[
-                        TableSection(
+                        sections.TableSection(
                             title=(
                                 "Mood and Feelings Questionnaire (MFQ) - Long Version"
                             ),
@@ -449,7 +292,7 @@ def _get_alabaster_table_structure(
                             tables=[tables.mfq],
                             condition=lambda: tables.mfq.is_available(),
                         ),
-                        TableSection(
+                        sections.TableSection(
                             title="Screen for Child Anxiety Related Disorders",
                             level=3,
                             tables=[tables.scared],
