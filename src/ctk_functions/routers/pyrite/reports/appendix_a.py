@@ -1,30 +1,19 @@
 """Descriptions of the HBN tests for Appendix A."""
 
-from typing import Literal, cast
+from collections.abc import Iterable
+from typing import cast
 
 import pydantic
 
-TestId = Literal[
-    "cbcl",
-    "celf_5",
-    "conners_3",
-    "ctopp_2",
-    "grooved_pegboard",
-    "mfq",
-    "scared",
-    "srs",
-    "swan",
-    "towre_2",
-    "wiat_4",
-    "wisc_5",
-]
+from ctk_functions.routers.pyrite import types
+from ctk_functions.routers.pyrite.reports import sections
 
 
 @pydantic.dataclasses.dataclass
 class TestDescription:
     """Definition of the Appendix A description of a test."""
 
-    id: TestId
+    id: types.TestId
     title: str
     description: str
     reference: str
@@ -34,7 +23,7 @@ class TestDescription:
 class TestDescriptionManager:
     """Dataclass for all test descriptions."""
 
-    def fetch(self, test_id: TestId) -> TestDescription:
+    def fetch(self, test_id: types.TestId) -> TestDescription:
         """Convenience method that mimics getattr with correct typing."""
         return cast("TestDescription", getattr(self, test_id))
 
@@ -114,6 +103,25 @@ class TestDescriptionManager:
         reference=(
             "Lafayette Instrument Company (1989). Grooved Pegboard: Owner's "
             "Manual. Lafayette, IN: Lafayette Instrument Company."
+        ),
+    )
+
+    ksads = TestDescription(
+        id="ksads",
+        title=(
+            "Kiddie Schedule for Affective Disorders and Schizophrenia-Present and "
+            "Lifetime Version (K-SADS-PL)"
+        ),
+        description=(
+            "The K-SADS is a semi-structured diagnostic interview designed to assess "
+            "current and past episodes of psychopathology in children and adolescents "
+            "according to DSM-5 criteria."
+        ),
+        reference=(
+            "Kaufman, J., et al. (1997). Schedule for affective disorders and "
+            "schizophrenia for school-age children-present and lifetime version "
+            "(K-SADS-PL): Initial reliability and validity data. Journal of the "
+            "American Academy of Child & Adolescent Psychiatry, 36(7), 980-988."
         ),
     )
 
@@ -226,4 +234,47 @@ class TestDescriptionManager:
             "Wechsler, D. (2014). Wechsler Intelligence Scale for Children-Fifth "
             "Edition (WISC-V). San Antonio, TX: NCS Pearson."
         ),
+    )
+
+
+def test_ids_to_appendix_a(
+    test_ids: Iterable[types.TestId],
+) -> tuple[sections.Section, ...]:
+    """Extracts all used DataProducers and converts this information to Appendix A.
+
+    Args:
+        test_ids: The test ids to generate sections for.
+
+    Returns:
+        The section structure for Appendix A.
+    """
+    descriptions = TestDescriptionManager()
+    used_descriptions = [descriptions.fetch(test_id) for test_id in test_ids]
+    appendix_sections = [_description_to_section(desc) for desc in used_descriptions]
+    return (
+        sections.ParagraphSection(
+            content="Appendix A. Instruments administered in Healthy Brain Network",
+            style="Heading 1",
+        ),
+        sections.ParagraphSection(content=""),
+        *appendix_sections,
+    )
+
+
+def _description_to_section(
+    description: TestDescription,
+) -> sections.Section:
+    """Converts a test description to a section."""
+    return sections.ParagraphSection(
+        content=description.title,
+        style="Heading 2",
+        subsections=[
+            sections.ParagraphSection(
+                content=description.description,
+            ),
+            sections.RunsSection(
+                content=("Reference:", " " + description.reference),
+                run_styles=(sections.RunStyles.Emphasis, None),
+            ),
+        ],
     )

@@ -6,7 +6,7 @@ import functools
 from docx import shared
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite import sql_data, types
 from ctk_functions.routers.pyrite.tables import base, utils
 
 COLUMN_WIDTHS = (
@@ -45,7 +45,7 @@ class _WiscCompositeDataSource(base.DataProducer):
     """Fetches data for and creates the WISC composite table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ("wisc_5",)
 
     @classmethod
@@ -59,7 +59,7 @@ class _WiscCompositeDataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.Wisc5)
+        data = sql_data.fetch_participant_row("EID", mrn, models.Wisc5)
         header = ("Composite", "Standard Score", "Percentile", "Range")
         content_rows = [
             cls._create_wisc_composite_row(data, label)

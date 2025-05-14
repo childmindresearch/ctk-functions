@@ -7,7 +7,7 @@ import docx
 import pytest
 from docx import document, table
 
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite import types
 from ctk_functions.routers.pyrite.tables import base
 
 BOLD_TABLE_STYLE = cmi_docx.CellStyle(cmi_docx.ParagraphStyle(bold=True))
@@ -195,7 +195,7 @@ def test_add_to_procotol() -> None:
             return ((),)
 
         @classmethod
-        def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+        def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
             return ()
 
     class Valid:

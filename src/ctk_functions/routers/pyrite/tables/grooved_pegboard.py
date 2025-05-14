@@ -4,7 +4,7 @@ import dataclasses
 import functools
 
 from ctk_functions.microservices.sql import models
-from ctk_functions.routers.pyrite import appendix_a
+from ctk_functions.routers.pyrite import sql_data, types
 from ctk_functions.routers.pyrite.tables import base, utils
 
 
@@ -32,7 +32,7 @@ class _GroovedPegboardDataSource(base.DataProducer):
     """Fetches the data for the Grooved Pegboard table."""
 
     @classmethod
-    def test_ids(cls, mrn: str) -> tuple[appendix_a.TestId, ...]:  # noqa: ARG003
+    def test_ids(cls, mrn: str) -> tuple[types.TestId, ...]:  # noqa: ARG003
         return ("grooved_pegboard",)
 
     @classmethod
@@ -46,7 +46,7 @@ class _GroovedPegboardDataSource(base.DataProducer):
         Returns:
             The text contents of the Word table.
         """
-        data = utils.fetch_participant_row("EID", mrn, models.GroovedPegboard)
+        data = sql_data.fetch_participant_row("EID", mrn, models.GroovedPegboard)
         header = ("Hand", "Z-Score", "Percentile", "Range")
         content_rows = [
             _create_pegboard_content_row(label, data) for label in PEGBOARD_ROW_LABELS
