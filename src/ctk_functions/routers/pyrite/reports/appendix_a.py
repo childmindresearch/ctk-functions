@@ -1,12 +1,30 @@
 """Descriptions of the HBN tests for Appendix A."""
 
 from collections.abc import Iterable
-from typing import cast
+from typing import Literal, cast
 
 import pydantic
 
 from ctk_functions.routers.pyrite import types
 from ctk_functions.routers.pyrite.reports import sections
+
+TestId = Literal[
+    "asr",
+    "cbcl",
+    "celf_5",
+    "conners_3",
+    "ctopp_2",
+    "grooved_pegboard",
+    "mfq",
+    "scared",
+    "srs",
+    "swan",
+    "towre_2",
+    "trf",
+    "wiat_4",
+    "wisc_5",
+    "ysr",
+]
 
 
 @pydantic.dataclasses.dataclass
@@ -27,6 +45,23 @@ class TestDescriptionManager:
         """Convenience method that mimics getattr with correct typing."""
         return cast("TestDescription", getattr(self, test_id))
 
+    asr = TestDescription(
+        id="asr",
+        title="Adult Self-Report (ASR)",
+        description=(
+            "The ASR is a questionnaire on which individuals rate their own problem "
+            "behaviors and competencies. The ASR also obtains reports of the amount "
+            "and quality of participation in sports, hobbies, games, activities, "
+            "organizations, jobs and chores, friendships, how well the individual gets "
+            "along with others and works by themselves."
+        ),
+        reference=(
+            "Achenbach, T. M., & Rescorla, L. A. (2003). Manual for the ASEBA adult "
+            "forms & profiles. Burlington: University of Vermont, Research Center for "
+            "Children, Youth, and Families. "
+        ),
+    )
+
     cbcl = TestDescription(
         id="cbcl",
         title="Child Behavior Checklist (CBCL)",
@@ -39,9 +74,9 @@ class TestDescriptionManager:
             "works by himself, and school functioning."
         ),
         reference=(
-            "Achenbach, T. M. (1991). Integrative Guide to the CBCL/4-18, YSR, and "
-            "TRF Profiles. Burlington, VT: University of Vermont, Department of "
-            "Psychology."
+            "Achenbach, T. M., & Rescorla, L. A. (2001). Manual for the ASEBA "
+            "school-age forms & profiles. Burlington: University of Vermont, Research "
+            "Center for Children, Youth, and Families."
         ),
     )
 
@@ -206,6 +241,21 @@ class TestDescriptionManager:
         ),
     )
 
+    trf = TestDescription(
+        id="trf",
+        title="Teacher Report Form (TRF)",
+        description=(
+            "The TRF is a questionnaire on which teachers rate a child's problem "
+            "behaviors and competencies in the school setting. The TRF also obtains "
+            "qualitative reports of academic functioning."
+        ),
+        reference=(
+            "Achenbach, T. M., & Rescorla, L. A. (2001). Manual for the ASEBA "
+            "school-age forms & profiles. Burlington: University of Vermont, Research "
+            "Center for Children, Youth, and Families."
+        ),
+    )
+
     wiat_4 = TestDescription(
         id="wiat_4",
         title="Wechsler Individual Achievement Test - 4th Edition (WIAT - 4)",
@@ -233,6 +283,24 @@ class TestDescriptionManager:
         reference=(
             "Wechsler, D. (2014). Wechsler Intelligence Scale for Children-Fifth "
             "Edition (WISC-V). San Antonio, TX: NCS Pearson."
+        ),
+    )
+
+    ysr = TestDescription(
+        id="ysr",
+        title="Youth Self Report (YSR)",
+        description=(
+            "The YSR is a questionnaire on which children rate their own "
+            "problem behaviors and competencies. The YSR also obtains self reports of "
+            "the amount and quality of participation in sports, hobbies, games, "
+            "activities, organizations, jobs and chores, friendships, how well the "
+            "child gets along with others and plays and works by themself, and school "
+            "functioning. "
+        ),
+        reference=(
+            "Achenbach, T. M., & Rescorla, L. A. (2001). Manual for the ASEBA "
+            "school-age forms & profiles. Burlington: University of Vermont, Research "
+            "Center for Children, Youth, and Families. "
         ),
     )
 

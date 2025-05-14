@@ -22,10 +22,10 @@ class TestDefinition:
 class CbcTests(enum.Enum):
     """All Child Behavior Checklist tests."""
 
+    ASR = TestDefinition(model=models.Asr, test_ids=("asr",))
     CBCL = TestDefinition(model=models.Cbcl, test_ids=("cbcl",))
-    TRF = TestDefinition(model=models.Trf, test_ids=())
-    YSR = TestDefinition(model=models.Ysr, test_ids=())
-    ASR = TestDefinition(model=models.Asr, test_ids=())
+    TRF = TestDefinition(model=models.Trf, test_ids=("trf",))
+    YSR = TestDefinition(model=models.Ysr, test_ids=("ysr",))
 
 
 SUBSCALES = [
