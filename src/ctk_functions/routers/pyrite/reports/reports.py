@@ -88,9 +88,9 @@ def _report_alabaster(mrn: str) -> tuple[sections.Section, ...]:
     table_sections = _get_alabaster_table_structure(tables)
     test_ids = _tables_to_test_ids(mrn, table_sections)
     # KSADS is always done, but no table is included.
-    test_ids = sorted([*test_ids, "ksads"])
-    intro = introduction.test_ids_to_introduction(mrn, test_ids)
-    appendix = appendix_a.test_ids_to_appendix_a(test_ids)
+    all_test_ids = (*test_ids, "ksads")
+    intro = introduction.test_ids_to_introduction(mrn, all_test_ids)
+    appendix = appendix_a.test_ids_to_appendix_a(all_test_ids)
     return (
         *intro,
         sections.PageBreak(),
@@ -110,7 +110,7 @@ def _tables_to_test_ids(
         table_sections: The list of sections to extract IDs from.
 
     Returns:
-        Unique test IDs sorted alphabetically.
+        Unique test IDs.
     """
     used_producers = _extract_producers_used(table_sections)
     available_producers = [
@@ -119,7 +119,7 @@ def _tables_to_test_ids(
     test_ids: list[types.TestId] = _flatten(
         [tbl.test_ids(mrn) for tbl in available_producers]
     )
-    return sorted(dict.fromkeys(test_ids))
+    return list(dict.fromkeys(test_ids))
 
 
 def _extract_producers_used(

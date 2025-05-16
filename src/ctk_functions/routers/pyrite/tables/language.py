@@ -151,7 +151,6 @@ class _LanguageDataSource(base.DataProducer):
         Args:
             data: The participant's data for the SummaryScores and Ctopp2 tables.
             label: The definition of the requested row.
-            formatters: The list of formatters to apply to the row, must be of length 5.
 
         Returns:
             In this order: the test cell, the subtest cell, the score cell, the
@@ -171,7 +170,7 @@ class _LanguageDataSource(base.DataProducer):
             f"{utils.normal_score_to_percentile(float(score), mean=100, std=15):.0f}"
         )
         qualifier = utils.standard_score_to_qualifier(float(score))
-        return label.test, label.subtest, score, percentile, qualifier
+        return label.test, label.subtest, f"{score:.0f}", percentile, qualifier
 
 
 def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
