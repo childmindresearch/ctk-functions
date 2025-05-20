@@ -108,7 +108,7 @@ class SwanTable(base.WordTableSectionAddToMixin, base.WordTableSection):
 
         relevance_styles = {
             (index + 1, 1): (
-                base.ConditionalStyle(
+                base.ConditionalCellStyle(
                     condition=label.relevance.in_range,
                     style=label.relevance.style,
                 ),

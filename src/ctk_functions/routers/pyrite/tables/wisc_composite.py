@@ -93,4 +93,5 @@ class WiscCompositeTable(base.WordTableSectionAddToMixin, base.WordTableSection)
         self.formatters = base.FormatProducer.produce(
             n_rows=len(WISC_COMPOSITE_ROW_LABELS) + 1,
             column_widths=COLUMN_WIDTHS,
+            row_styles={6: (base.Styles.BOLD,)},
         )

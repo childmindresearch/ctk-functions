@@ -33,10 +33,10 @@ class AcademicRowLabels:
     domain: str
     subtest: str
     score_column: str
-    style: base.ConditionalStyle | None = None
+    style: base.ConditionalCellStyle | None = None
 
 
-BOLD_STYLE = base.ConditionalStyle(
+BOLD_STYLE = base.ConditionalCellStyle(
     style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True))
 )
 
@@ -203,13 +203,21 @@ class AcademicAchievementTable(
             for label in ACADEMIC_ROW_LABELS
             if label.style == base.Styles.BOLD
         ]
-        with base.Styles.get("BOLD") as style:
-            style.condition = lambda text: text in bold_subtests
-            self.formatters = base.FormatProducer.produce(
-                n_rows=len(self.data_source.fetch(mrn)),
-                column_widths=COLUMN_WIDTHS,
-                merge_top=(0,),
-                column_styles={
-                    1: (base.Styles.LEFT_ALIGN, style),
-                },
-            )
+
+        bold_rows = (
+            base.ConditionalTableStyle(
+                condition=lambda table, row, _: table.rows[row].cells[1].text
+                in bold_subtests,
+                style=base.Styles.BOLD.style,
+            ),
+        )
+
+        self.formatters = base.FormatProducer.produce(
+            n_rows=len(self.data_source.fetch(mrn)),
+            column_widths=COLUMN_WIDTHS,
+            merge_top=(0,),
+            column_styles={
+                1: (base.Styles.LEFT_ALIGN,),
+            },
+            table_styles=bold_rows,
+        )

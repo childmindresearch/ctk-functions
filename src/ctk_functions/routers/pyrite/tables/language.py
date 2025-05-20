@@ -151,7 +151,6 @@ class _LanguageDataSource(base.DataProducer):
         Args:
             data: The participant's data for the SummaryScores and Ctopp2 tables.
             label: The definition of the requested row.
-            formatters: The list of formatters to apply to the row, must be of length 5.
 
         Returns:
             In this order: the test cell, the subtest cell, the score cell, the
@@ -171,7 +170,7 @@ class _LanguageDataSource(base.DataProducer):
             f"{utils.normal_score_to_percentile(float(score), mean=100, std=15):.0f}"
         )
         qualifier = utils.standard_score_to_qualifier(float(score))
-        return label.test, label.subtest, score, percentile, qualifier
+        return label.test, label.subtest, f"{score:.0f}", percentile, qualifier
 
 
 def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
@@ -187,16 +186,23 @@ def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
           A list of lists of formatters, where the first list represents rows
           and the second columns.
     """
-    with base.Styles.get("BOLD") as style:
-        style.condition = lambda text: not text.startswith("\t")
-        subtest_formatting = {
-            (index, 1): (base.Styles.LEFT_ALIGN, style) for index in range(1, n_rows)
-        }
+    bold_rows = (
+        base.ConditionalTableStyle(
+            condition=lambda table, row, _: not table.rows[row]
+            .cells[1]
+            .text.startswith("\t"),
+            style=base.Styles.BOLD.style,
+        ),
+    )
+    subtest_formatting = {
+        (index, 1): (base.Styles.LEFT_ALIGN,) for index in range(1, n_rows)
+    }
     return base.FormatProducer.produce(
         n_rows=n_rows,
         column_widths=COLUMN_WIDTHS,
         merge_top=(0,),
         cell_styles=subtest_formatting,
+        table_styles=bold_rows,
     )
 
 

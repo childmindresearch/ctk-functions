@@ -40,7 +40,9 @@ def _label_to_relevance_text(label: TScoreRowLabel) -> str:
     return "\n".join(str(rele) for rele in label.relevance)
 
 
-def _label_to_conditional_styles(label: TScoreRowLabel) -> list[base.ConditionalStyle]:
+def _label_to_conditional_styles(
+    label: TScoreRowLabel,
+) -> list[base.ConditionalCellStyle]:
     """Gets the conditional styles for a row.
 
     Args:
@@ -50,7 +52,7 @@ def _label_to_conditional_styles(label: TScoreRowLabel) -> list[base.Conditional
         The conditional styles.
     """
     return [
-        base.ConditionalStyle(
+        base.ConditionalCellStyle(
             condition=rele.in_range,
             style=rele.style,
         )

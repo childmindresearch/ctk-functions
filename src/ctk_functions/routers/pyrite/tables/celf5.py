@@ -34,7 +34,7 @@ class _Celf5DataSource(base.DataProducer):
         return (
             ("Test", "Total Score", "Age Based Cutoff", "Range"),
             (
-                "Celf-5 Screener",
+                "CELF-5 Screener",
                 f"{data.CELF_Total:.0f}",
                 f"{data.CELF_CriterionScore:.0f}",
                 cutoff,

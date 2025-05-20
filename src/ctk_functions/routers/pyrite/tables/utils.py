@@ -26,7 +26,7 @@ def add_thick_top_border(
     Returns:
         New markup with a thicker top borderline added.
     """
-    thick_top_border = base.ConditionalStyle(
+    thick_top_border = base.ConditionalCellStyle(
         style=cmi_docx.CellStyle(
             borders=[
                 cmi_docx.CellBorder(
@@ -37,7 +37,7 @@ def add_thick_top_border(
         )
     )
     for cell in markup.rows[row_index]:
-        cell.formatter.conditional_styles.append(thick_top_border)
+        cell.formatter.conditional_cell_styles.append(thick_top_border)
     return markup
 
 
