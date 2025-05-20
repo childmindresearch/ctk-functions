@@ -28,7 +28,7 @@ class TableDataNotFoundError(Exception):
 T = TypeVar("T", bound=models.Base)
 
 
-class ConditionalStyle(pydantic.BaseModel):
+class ConditionalCellStyle(pydantic.BaseModel):
     """Applies a style conditional upon a cell's contents.
 
     Args:
@@ -55,6 +55,41 @@ class ConditionalStyle(pydantic.BaseModel):
                 cmi_docx.ExtendCell(cell).format(self.style)
 
 
+class ConditionalTableStyle(pydantic.BaseModel):
+    """Applies a style conditional upon a table's contents.
+
+    Used for styling of a cell that is conditional upon contents of
+    another cell.
+
+    Args:
+        condition: The condition, if it evaluates to True then the style
+            will be applied. The input arguments to this callable are
+            the table, the row index of the cell, and the column index
+            of the cell.
+        style: The style to apply.
+    """
+
+    condition: Callable[[table.Table, int, int], bool] = (
+        lambda tbl, row_index, col_index: True  # noqa: ARG005
+    )
+    style: cmi_docx.CellStyle
+
+    def apply(self, tbl: table.Table, row_index: int, col_index: int) -> None:
+        """Applies the style to the cell of the table if the condition is met.
+
+        Used to handle cross-cell dependencies.
+
+        Args:
+            tbl: The table to apply the style to.
+            row_index: The row index.
+            col_index: The column index.
+
+        """
+        cell = tbl.rows[row_index].cells[col_index]
+        if self.condition(tbl, row_index, col_index):
+            cmi_docx.ExtendCell(cell).format(self.style)
+
+
 @dataclasses.dataclass(frozen=True)
 class Styles:
     """Standard styles used throughout the tables."""
@@ -63,7 +98,7 @@ class Styles:
     @contextlib.contextmanager
     def get(
         cls, attr: Literal["BOLD", "LEFT_ALIGN", "THICK_TOP_BORDER"]
-    ) -> Generator[ConditionalStyle, None, None]:
+    ) -> Generator[ConditionalCellStyle, None, None]:
         """Creates a copy of an attribute's value.
 
         Used when the style needs to be modified before its used.
@@ -75,19 +110,19 @@ class Styles:
             A copy of the attribute's value.
         """
         style = copy.deepcopy(getattr(cls, attr))
-        yield cast("ConditionalStyle", style)
+        yield cast("ConditionalCellStyle", style)
 
-    BOLD = ConditionalStyle(
+    BOLD = ConditionalCellStyle(
         style=cmi_docx.CellStyle(paragraph=cmi_docx.ParagraphStyle(bold=True))
     )
-    LEFT_ALIGN = ConditionalStyle(
+    LEFT_ALIGN = ConditionalCellStyle(
         style=cmi_docx.CellStyle(
             paragraph=cmi_docx.ParagraphStyle(
                 alignment=text.WD_PARAGRAPH_ALIGNMENT.LEFT
             )
         )
     )
-    THICK_TOP_BORDER = ConditionalStyle(
+    THICK_TOP_BORDER = ConditionalCellStyle(
         style=cmi_docx.CellStyle(borders=[cmi_docx.CellBorder(sides=("top",), sz=16)])
     )
 
@@ -198,7 +233,7 @@ class ParagraphBlock(pydantic.BaseModel):
         return para  # type: ignore[no-any-return]
 
 
-def default_table_style_factory() -> list[ConditionalStyle]:
+def default_cell_style_factory() -> list[ConditionalCellStyle]:
     """Creates a list of default table styles.
 
     Uses a factory method instead of a constant as lists are mutable.
@@ -207,7 +242,7 @@ def default_table_style_factory() -> list[ConditionalStyle]:
         The default table styles.
     """
     return [
-        ConditionalStyle(
+        ConditionalCellStyle(
             style=cmi_docx.CellStyle(
                 paragraph=cmi_docx.ParagraphStyle(
                     space_after=shared.Pt(3),
@@ -223,7 +258,8 @@ class Formatter(pydantic.BaseModel):
     """Formatter for table cells.
 
     Attributes:
-        conditional_styles: A list of styles to apply, conditional on cell contents.
+        conditional_cell_styles: A list of styles to apply, conditional on cell
+            contents.
         merge_top: If True, merges cells with identical cells above them.
         merge_right: If True, merges cells with identical cells right of them.
         width: The width of the cell. If None, does not adjust from Word's default.
@@ -231,8 +267,11 @@ class Formatter(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
-    conditional_styles: list[ConditionalStyle] = pydantic.Field(
-        default_factory=default_table_style_factory,
+    conditional_cell_styles: list[ConditionalCellStyle] = pydantic.Field(
+        default_factory=default_cell_style_factory,
+    )
+    conditional_table_styles: list[ConditionalTableStyle] = pydantic.Field(
+        default_factory=list
     )
     merge_top: bool = pydantic.Field(default=False)
     merge_right: bool = pydantic.Field(default=False)
@@ -254,8 +293,11 @@ class Formatter(pydantic.BaseModel):
             raise ValueError(msg)
 
         cell = tbl.columns[col_index].cells[row_index]
-        for style in self.conditional_styles:
-            style.apply(cell)
+        for cell_style in self.conditional_cell_styles:
+            cell_style.apply(cell)
+
+        for table_style in self.conditional_table_styles:
+            table_style.apply(tbl, row_index, col_index)
 
         if self.width:
             cell.width = self.width
@@ -284,10 +326,12 @@ class FormatProducer:
         cls,
         n_rows: int,
         column_widths: Sequence[None | shared.Cm | shared.Inches | shared.Pt],
-        global_style: Iterable[ConditionalStyle] | None = None,
-        row_styles: Mapping[int, Iterable[ConditionalStyle]] | None = None,
-        column_styles: Mapping[int, Iterable[ConditionalStyle]] | None = None,
-        cell_styles: Mapping[tuple[int, int], Iterable[ConditionalStyle]] | None = None,
+        global_style: Iterable[ConditionalCellStyle] | None = None,
+        row_styles: Mapping[int, Iterable[ConditionalCellStyle]] | None = None,
+        column_styles: Mapping[int, Iterable[ConditionalCellStyle]] | None = None,
+        cell_styles: Mapping[tuple[int, int], Iterable[ConditionalCellStyle]]
+        | None = None,
+        table_styles: Iterable[ConditionalTableStyle] | None = None,
         merge_top: Sequence[int] | None = None,
         *,
         rows_first: bool = True,
@@ -303,8 +347,10 @@ class FormatProducer:
                 where the key is the row index and the value is the style.
             column_styles: The styles to use for the columns as a mapping
                 where the key is the row index and the value is the style.
-            cell_styles: The styles to use for the cells as a mapping
+            cell_styles: The cell styles to use for the cells as a mapping
                 where the key is the indices (row, column) and the value is the style.
+            table_styles: The table styles to use. Used for formatting of cells
+                that dependent on other cells.
             merge_top: Columns in which to set merge_top to True. Currently only
                 supports entire columns, not cell-specific.
             rows_first: If true, applies formatting to rows first, otherwise
@@ -314,11 +360,11 @@ class FormatProducer:
             Array of formatters, rows first.
         """
         if global_style is None:
-            global_style = default_table_style_factory()
+            global_style = default_cell_style_factory()
 
         formatters = tuple(
             tuple(
-                Formatter(width=width, conditional_styles=global_style)
+                Formatter(width=width, conditional_cell_styles=global_style)
                 for width in column_widths
             )
             for _ in range(n_rows)
@@ -333,23 +379,37 @@ class FormatProducer:
 
         cls._apply_cells(formatters, cell_styles)
         cls._apply_merge_top(formatters, merge_top)
+        cls._apply_table_styles(formatters, table_styles)
         return formatters
+
+    @staticmethod
+    def _apply_table_styles(
+        formatters: Sequence[Sequence[Formatter]],
+        styles: Iterable[ConditionalTableStyle] | None,
+    ) -> None:
+        if not styles:
+            return
+
+        for style in styles:
+            for row in formatters:
+                for formatter in row:
+                    formatter.conditional_table_styles.append(style)
 
     @staticmethod
     def _apply_cells(
         formatters: Sequence[Sequence[Formatter]],
-        styles: Mapping[tuple[int, int], Iterable[ConditionalStyle]] | None,
+        styles: Mapping[tuple[int, int], Iterable[ConditionalCellStyle]] | None,
     ) -> None:
         if not styles:
             return
 
         for indices, stls in styles.items():
-            formatters[indices[0]][indices[1]].conditional_styles.extend(stls)
+            formatters[indices[0]][indices[1]].conditional_cell_styles.extend(stls)
 
     @staticmethod
     def _apply_rows(
         formatters: Sequence[Sequence[Formatter]],
-        styles: Mapping[int, Iterable[ConditionalStyle]] | None,
+        styles: Mapping[int, Iterable[ConditionalCellStyle]] | None,
     ) -> None:
         if not styles:
             return
@@ -357,19 +417,19 @@ class FormatProducer:
         for index, stls in styles.items():
             row = formatters[index]
             for formatter in row:
-                formatter.conditional_styles.extend(stls)
+                formatter.conditional_cell_styles.extend(stls)
 
     @staticmethod
     def _apply_columns(
         formatters: Sequence[Sequence[Formatter]],
-        styles: Mapping[int, Iterable[ConditionalStyle]] | None,
+        styles: Mapping[int, Iterable[ConditionalCellStyle]] | None,
     ) -> None:
         if not styles:
             return
 
         for index, stls in styles.items():
             for row in formatters:
-                row[index].conditional_styles.extend(stls)
+                row[index].conditional_cell_styles.extend(stls)
 
     @staticmethod
     def _apply_merge_top(

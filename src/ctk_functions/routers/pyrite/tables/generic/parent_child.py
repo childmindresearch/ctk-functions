@@ -72,7 +72,7 @@ def fetch_parent_child_formatting(
     """
     relevance_styles = {
         (row_index + 1, col_index): (
-            base.ConditionalStyle(
+            base.ConditionalCellStyle(
                 condition=relevance.in_range,
                 style=relevance.style,
             ),

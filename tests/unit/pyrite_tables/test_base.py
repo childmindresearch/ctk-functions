@@ -30,9 +30,9 @@ def tbl(doc: document.Document) -> table.Table:
     return tbl  # type: ignore[no-any-return]
 
 
-def test_conditional_style(tbl: table.Table) -> None:
-    """Tests the conditional style happy path."""
-    style = base.ConditionalStyle(
+def test_conditional_cell_style(tbl: table.Table) -> None:
+    """Tests the conditional cell style happy path."""
+    style = base.ConditionalCellStyle(
         condition=lambda text: text == "1,1",
         style=BOLD_TABLE_STYLE,
     )
@@ -43,6 +43,20 @@ def test_conditional_style(tbl: table.Table) -> None:
     assert not tbl.rows[1].cells[0].paragraphs[0].runs[0].bold
     assert not tbl.rows[0].cells[1].paragraphs[0].runs[0].bold
     assert tbl.rows[1].cells[1].paragraphs[0].runs[0].bold
+
+
+def test_conditional_table_style(tbl: table.Table) -> None:
+    """Tests the conditional table style happy path."""
+    style = base.ConditionalTableStyle(
+        condition=lambda _, row, __: row == 0,
+        style=BOLD_TABLE_STYLE,
+    )
+
+    style.apply(tbl, 0, 0)
+    style.apply(tbl, 1, 0)
+
+    assert tbl.rows[0].cells[0].paragraphs[0].runs[0].bold
+    assert not tbl.rows[1].cells[0].paragraphs[0].runs[0].bold
 
 
 @pytest.mark.parametrize(
@@ -153,8 +167,10 @@ def test_paragraph_block(doc: document.Document) -> None:
 
 def test_formatter_styles(tbl: table.Table) -> None:
     """Tests whether the formatter correctly calls conditional styles."""
-    style = base.ConditionalStyle(condition=lambda _text: True, style=BOLD_TABLE_STYLE)
-    formatter = base.Formatter(conditional_styles=[style])
+    style = base.ConditionalCellStyle(
+        condition=lambda _text: True, style=BOLD_TABLE_STYLE
+    )
+    formatter = base.Formatter(conditional_cell_styles=[style])
 
     formatter.format(tbl, 0, 0)
 

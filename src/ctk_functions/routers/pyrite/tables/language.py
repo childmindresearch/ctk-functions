@@ -186,16 +186,23 @@ def _get_formatters(n_rows: int) -> tuple[tuple[base.Formatter, ...], ...]:
           A list of lists of formatters, where the first list represents rows
           and the second columns.
     """
-    with base.Styles.get("BOLD") as style:
-        style.condition = lambda text: not text.startswith("\t")
-        subtest_formatting = {
-            (index, 1): (base.Styles.LEFT_ALIGN, style) for index in range(1, n_rows)
-        }
+    bold_rows = (
+        base.ConditionalTableStyle(
+            condition=lambda table, row, _: not table.rows[row]
+            .cells[1]
+            .text.startswith("\t"),
+            style=base.Styles.BOLD.style,
+        ),
+    )
+    subtest_formatting = {
+        (index, 1): (base.Styles.LEFT_ALIGN,) for index in range(1, n_rows)
+    }
     return base.FormatProducer.produce(
         n_rows=n_rows,
         column_widths=COLUMN_WIDTHS,
         merge_top=(0,),
         cell_styles=subtest_formatting,
+        table_styles=bold_rows,
     )
 
 

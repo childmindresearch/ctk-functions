@@ -68,7 +68,7 @@ class ScqTable(base.WordTableSectionAddToMixin, base.WordTableSection):
             column_widths=COLUMN_WIDTHS,
             column_styles={
                 1: (
-                    base.ConditionalStyle(
+                    base.ConditionalCellStyle(
                         condition=RELEVANCE.in_range,
                         style=RELEVANCE.style,
                     ),
