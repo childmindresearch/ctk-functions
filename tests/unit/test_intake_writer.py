@@ -137,3 +137,19 @@ def test_set_superscript() -> None:
     assert document.paragraphs[0].runs[1].text == "st"
     assert document.paragraphs[0].runs[2].text == " time."
     assert document.paragraphs[0].runs[1].font.superscript
+
+
+def test_template_document_not_modified_between_instances() -> None:
+    """ReportWriter instances should not mutate the cached template."""
+    intake = MockIntake()
+
+    original_len = len(writer._TEMPLATE_DOCUMENT.paragraphs)
+
+    first = writer.ReportWriter(intake)
+    first.report.document.add_paragraph("extra")
+
+    second = writer.ReportWriter(intake)
+
+    assert len(writer._TEMPLATE_DOCUMENT.paragraphs) == original_len
+    assert len(second.report.document.paragraphs) == original_len
+    assert second.report.document is not writer._TEMPLATE_DOCUMENT
