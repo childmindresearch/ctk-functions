@@ -6,9 +6,9 @@ from ctk_functions.microservices import language_tool
 
 
 @pytest.fixture(scope="module")
-def correcter() -> language_tool.LanguageCorrecter:
+async def correcter() -> language_tool.LanguageCorrecter:
     """Fixture for the LanguageCorrecter class."""
-    return language_tool.LanguageCorrecter(
+    async with language_tool.LanguageCorrecter(
         url="http://0.0.0.0:8010/v2",
         enabled_rules=[
             "PERS_PRONOUN_AGREEMENT",
@@ -16,7 +16,8 @@ def correcter() -> language_tool.LanguageCorrecter:
             "NON3PRS_VERB",
             "COMMA_COMPOUND_SENTENCE_2",
         ],
-    )
+    ) as correcter:
+        yield correcter
 
 
 @pytest.mark.parametrize(

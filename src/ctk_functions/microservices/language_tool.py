@@ -134,6 +134,13 @@ class LanguageCorrecter:
         self.url = url
         self.language_tool = "en-US"
         self.enabled_rules = set(enabled_rules)
+        self._session = aiohttp.ClientSession()
+
+    async def __aenter__(self) -> "LanguageCorrecter":
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        await self._session.close()
 
     @tenacity.retry(
         stop=tenacity.stop_after_attempt(3),
@@ -148,17 +155,16 @@ class LanguageCorrecter:
         Returns:
             The response from LanguageTool.
         """
-        async with aiohttp.ClientSession() as client:
-            response = await client.post(
-                url=self.url + "/check",
-                data={
-                    "text": text,
-                    "language": "en-US",
-                    "enabledRules": ",".join(self.enabled_rules),
-                    "enabledOnly": "true",
-                },
-            )
-            text = await response.text()
+        response = await self._session.post(
+            url=self.url + "/check",
+            data={
+                "text": text,
+                "language": "en-US",
+                "enabledRules": ",".join(self.enabled_rules),
+                "enabledOnly": "true",
+            },
+        )
+        text = await response.text()
 
         return LanguageToolResponse.model_validate_json(text)
 
