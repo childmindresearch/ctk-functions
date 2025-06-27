@@ -1,6 +1,7 @@
 """Module for syntax and grammatical corrections of text."""
 
 from collections.abc import Iterable
+from types import TracebackType
 
 import aiohttp
 import pydantic
@@ -137,9 +138,16 @@ class LanguageCorrecter:
         self._session = aiohttp.ClientSession()
 
     async def __aenter__(self) -> "LanguageCorrecter":
+        """Return self when entering the async context manager."""
         return self
 
-    async def __aexit__(self, exc_type, exc, tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Close the underlying HTTP session when exiting the context."""
         await self._session.close()
 
     @tenacity.retry(
