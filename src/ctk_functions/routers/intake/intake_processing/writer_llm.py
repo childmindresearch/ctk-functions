@@ -2,8 +2,9 @@
 
 import dataclasses
 import uuid
-from collections.abc import Awaitable, Coroutine, Sequence
+from collections.abc import Coroutine, Sequence
 from typing import Any
+import asyncio
 
 import jsonpickle
 import pydantic
@@ -24,13 +25,13 @@ class LlmPlaceholder(pydantic.BaseModel):
     Attributes:
         id: The unique identifier for the placeholder.
         replacement: The replacement text for the placeholder. Provided as
-            an awaitable to allow for asynchronous processing.
+            an asyncio task to allow for asynchronous processing.
     """
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     id: str
-    replacement: Awaitable[str]
+    replacement: asyncio.Task[str]
     comment: str | None = None
     _text: str | None = None
 
@@ -376,10 +377,11 @@ class WriterLlm:
         ) -> str:
             return str(await promise)
 
+        task = asyncio.create_task(stringify(promise))
         self.placeholders.append(
             LlmPlaceholder(
                 id=placeholder_uuid,
-                replacement=stringify(promise),
+                replacement=task,
                 comment=comment,
             ),
         )
