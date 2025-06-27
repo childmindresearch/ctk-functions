@@ -5,8 +5,8 @@ from typing import cast
 
 import pydantic
 
+import ctk_functions.core.word
 from ctk_functions.routers.pyrite import types
-from ctk_functions.routers.pyrite.reports import sections
 
 
 @pydantic.dataclasses.dataclass
@@ -289,7 +289,7 @@ class TestDescriptionManager:
 
 def test_ids_to_appendix_a(
     test_ids: Iterable[types.TestId],
-) -> tuple[sections.Section, ...]:
+) -> tuple[ctk_functions.core.word.Section, ...]:
     """Extracts all used DataProducers and converts this information to Appendix A.
 
     Args:
@@ -302,29 +302,29 @@ def test_ids_to_appendix_a(
     used_descriptions = [descriptions.fetch(test_id) for test_id in test_ids]
     appendix_sections = [_description_to_section(desc) for desc in used_descriptions]
     return (
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content="Appendix A. Instruments administered in Healthy Brain Network",
             style="Heading 1",
         ),
-        sections.ParagraphSection(content=""),
+        ctk_functions.core.word.ParagraphSection(content=""),
         *appendix_sections,
     )
 
 
 def _description_to_section(
     description: TestDescription,
-) -> sections.Section:
+) -> ctk_functions.core.word.Section:
     """Converts a test description to a section."""
-    return sections.ParagraphSection(
+    return ctk_functions.core.word.ParagraphSection(
         content=description.title,
         style="Heading 2",
         subsections=[
-            sections.ParagraphSection(
+            ctk_functions.core.word.ParagraphSection(
                 content=description.description,
             ),
-            sections.RunsSection(
+            ctk_functions.core.word.RunsSection(
                 content=("Reference:", " " + description.reference),
-                run_styles=(sections.RunStyles.Emphasis, None),
+                run_styles=(ctk_functions.core.word.RunStyles.Emphasis, None),
             ),
         ],
     )

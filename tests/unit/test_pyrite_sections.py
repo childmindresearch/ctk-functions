@@ -3,8 +3,8 @@
 import cmi_docx
 import docx
 
+import ctk_functions.core.word
 from ctk_functions.core import config
-from ctk_functions.routers.pyrite.reports import sections
 from ctk_functions.routers.pyrite.tables import scq
 
 settings = config.get_settings()
@@ -13,7 +13,7 @@ settings = config.get_settings()
 def test_run_section_add_to() -> None:
     """Test adding a RunsSection to a document."""
     doc = docx.Document()
-    section = sections.RunsSection(
+    section = ctk_functions.core.word.RunsSection(
         content=(
             "Test ",
             "content",
@@ -32,7 +32,9 @@ def test_run_section_add_to() -> None:
 def test_paragraph_section_add_to() -> None:
     """Test adding a ParagraphSection to a document."""
     doc = docx.Document()
-    section = sections.ParagraphSection(content="Hello world!", style="Heading 1")
+    section = ctk_functions.core.word.ParagraphSection(
+        content="Hello world!", style="Heading 1"
+    )
 
     section.add_to(doc)
 
@@ -43,10 +45,14 @@ def test_paragraph_section_add_to() -> None:
 def test_paragraph_section_add_to_subsections() -> None:
     """Test adding a ParagraphSection with a subsection to a document."""
     doc = docx.Document()
-    section = sections.ParagraphSection(
+    section = ctk_functions.core.word.ParagraphSection(
         content="Hello world!",
         style=cmi_docx.ParagraphStyle(bold=True),
-        subsections=[sections.ParagraphSection(content="Goodbye world!", style=None)],
+        subsections=[
+            ctk_functions.core.word.ParagraphSection(
+                content="Goodbye world!", style=None
+            )
+        ],
     )
 
     section.add_to(doc)
@@ -60,7 +66,7 @@ def test_paragraph_section_add_to_subsections() -> None:
 def test_paragraph_section_with_condition_false() -> None:
     """Test adding a ParagraphSection with condition=False to a document."""
     doc = docx.Document()
-    section = sections.ParagraphSection(
+    section = ctk_functions.core.word.ParagraphSection(
         content="Hello world!", style="Heading 1", condition=lambda: False
     )
 
@@ -75,7 +81,7 @@ def test_table_section_basic(mock_sql_calls: None) -> None:
     # document. Use our template instead.
     pyrite_template = settings.DATA_DIR / "pyrite_template.docx"
     doc = docx.Document(str(pyrite_template))
-    section = sections.TableSection(
+    section = ctk_functions.core.word.TableSection(
         title="Test Table", level=2, tables=[scq.ScqTable("")]
     )
 

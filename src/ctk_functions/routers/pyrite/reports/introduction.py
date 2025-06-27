@@ -8,10 +8,10 @@ import pydantic
 import sqlalchemy
 from sqlalchemy import orm
 
+import ctk_functions.core.word
 from ctk_functions.core import config
 from ctk_functions.microservices.sql import models
 from ctk_functions.routers.pyrite import sql_data, types
-from ctk_functions.routers.pyrite.reports import sections
 
 settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
@@ -187,7 +187,7 @@ def _fetch_overviews(test_id: types.TestId) -> Generator[TestOverview, None, Non
 
 def test_ids_to_introduction(
     mrn: str, test_ids: Iterable[types.TestId]
-) -> tuple[sections.Section, ...]:
+) -> tuple[ctk_functions.core.word.Section, ...]:
     """Creates the introduction section of the report.
 
     Args:
@@ -205,11 +205,11 @@ def test_ids_to_introduction(
     ]
 
     return (
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content="STANDARDIZED TESTING, INTERVIEW AND QUESTIONNAIRE RESULTS",
             style="Heading 1",
         ),
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content=(
                 "This report provides a summary of the following tests, "
                 "questionnaires, and clinical interviews that were administered during "
@@ -223,12 +223,12 @@ def test_ids_to_introduction(
             style=None,
         ),
         *introduction_sections,
-        sections.PageBreak(),
-        sections.ParagraphSection(
+        ctk_functions.core.word.PageBreak(),
+        ctk_functions.core.word.ParagraphSection(
             content="What do the scores represent?",
             style="Heading 2",
         ),
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content=(
                 "Standard scores, T scores, and percentile ranks can indicate "
                 "{{FIRST_NAME_POSSESSIVE}} performance compared to other children in "
@@ -246,11 +246,15 @@ def test_ids_to_introduction(
             ),
             style=None,
         ),
-        sections.ImageSection(path=DATA_DIR / "pyrite_tscore_distribution.png"),
+        ctk_functions.core.word.ImageSection(
+            path=DATA_DIR / "pyrite_tscore_distribution.png"
+        ),
     )
 
 
-def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
+def _overview_to_sections(
+    mrn: str, overview: TestOverview
+) -> ctk_functions.core.word.Section:
     """Converts a test description to a section.
 
     Args:
@@ -265,16 +269,18 @@ def _overview_to_sections(mrn: str, overview: TestOverview) -> sections.Section:
     date_style = None if test_date else cmi_docx.RunStyle(font_rgb=(255, 0, 0))
 
     texts = [overview.title + "\n"]
-    run_styles: list[sections.RunStyles | None | cmi_docx.RunStyle] = [None]
+    run_styles: list[ctk_functions.core.word.RunStyles | None | cmi_docx.RunStyle] = [
+        None
+    ]
 
     if overview.description:
         texts.append(overview.description + "\n")
-        run_styles.append(sections.RunStyles.Emphasis)
+        run_styles.append(ctk_functions.core.word.RunStyles.Emphasis)
 
     texts.extend(["Administered on: ", administer_date])
     run_styles.extend([None, date_style])
 
-    return sections.RunsSection(
+    return ctk_functions.core.word.RunsSection(
         content=texts,
         paragraph_style="Normal Hanging",
         run_styles=run_styles,

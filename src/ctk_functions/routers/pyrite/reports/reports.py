@@ -3,8 +3,9 @@
 from collections.abc import Iterable
 from typing import Literal, TypeVar
 
+import ctk_functions.core.word
 from ctk_functions.routers.pyrite import types
-from ctk_functions.routers.pyrite.reports import appendix_a, introduction, sections
+from ctk_functions.routers.pyrite.reports import appendix_a, introduction
 from ctk_functions.routers.pyrite.tables import (
     academic_achievement,
     base,
@@ -54,7 +55,7 @@ class _PyriteTableCollection:
 def get_report_structure(
     mrn: str,
     version: VERSIONS,
-) -> tuple[sections.Section, ...]:
+) -> tuple[ctk_functions.core.word.Section, ...]:
     """Fetches a report structure based on version name.
 
     Valid versions are:
@@ -75,7 +76,7 @@ def get_report_structure(
     raise ValueError(msg)
 
 
-def _report_alabaster(mrn: str) -> tuple[sections.Section, ...]:
+def _report_alabaster(mrn: str) -> tuple[ctk_functions.core.word.Section, ...]:
     """Creates the structure of the 2024-04-02 Pyrite report.
 
     Args:
@@ -93,15 +94,15 @@ def _report_alabaster(mrn: str) -> tuple[sections.Section, ...]:
     appendix = appendix_a.test_ids_to_appendix_a(all_test_ids)
     return (
         *intro,
-        sections.PageBreak(),
+        ctk_functions.core.word.PageBreak(),
         *appendix,
-        sections.PageBreak(),
+        ctk_functions.core.word.PageBreak(),
         *table_sections,
     )
 
 
 def _tables_to_test_ids(
-    mrn: str, table_sections: Iterable[sections.Section]
+    mrn: str, table_sections: Iterable[ctk_functions.core.word.Section]
 ) -> list[types.TestId]:
     """Converts tables to the test_ids that they use.
 
@@ -123,7 +124,7 @@ def _tables_to_test_ids(
 
 
 def _extract_producers_used(
-    structure: Iterable[sections.Section],
+    structure: Iterable[ctk_functions.core.word.Section],
 ) -> tuple[type[base.DataProducer], ...]:
     """Extracts the data producers used in sections."""
     producers = []
@@ -136,20 +137,20 @@ def _extract_producers_used(
 
 def _get_alabaster_table_structure(
     tables: _PyriteTableCollection,
-) -> tuple[sections.Section, ...]:
+) -> tuple[ctk_functions.core.word.Section, ...]:
     """Defines the structure of the Alabaster tables."""
     return (
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content="Results Appendix", style="Heading 1 Centered"
         ),
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content="General Intellectual Function",
             style="Heading 1",
             condition=lambda: _all_tables_available(
                 tables.wisc_composite, tables.wisc_subtest
             ),
             subsections=[
-                sections.TableSection(
+                ctk_functions.core.word.TableSection(
                     title=(
                         "The Wechsler Intelligence Scale for Children-Fifth "
                         "Edition (WISC-V)"
@@ -159,27 +160,27 @@ def _get_alabaster_table_structure(
                 ),
             ],
         ),
-        sections.ParagraphSection(
+        ctk_functions.core.word.ParagraphSection(
             content="Fine Motor Dexterity",
             style="Heading 1",
             condition=lambda: tables.grooved_pegboard.is_available(),
             subsections=[
-                sections.TableSection(
+                ctk_functions.core.word.TableSection(
                     title="Lafayette Grooved Pegboard Test",
                     level=3,
                     tables=[tables.grooved_pegboard],
                 )
             ],
         ),
-        sections.PageBreak(),
-        sections.TableSection(
+        ctk_functions.core.word.PageBreak(),
+        ctk_functions.core.word.TableSection(
             title="Academic Achievement",
             level=1,
             tables=[tables.academic_achievement],
             condition=lambda: tables.academic_achievement.is_available(),
         ),
-        sections.PageBreak(),
-        sections.TableSection(
+        ctk_functions.core.word.PageBreak(),
+        ctk_functions.core.word.TableSection(
             title="Language Skills",
             level=1,
             tables=[tables.celf5, tables.language, tables.ctopp2],
@@ -189,8 +190,8 @@ def _get_alabaster_table_structure(
                 tables.ctopp2,
             ),
         ),
-        sections.PageBreak(),
-        sections.ParagraphSection(
+        ctk_functions.core.word.PageBreak(),
+        ctk_functions.core.word.ParagraphSection(
             content="Social-Emotional and Behavioral Functioning Questionnaires",
             style="Heading 1 Centered",
             condition=lambda: _any_table_available(
@@ -204,31 +205,31 @@ def _get_alabaster_table_structure(
                 tables.scared,
             ),
             subsections=[
-                sections.TableSection(
+                ctk_functions.core.word.TableSection(
                     title="Child Behavior Checklist - Parent Report Form (CBCL)",
                     level=3,
                     tables=[tables.cbcl],
                     condition=lambda: tables.cbcl.is_available(),
                 ),
-                sections.TableSection(
+                ctk_functions.core.word.TableSection(
                     title="Child Behavior Checklist - Youth Self Report (YSR)",
                     level=3,
                     tables=[tables.ysr],
                     condition=lambda: tables.ysr.is_available(),
                 ),
-                sections.TableSection(
+                ctk_functions.core.word.TableSection(
                     title="Child Behavior Checklist - Teacher Report Form (TRF)",
                     level=3,
                     tables=[tables.trf],
                     condition=lambda: tables.trf.is_available(),
                 ),
-                sections.TableSection(
+                ctk_functions.core.word.TableSection(
                     title="Child Behavior Checklist - Adult Self Report Form (ASR)",
                     level=3,
                     tables=[tables.asr],
                     condition=lambda: tables.asr.is_available(),
                 ),
-                sections.ParagraphSection(
+                ctk_functions.core.word.ParagraphSection(
                     content="Attention Deficit-Hyperactivity Symptoms and Behaviors",
                     style="Heading 1",
                     condition=lambda: _any_table_available(
@@ -236,7 +237,7 @@ def _get_alabaster_table_structure(
                         tables.conners3,
                     ),
                     subsections=[
-                        sections.TableSection(
+                        ctk_functions.core.word.TableSection(
                             title=(
                                 "Strengths and Weaknesses of ADHD Symptoms "
                                 "and Normal Behavior (SWAN)"
@@ -245,7 +246,7 @@ def _get_alabaster_table_structure(
                             tables=[tables.swan],
                             condition=lambda: tables.swan.is_available(),
                         ),
-                        sections.TableSection(
+                        ctk_functions.core.word.TableSection(
                             title="Conners 3 - Child Short Form",
                             level=3,
                             tables=[tables.conners3],
@@ -253,7 +254,7 @@ def _get_alabaster_table_structure(
                         ),
                     ],
                 ),
-                sections.ParagraphSection(
+                ctk_functions.core.word.ParagraphSection(
                     content="Autism Spectrum Symptoms and Behaviors",
                     style="Heading 1",
                     condition=lambda: _any_table_available(
@@ -261,13 +262,13 @@ def _get_alabaster_table_structure(
                         tables.srs,
                     ),
                     subsections=[
-                        sections.TableSection(
+                        ctk_functions.core.word.TableSection(
                             title="Social Communication Questionnaire",
                             level=3,
                             tables=[tables.scq],
                             condition=lambda: tables.scq.is_available(),
                         ),
-                        sections.TableSection(
+                        ctk_functions.core.word.TableSection(
                             title="Social Responsiveness Scale",
                             level=3,
                             tables=[tables.srs],
@@ -275,8 +276,8 @@ def _get_alabaster_table_structure(
                         ),
                     ],
                 ),
-                sections.PageBreak(),
-                sections.ParagraphSection(
+                ctk_functions.core.word.PageBreak(),
+                ctk_functions.core.word.ParagraphSection(
                     content="Depression and Anxiety Symptoms",
                     style="Heading 1",
                     condition=lambda: _any_table_available(
@@ -284,7 +285,7 @@ def _get_alabaster_table_structure(
                         tables.scared,
                     ),
                     subsections=[
-                        sections.TableSection(
+                        ctk_functions.core.word.TableSection(
                             title=(
                                 "Mood and Feelings Questionnaire (MFQ) - Long Version"
                             ),
@@ -292,7 +293,7 @@ def _get_alabaster_table_structure(
                             tables=[tables.mfq],
                             condition=lambda: tables.mfq.is_available(),
                         ),
-                        sections.TableSection(
+                        ctk_functions.core.word.TableSection(
                             title="Screen for Child Anxiety Related Disorders",
                             level=3,
                             tables=[tables.scared],
