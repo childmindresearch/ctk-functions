@@ -55,9 +55,13 @@ class DocumentCorrections:
 
     async def correct(self) -> None:
         """Makes corrections based on the enabled and disabled rules."""
-        await asyncio.gather(
-            *[self._correct_paragraph(para) for para in self.document.paragraphs],
-        )
+        async with self.correcter:
+            await asyncio.gather(
+                *[
+                    self._correct_paragraph(para)
+                    for para in self.document.paragraphs
+                ],
+            )
 
     async def _correct_paragraph(self, para: paragraph.Paragraph) -> None:
         """Corrects conjugations in a single paragraph.
