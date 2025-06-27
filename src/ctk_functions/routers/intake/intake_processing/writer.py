@@ -34,6 +34,7 @@ COMMENT_AUTHOR = "Clinician Toolkit"
 
 
 logger = config.get_logger()
+_TEMPLATE_DOCUMENT = docx.Document(str(DATA_DIR / "report_template.docx"))
 
 
 class _RGB(enum.Enum):
@@ -81,9 +82,8 @@ class ReportWriter:
         """
         logger.debug("Initializing the report writer.")
         self.intake = intake
-        self.report = cmi_docx.ExtendDocument(
-            docx.Document(str(DATA_DIR / "report_template.docx")),
-        )
+        template_copy = copy.deepcopy(_TEMPLATE_DOCUMENT)
+        self.report = cmi_docx.ExtendDocument(template_copy)
         self.enabled_tasks = enabled_tasks or EnabledTasks()
         self.insert_before = next(
             paragraph
