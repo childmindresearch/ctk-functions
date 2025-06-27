@@ -1,10 +1,10 @@
 """Large language model functionality for the intake module."""
 
+import asyncio
 import dataclasses
 import uuid
 from collections.abc import Coroutine, Sequence
 from typing import Any
-import asyncio
 
 import jsonpickle
 import pydantic
