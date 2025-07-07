@@ -185,7 +185,7 @@ class ReportWriter:
         past_diagnoses = patient.psychiatric_history.past_diagnoses.transform(
             short=True,
         )
-        age_determinant = "an" if patient.age in (8, 18) else "a"
+        age_determinant = "an" if patient.age in (8, 11, 18) else "a"
 
         if patient.education.grade.isnumeric():
             grade_superscript = string_utils.ordinal_suffix(
