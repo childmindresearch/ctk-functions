@@ -199,12 +199,12 @@ class DeliveryLocation(Transformer[redcap.DeliveryLocation]):
         """
         if self.base == redcap.DeliveryLocation.other:
             if self.other is None:
-                return "an unspecified location"
+                return "at an unspecified location"
             return self.other
 
         if self.base == redcap.DeliveryLocation.hospital:
-            return "a hospital"
-        return "home"
+            return ""
+        return "at home"
 
 
 class Adaptability(Transformer[redcap.Adaptability]):

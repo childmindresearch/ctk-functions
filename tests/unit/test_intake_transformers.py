@@ -73,7 +73,7 @@ def test_birth_delivery_transformer(
     [
         (
             redcap.DeliveryLocation.other,
-            "an unspecified location",
+            "at an unspecified location",
             None,
         ),
         (
@@ -83,17 +83,17 @@ def test_birth_delivery_transformer(
         ),
         (
             redcap.DeliveryLocation.hospital,
-            "a hospital",
+            "",
             None,
         ),
         (
             redcap.DeliveryLocation.home,
-            "home",
+            "at home",
             None,
         ),
         (
             redcap.DeliveryLocation.hospital,
-            "a hospital",
+            "",
             "should not appear",
         ),
     ],

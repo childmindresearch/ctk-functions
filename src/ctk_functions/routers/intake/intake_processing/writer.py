@@ -287,10 +287,11 @@ class ReportWriter:
         development = patient.development
         mother_name = patient.mother.title_name if patient.mother else "[MOTHER NAME]"
 
-        birth_sentence = f"""
-            {patient.first_name} was born at {development.duration_of_pregnancy} of
-            gestation with {development.delivery} at {development.delivery_location}.
-        """
+        birth_sentence = (
+            f"{patient.first_name} was born at {development.duration_of_pregnancy} of "
+            f"gestation with {development.delivery}"
+            f"{(' ' + str(development.delivery_location)) if str(development.delivery_location) else ''}."  # noqa: E501
+        )
 
         if development.prenatal_issues:
             prenatal_sentence = self.llm.run_edit(
