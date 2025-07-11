@@ -179,14 +179,14 @@ wheels = [
 
 [[package]]
 name = "cmi-docx"
-version = "0.4.1"
+version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-docx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/03/00f9627be5b5260760571efbd928bacbd9073d8fa7ae46065238941ea676/cmi_docx-0.4.1.tar.gz", hash = "sha256:55d2f94090eec2efd144bf46f26e3634cb6b04390cb95bfa703bdac85ab3f68d", size = 32047 }
+sdist = { url = "https://files.pythonhosted.org/packages/9a/8a/36d4bb656d00e6726fd85cefaab8a5dc7238947eb8ebb4de7ed52010261c/cmi_docx-0.4.2.tar.gz", hash = "sha256:acb638e3602ce3c0774880fbb7407cc047c20dbc4d1b4f71b48fdfac83c6f962", size = 32217 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1b/54/d5053a208f33f1e4f8dedc2856e2f8e2e63127f2b223d0988a5558b8f3c9/cmi_docx-0.4.1-py3-none-any.whl", hash = "sha256:d9ca4cd4dd2d8b2de391cb254d3d4896f67dfbac51ef989b1aac5c3d2d74ae58", size = 23045 },
+    { url = "https://files.pythonhosted.org/packages/48/6b/0baca57402fc1d65a7ef24fd552225f636cd5e92ba2172ce583821ff9e47/cmi_docx-0.4.2-py3-none-any.whl", hash = "sha256:95026a3d5d58333f0afde64ec3157673667428a990f5fe4d1fb0ea346ecc6b59", size = 23028 },
 ]
 
 [[package]]
@@ -246,6 +246,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pypandoc-binary" },
     { name = "python-dateutil" },
+    { name = "python-docx" },
     { name = "pytz" },
     { name = "spacy" },
     { name = "sqlalchemy" },
@@ -273,7 +274,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.11" },
-    { name = "cmi-docx", specifier = ">=0.4.0" },
+    { name = "cmi-docx", specifier = ">=0.4.2" },
     { name = "docx", specifier = ">=0.2.4" },
     { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
@@ -284,6 +285,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.7.0" },
     { name = "pypandoc-binary", specifier = ">=1.15" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0" },
+    { name = "python-docx", specifier = ">=1.2" },
     { name = "pytz", specifier = ">=2024.2" },
     { name = "spacy", specifier = ">=3.8.3" },
     { name = "sqlalchemy", specifier = ">=2.0.39" },
@@ -1066,15 +1068,15 @@ wheels = [
 
 [[package]]
 name = "python-docx"
-version = "1.1.2"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lxml" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/35/e4/386c514c53684772885009c12b67a7edd526c15157778ac1b138bc75063e/python_docx-1.1.2.tar.gz", hash = "sha256:0cf1f22e95b9002addca7948e16f2cd7acdfd498047f1941ca5d293db7762efd", size = 5656581 }
+sdist = { url = "https://files.pythonhosted.org/packages/a9/f7/eddfe33871520adab45aaa1a71f0402a2252050c14c7e3009446c8f4701c/python_docx-1.2.0.tar.gz", hash = "sha256:7bc9d7b7d8a69c9c02ca09216118c86552704edc23bac179283f2e38f86220ce", size = 5723256 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/3d/330d9efbdb816d3f60bf2ad92f05e1708e4a1b9abe80461ac3444c83f749/python_docx-1.1.2-py3-none-any.whl", hash = "sha256:08c20d6058916fb19853fcf080f7f42b6270d89eac9fa5f8c15f691c0017fabe", size = 244315 },
+    { url = "https://files.pythonhosted.org/packages/d0/00/1e03a4989fa5795da308cd774f05b704ace555a70f9bf9d3be057b680bcf/python_docx-1.2.0-py3-none-any.whl", hash = "sha256:3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7", size = 252987 },
 ]
 
 [[package]]

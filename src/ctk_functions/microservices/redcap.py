@@ -465,7 +465,7 @@ class FamilyDiagnosis(pydantic.BaseModel):
 
 family_psychiatric_diagnoses = [
     FamilyDiagnosis(
-        name="attention deficit hyperactivity disorder",
+        name="attention-deficit/hyperactivity disorder",
         checkbox_abbreviation="adhd",
         text_abbreviation="adhd",
     ),
@@ -535,7 +535,7 @@ family_psychiatric_diagnoses = [
         text_abbreviation="ld",
     ),
     FamilyDiagnosis(
-        name="OCD",
+        name="obsessive compulsive disorder",
         checkbox_abbreviation="ocd",
         text_abbreviation="ocd",
     ),
