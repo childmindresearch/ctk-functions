@@ -280,13 +280,13 @@ class PastDiagnoses(MultiTransformer[parser_models.PastDiagnosis]):
             return "with no prior history of psychiatric diagnoses"
 
         if short:
-            return "with a prior history of " + string_utils.join_with_oxford_comma(
+            return "with a prior history of " + string_utils.oxford_comma(
                 [val.diagnosis for val in self.base],
             )
 
         return (
             "was diagnosed with the following psychiatric diagnoses: "
-            + string_utils.join_with_oxford_comma(
+            + string_utils.oxford_comma(
                 [
                     f"{val.diagnosis} at {val.age_at_diagnosis} by {val.clinician}"
                     for val in self.base
@@ -377,7 +377,7 @@ class PriorDiseases(
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
                 {
-                string_utils.join_with_oxford_comma(
+                string_utils.oxford_comma(
                     [disease.name for disease in self.base],
                 )
             }"""
@@ -385,16 +385,16 @@ class PriorDiseases(
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} denied any history of
                 {
-                string_utils.join_with_oxford_comma(
+                string_utils.oxford_comma(
                     [disease.name for disease in self.base], join_word="or"
                 )
             }"""
         else:
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
-                {string_utils.join_with_oxford_comma(positive_diseases)} and denied
+                {string_utils.oxford_comma(positive_diseases)} and denied
                 any history of
-                {string_utils.join_with_oxford_comma(negative_diseases, join_word="or")}
+                {string_utils.oxford_comma(negative_diseases, join_word="or")}
             """
 
         return string_utils.remove_excess_whitespace(string)
@@ -456,20 +456,20 @@ class FamilyDiagnoses(MultiTransformer[parser_models.FamilyPsychiatricHistory]):
             past_diagosis_texts = [
                 self._past_diagnosis_text(val) for val in past_diagnosis
             ]
-            text += string_utils.join_with_oxford_comma(past_diagosis_texts)
+            text += string_utils.oxford_comma(past_diagosis_texts)
             text += "."
 
         if len(no_past_diagnosis) > 0:
             if text:
                 text += " "
             if len(no_past_diagnosis) > 1:
-                no_diagnosis_names = [val.diagnosis for val in no_past_diagnosis]
+                no_diagnosis_names = [val.name for val in no_past_diagnosis]
                 text += (
                     "Family history of the following diagnoses was denied: "
-                    + string_utils.join_with_oxford_comma(no_diagnosis_names)
+                    + string_utils.oxford_comma(no_diagnosis_names)
                 )
             else:
-                text += f"Family history of {no_past_diagnosis[0].diagnosis} was denied"
+                text += f"Family history of {no_past_diagnosis[0].name} was denied"
             text += "."
         return text
 
@@ -483,7 +483,7 @@ class FamilyDiagnoses(MultiTransformer[parser_models.FamilyPsychiatricHistory]):
         Returns:
             str: The transformed object.
         """
-        family_members = string_utils.join_with_oxford_comma(diagnosis.family_members)
+        family_members = string_utils.oxford_comma(diagnosis.family_members)
         if family_members:
-            return f"{diagnosis.diagnosis} ({family_members})"
-        return diagnosis.diagnosis
+            return f"{diagnosis.name} ({family_members})"
+        return diagnosis.name

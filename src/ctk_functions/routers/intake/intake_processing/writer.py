@@ -1,7 +1,9 @@
 """Contains report writing functionality for intake information."""
 
 import asyncio
+import bisect
 import copy
+import dataclasses
 import enum
 import itertools
 import re
@@ -19,7 +21,6 @@ from ctk_functions.microservices import redcap
 from ctk_functions.routers.intake.intake_processing import (
     parser,
     parser_models,
-    transformers,
     writer_llm,
 )
 from ctk_functions.routers.intake.intake_processing.utils import (
@@ -603,9 +604,9 @@ class ReportWriter:
         if education.testing_accommodations:
             accommodation_text = self.llm.run_edit(
                 f"{patient.first_name} maintains an IEP allowing accommodations for "
-                + string_utils.join_with_oxford_comma(education.testing_accommodations),
+                + string_utils.oxford_comma(education.testing_accommodations),
                 comment="Testing accommodations: "
-                + string_utils.join_with_oxford_comma(education.testing_accommodations),
+                + string_utils.oxford_comma(education.testing_accommodations),
                 context=" ".join(texts),
                 additional_instruction="Use only one sentence.",
             )
@@ -696,7 +697,7 @@ class ReportWriter:
 
                 Languages spoken in the household are as follows:
                 {
-                string_utils.join_with_oxford_comma(
+                string_utils.oxford_comma(
                     [language.name for language in household.languages]
                 )
             }.
@@ -928,82 +929,11 @@ class ReportWriter:
 
     def write_family_psychiatric_history(self) -> None:
         """Writes the family psychiatric history to the report."""
-        logger.debug("Writing the family psychiatric history to the report.")
+        text = _FamilyPsychiatricHistory(
+            self.intake.patient, self.llm
+        ).write_psychiatric_history()
 
-        instructions = f"""
-            DO NOT USE BULLETED LISTS.
-
-            Please refer to the patient's family by the degree of relation (e.g.,
-            "mother," and "father," would be "1st degree relatives," while "aunt"
-            and "uncle" would be "2nd degree relatives"), do not use the exact
-            relationship. We do this to protect the privacy of the family members.
-
-            Write your response with the relative degree in brackets.
-            For example: "John's family history is remarkable for alcohol abuse (3rd
-            degree relative), and depression (2nd and 3rd degree relatives)." List
-            the diagnoses in alphabetical order.
-
-            You may group diagnoses together with the given label if they have identical
-             responses:
-                1. Specific learning disorder
-                    - specific learning disorder with impairment in mathematics
-                    - specific learning disorder with impairment in reading
-                    - specific learning disorder with impairment in written expression
-
-                2. Oppositional defiant or conduct disorders
-                    - Conduct disorder
-                    - Oppositional defiant disorder
-
-                3. Substance abuse:
-                    - Alcohol abuse
-                    - Substance abuse
-
-                4. Anxiety disorders
-                    - Generalized anxiety disorder
-                    - Separation anxiety
-                    - Social anxiety
-
-            The following diagnoses must be omitted if negative:
-                - Enuresis/Encopresis
-                - Excoriation
-                - Gender dysphoria
-                - Intellectual disability
-                - Language disorder
-                - Personality disorder
-                - Reactive attachment disorder
-                - Selective mutism
-                - Agoraphobia
-                - Specific phobias
-                - Tics/Tourette's
-
-            Ensure that all other diagnoses are included, regardless of result. Do not
-            use acronyms.
-
-            The structure of the paragraph should be as follows:
-            "{self.intake.patient.first_name} history is remarkable for
-            [LIST PSYCHIATRIC HISTORY]. {self.intake.patient.guardian.title_name}
-            denied any family history related to [DENIED HISTORY]."
-
-        """
-
-        history = self.intake.patient.psychiatric_history.family_psychiatric_history
         self._insert("Family Psychiatric History", word.StyleName.HEADING_2)
-
-        if not history.base:
-            # No known family history.
-            text = str(history)
-        else:
-            llm_text = str(history).replace(
-                transformers.ReplacementTags.PREFERRED_NAME.value,
-                self.intake.patient.first_name,
-            )
-
-            text = self.llm.run_edit(
-                llm_text,
-                comment=llm_text,
-                additional_instruction=instructions,
-                verify=True,
-            )
         self._insert(text)
         self._insert("")
 
@@ -1329,9 +1259,9 @@ class ReportWriter:
             if placeholder.comment:
                 find_runs = self.report.find_in_runs(placeholder.text)
                 runs = (
-                    (find_runs[0].runs[0], find_runs[0].runs[-1])
-                    if len(find_runs[0].runs) > 1
-                    else find_runs[0].runs[0]
+                    (find_runs[-1].runs[0], find_runs[-1].runs[-1])
+                    if len(find_runs[-1].runs) > 1
+                    else find_runs[-1].runs[0]
                 )
                 comment.add_comment(
                     self.report.document,
@@ -1418,10 +1348,20 @@ class ReportWriter:
 
         for paragraph in self.report.document.paragraphs:
             matches = list(re.finditer(pattern, paragraph.text))
+            if not matches:
+                continue
             for match in matches:
                 extended_paragraph = cmi_docx.ExtendParagraph(paragraph)
                 suffix = match.string[match.end() - 2 : match.end()]
-                style = cmi_docx.RunStyle(superscript=True)
+                run_lengths = list(
+                    itertools.accumulate([len(run.text) for run in paragraph.runs])
+                )
+                run_index = min(
+                    bisect.bisect_right(run_lengths, match.start()),
+                    len(run_lengths) - 1,
+                )
+                font_color = paragraph.runs[run_index].font.color
+                style = cmi_docx.RunStyle(superscript=True, font_rgb=font_color.rgb)
                 extended_paragraph.replace_between(
                     match.end() - 2,
                     match.end(),
@@ -1442,7 +1382,7 @@ class ReportWriter:
         }
 
         language_descriptions = [
-            f"{fluency} in {string_utils.join_with_oxford_comma(fluency_dict[fluency])}"
+            f"{fluency} in {string_utils.oxford_comma(fluency_dict[fluency])}"
             for fluency in ["fluent", "proficient", "conversational"]
             if fluency in fluency_dict
         ]
@@ -1451,11 +1391,11 @@ class ReportWriter:
             language_descriptions.append(
                 (
                     "has basic skills in "
-                    f"{string_utils.join_with_oxford_comma(fluency_dict['basic'])}"
+                    f"{string_utils.oxford_comma(fluency_dict['basic'])}"
                 ),
             )
 
-        text = string_utils.join_with_oxford_comma(language_descriptions)
+        text = string_utils.oxford_comma(language_descriptions)
         if prepend_is:
             text = "is " + text
         return text
@@ -1473,3 +1413,209 @@ class ReportWriter:
             parent_input=f"Details: {report}",
             comment=report,
         )
+
+
+class _DisorderMerge(pydantic.BaseModel):
+    """Whether diagnoses should be merged in the family psychiatric history."""
+
+    new_name: str
+    old_names: tuple[str, ...]
+    always_merge: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class _DisorderConfig:
+    """Configuration for psychiatric diagnosis display rules."""
+
+    ALWAYS_SHOW: frozenset[str] = frozenset(
+        {
+            "attention-deficit/hyperactivity disorder",
+            "autism",
+            "bipolar disorder",
+            "conduct disorder",
+            "depression",
+            "generalized anxiety disorder",
+            "obsessive compulsive disorder",
+            "oppositional defiant disorder",
+            "oppositional defiant or conduct disorders",
+            "panic disorder",
+            "psychosis",
+            "suicidality",
+        }
+    )
+
+    POSITIVE_ONLY: frozenset[str] = frozenset(
+        {
+            "alcohol abuse",
+            "disruptive mood dysregulation disorder",
+            "eating disorders",
+            "enuresis/encopresis",
+            "excoriation",
+            "gender dysphoria",
+            "intellectual disability",
+            "language disorder",
+            "personality disorder",
+            "PTSD",
+            "reactive attachment",
+            "selective mutism",
+            "social anxiety",
+            "separation anxiety",
+            "specific learning disorder",
+            "specific phobias",
+            "substance abuse",
+            "tics/Tourette's",
+        }
+    )
+
+    @property
+    def all_known_diagnoses(self) -> frozenset[str]:
+        """Return all known psychiatric diagnoses."""
+        return self.ALWAYS_SHOW | self.POSITIVE_ONLY
+
+
+class _FamilyPsychiatricHistory:
+    """Writes the Family Psychiatric History section.
+
+    There's a lot of little rules to this section. The writing of this has been split
+    off for clarity.
+    """
+
+    def __init__(self, patient: parser.Patient, llm: writer_llm.WriterLlm) -> None:
+        self.patient = patient
+        self.llm = llm
+        self.merge_diagnoses = [
+            _DisorderMerge(
+                new_name="substance abuse",
+                old_names=("alcohol abuse", "substance abuse"),
+                always_merge=True,
+            ),
+            _DisorderMerge(
+                new_name="specific learning disorder",
+                old_names=(
+                    "specific learning disorder, with impairment in mathematics",
+                    "specific learning disorder, with impairment in reading",
+                    "specific learning disorder, with impairment in written expression",
+                ),
+                always_merge=True,
+            ),
+            _DisorderMerge(
+                new_name="oppositional defiant or conduct disorders",
+                old_names=(
+                    "conduct disorder",
+                    "oppositional defiant disorder",
+                ),
+                always_merge=False,
+            ),
+        ]
+
+    def _merge_diagnoses(
+        self, history: list[parser_models.FamilyPsychiatricHistory]
+    ) -> list[parser_models.FamilyPsychiatricHistory]:
+        """Merges diagnoses where needed.
+
+        Args:
+            history: List of the patient's family historical diagnoses.
+
+        Returns:
+            Merged diagnoses.
+        """
+        for merge in self.merge_diagnoses:
+            disorders = [
+                disorder for disorder in history if disorder.name in merge.old_names
+            ]
+
+            if not merge.always_merge:
+                is_all_same = all(
+                    disorders[0].is_diagnosed == d.is_diagnosed for d in disorders[1:]
+                )
+                if not is_all_same:
+                    continue
+
+            is_diagnosed = any(disorder.is_diagnosed for disorder in disorders)
+            family_members = " ".join(
+                [disorder.family_members for disorder in disorders]
+            )
+            history = [
+                disorder for disorder in history if disorder.name not in merge.old_names
+            ]
+
+            history.append(
+                parser_models.FamilyPsychiatricHistory(
+                    name=merge.new_name,
+                    is_diagnosed=is_diagnosed,
+                    family_members=family_members,
+                )
+            )
+        return history
+
+    @staticmethod
+    def _remove_diagnoses(
+        history: list[parser_models.FamilyPsychiatricHistory],
+    ) -> list[parser_models.FamilyPsychiatricHistory]:
+        """Removes negative diagnoses that need not be reported."""
+        for index in range(len(history) - 1, -1, -1):
+            disorder = history[index]
+            if disorder.name not in _DisorderConfig().all_known_diagnoses:
+                msg = f"Unknown disorder: '{disorder.name}'."
+                raise KeyError(msg)
+            if (
+                not disorder.is_diagnosed
+                and disorder.name not in _DisorderConfig().ALWAYS_SHOW
+            ):
+                history.pop(index)
+        return history
+
+    def _write_history_unknown(self) -> str:
+        return (
+            f"{self.patient.possessive_first_name} family psychiatric history "
+            f"was unknown."
+        )
+
+    def write_psychiatric_history(self) -> str:
+        history = self.patient.psychiatric_history.family_psychiatric_history
+        if not history.is_father_history_known and not history.is_mother_history_known:
+            return self._write_history_unknown()
+
+        if not history.is_mother_history_known or not history.is_father_history_known:
+            side = "maternal" if not history.is_father_history_known else "paternal"
+            unknown_history_line = (
+                f" Information regarding {self.patient.first_name} "
+                f"{side} family psychiatric history was unknown."
+            )
+        else:
+            unknown_history_line = ""
+
+        diagnoses = self._remove_diagnoses(self._merge_diagnoses(history.diagnoses))
+        endorsed_diagnoses = string_utils.oxford_comma(
+            [
+                diagnosis.name
+                + " ("
+                + self.llm.classify_family_relatedness(diagnosis.family_members)
+                + ")"
+                for diagnosis in diagnoses
+                if diagnosis.is_diagnosed
+            ]
+        )
+        denied_diagnoses = string_utils.oxford_comma(
+            [diagnosis.name for diagnosis in diagnoses if not diagnosis.is_diagnosed]
+        )
+
+        endorsed_sentence = (
+            f"{self.patient.first_name}'s family history "
+            f"is remarkable for {endorsed_diagnoses}."
+        )
+        denied_sentence = (
+            f"{self.patient.guardian.title_name} denied any "
+            f"family history related to {denied_diagnoses}."
+        )
+
+        first_sentence = (
+            (
+                f"{self.patient.possessive_first_name} family history is largely "
+                "unremarkable for psychiatric illnesses."
+            )
+            if not endorsed_diagnoses
+            else endorsed_sentence
+        )
+
+        return first_sentence + " " + denied_sentence + unknown_history_line

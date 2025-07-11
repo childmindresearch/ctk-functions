@@ -154,7 +154,7 @@ class StringToInt:
         raise self.StringParseError(msg)
 
 
-def join_with_oxford_comma(
+def oxford_comma(
     items: Sequence[str],
     join_word: str = "and",
 ) -> str:

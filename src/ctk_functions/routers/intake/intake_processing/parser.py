@@ -121,6 +121,11 @@ class Patient:
             )
 
     @property
+    def possessive_first_name(self) -> str:
+        """The possessive of the first name."""
+        return self.first_name + "'" if self.first_name[-1] == "s" else "'s"
+
+    @property
     def full_name(self) -> str:
         """The full name of the patient."""
         return f"{self.first_name} {self.last_name}"
@@ -583,7 +588,7 @@ class PsychiatricHistory:
         self.self_harm: str | None = patient_data.selfharm_exp
         self.family_psychiatric_history = FamilyPsychiatricHistory(
             patient_data,
-        ).get_family_diagnoses(patient_data)
+        )
 
 
 class FamilyPsychiatricHistory:
@@ -597,12 +602,12 @@ class FamilyPsychiatricHistory:
         """
         self.is_father_history_known = patient_data.biohx_dad_other
         self.is_mother_history_known = patient_data.biohx_mom_other
-        self.family_diagnoses = self.get_family_diagnoses(patient_data)
+        self.diagnoses = self.get_family_diagnoses(patient_data)
 
     def get_family_diagnoses(
         self,
         patient_data: redcap.RedCapData,
-    ) -> transformers.FamilyDiagnoses:
+    ) -> list[parser_models.FamilyPsychiatricHistory]:
         """Gets the family diagnoses.
 
         There's an edge-case where the complete family history is unknown.
@@ -615,38 +620,21 @@ class FamilyPsychiatricHistory:
         Returns:
             The family diagnoses transformers.
         """
-        if not self.is_father_history_known and not self.is_mother_history_known:
-            history_known = "Family psychiatric history is unknown."
-            return transformers.FamilyDiagnoses(
-                [],
-                history_known,
-            )
-
-        if not self.is_father_history_known:
-            history_known = "Family history for the father is unknown."
-        elif not self.is_mother_history_known:
-            history_known = "Family history for the mother is unknown."
-        else:
-            history_known = ""
-
-        family_diagnoses = [
+        return [
             parser_models.FamilyPsychiatricHistory(
-                diagnosis=diagnosis.name,
-                no_formal_diagnosis=getattr(
+                name=diagnosis.name,
+                is_diagnosed=not getattr(
                     patient_data,
                     f"{diagnosis.checkbox_abbreviation}___4",
                 ),
                 family_members=getattr(
                     patient_data,
                     f"{diagnosis.text_abbreviation}_text",
-                ),
+                )
+                or "",
             )
             for diagnosis in redcap.family_psychiatric_diagnoses
         ]
-        return transformers.FamilyDiagnoses(
-            family_diagnoses,
-            history_known,
-        )
 
 
 class TherapeuticInterventions(parser_models.CommentBaseModel):
