@@ -604,8 +604,8 @@ class FamilyPsychiatricHistory:
         self.is_mother_history_known = patient_data.biohx_mom_other
         self.diagnoses = self.get_family_diagnoses(patient_data)
 
+    @staticmethod
     def get_family_diagnoses(
-        self,
         patient_data: redcap.RedCapData,
     ) -> list[parser_models.FamilyPsychiatricHistory]:
         """Gets the family diagnoses.
