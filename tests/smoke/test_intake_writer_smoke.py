@@ -14,7 +14,7 @@ import pytest_mock
 from docx import document
 
 from ctk_functions.microservices import redcap
-from ctk_functions.routers.intake.intake_processing import parser, writer
+from ctk_functions.routers.intake.intake_processing import parser, writer, writer_llm
 
 T = TypeVar("T")
 
@@ -37,7 +37,9 @@ async def intake_document(
         "ctk_functions.microservices.cloai_service.Client.call_instructor",
         return_value="instructor",
     )
-
+    mocker.patch.object(
+        writer_llm.WriterLlm, "classify_family_relatedness", return_value="1st"
+    )
     intake_info = parser.IntakeInformation(test_redcap_data)
     intake_writer = writer.ReportWriter(intake_info)
     await intake_writer.transform()
