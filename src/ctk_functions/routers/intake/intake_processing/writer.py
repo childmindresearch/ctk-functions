@@ -224,7 +224,7 @@ class ReportWriter:
                 only the most pertinent information here.
             """,
             context=main_text,
-            comment=None,  # See BUG comment below.
+            comment=f"Reason for visit: {patient.reason_for_visit}",
         )
 
         learned_of_study_id = self.llm.run_text_with_parent_input(
@@ -236,31 +236,21 @@ class ReportWriter:
                 only the most pertinent information here.
             """,
             context=main_text + " " + hopes_text,
-            comment=None,  # See BUG comment below.
+            comment=f"Learned of study: {patient.learned_of_study}.",
         )
 
         self._insert("REASON FOR VISIT", word.StyleName.HEADING_1)
         paragraph = self._insert(main_text)
         paragraph.add_run(" " + attendance_id + " ")
         hopes_run = paragraph.add_run(hopes_text)
-        # TODO @reindervdw-cmi: Hunt down this bug.  # noqa: FIX002
-        # https://github.com/childmindresearch/ctk-functions/issues/199
-        # BUG: There's a bug in the comment functionality that is causing comments to
-        # disappear when the three reasons are added as separate comments.
-        # I've been unable to trace this bug, so in lieu of fixing it, add
-        # all information in a single comment.
+
         comment.add_comment(
             self.report.document,
             location=(hopes_run, hopes_run),
             author=COMMENT_AUTHOR,
-            text="\n\n".join(
-                [
-                    f"Reason for visit: {patient.reason_for_visit}",
-                    f"Hopes: {patient.hopes}",
-                    f"Learned of study: {patient.learned_of_study}.",
-                ],
-            ),
+            text=f"Hopes: {patient.hopes}",
         )
+
         paragraph.add_run(" " + learned_of_study_id)
         self._insert("")
 
