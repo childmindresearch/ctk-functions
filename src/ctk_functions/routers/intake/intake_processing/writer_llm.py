@@ -123,8 +123,8 @@ their degree of relatedness following rules of expected generic overlap and summ
 this. For example, if the string is "paternal grandfather" you should
 respond with:
 [{
-    name: "Paternal Grandfather",
-    degree: 2
+    "name": "Paternal Grandfather",
+    "degree": 2
 }]
 
 What follows are several examples of a family member and their degree of relatedness:
