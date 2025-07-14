@@ -120,7 +120,7 @@ adjectives are positive i.e., they give a good impression of the child.
     family_classifier = """
 You will receive a string of a child's family members. Your task is to classify
 their degree of relatedness following rules of expected generic overlap and summarize
-this. For example, if the string is "paternal grandfather " you should
+this. For example, if the string is "paternal grandfather" you should
 respond with:
 [{
     name: "Paternal Grandfather",
