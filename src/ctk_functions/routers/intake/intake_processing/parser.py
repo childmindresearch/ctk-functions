@@ -123,7 +123,7 @@ class Patient:
     @property
     def possessive_first_name(self) -> str:
         """The possessive of the first name."""
-        return self.first_name + "'" if self.first_name[-1] == "s" else "'s"
+        return self.first_name + ("'" if self.first_name[-1] == "s" else "'s")
 
     @property
     def full_name(self) -> str:
