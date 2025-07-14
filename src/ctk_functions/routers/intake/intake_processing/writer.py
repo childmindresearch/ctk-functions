@@ -1567,9 +1567,9 @@ class _FamilyPsychiatricHistory:
             return self._write_history_unknown()
 
         if not history.is_mother_history_known or not history.is_father_history_known:
-            side = "maternal" if not history.is_father_history_known else "paternal"
+            side = "maternal" if history.is_father_history_known else "paternal"
             unknown_history_line = (
-                f" Information regarding {self.patient.first_name} "
+                f" Information regarding {self.patient.possessive_first_name} "
                 f"{side} family psychiatric history was unknown."
             )
         else:
