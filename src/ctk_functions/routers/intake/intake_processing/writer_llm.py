@@ -18,6 +18,23 @@ settings = config.get_settings()
 LOGGER_PHI_LOGGING_LEVEL = settings.LOGGER_PHI_LOGGING_LEVEL
 
 
+class FamilyMember(pydantic.BaseModel):
+    """Instructor model for a family member's degree of relatedness."""
+
+    name: str
+    degree: int = pydantic.Field(
+        ...,
+        description="Degree of relatedness e.g. an aunt would be a 2nd degree "
+        "family member i.e. 2.",
+    )
+
+
+class FamilyMembersResponse(pydantic.BaseModel):
+    """Response for instructor classifying family members."""
+
+    family_members: tuple[FamilyMember, ...]
+
+
 class LlmPlaceholder(pydantic.BaseModel):
     """Represents a placeholder for large language model input in the report.
 
@@ -99,6 +116,15 @@ flows naturally, i.e., DO NOT MAKE A LIST.
 You will receive a description of a child. Your task is to describe this child
 with one or two adjectives. Return only the adjectives. Ensure that these
 adjectives are positive i.e., they give a good impression of the child.
+"""
+    family_classifier = """
+You will receive a string of a child's family members. Your task is to classify
+their degree of relatedness and summarize this. For example, if the string is
+"paternal grandfather" you should respond with:
+[{
+    name: "Paternal Grandfather",
+    degree: 2
+}]
 """
 
 
@@ -297,6 +323,55 @@ class WriterLlm:
 
         return self._add_to_placeholders(result, comment=comment)
 
+    def classify_family_relatedness(self, description: str) -> str:
+        """Converts a string of family members to models.
+
+        Args:
+            description: The description of the family.
+
+        Returns:
+            A tuple of the family members.
+        """
+        results = self.client.call_instructor(
+            model=FamilyMembersResponse,
+            system_prompt=Prompts.family_classifier,
+            user_prompt=description,
+        )
+
+        async def merge_results(
+            promise: Coroutine[Any, Any, FamilyMembersResponse],
+        ) -> str:
+            """Merges the instructor call's results.
+
+            We want to return a string to comply with the add_to_placeholders function
+            signature, but the LLM returns a tuple of models. They are merged here.
+            """
+            family_members = (await promise).family_members
+            counts = [
+                len(
+                    list(filter(lambda member: member.degree == degree, family_members))
+                )
+                for degree in (1, 2, 3)
+            ]
+            counts.append(len(family_members) - sum(counts))
+
+            texts = []
+            for index, count in enumerate(counts):
+                if count == 0:
+                    continue
+                count_word = {1: "", 2: "two ", 3: "three "}.get(count, "several ")
+
+                relative = f"relative{'s' if count > 1 else ''}"
+                if index < len(counts) - 1:
+                    ordinal = str(index + 1) + string_utils.ordinal_suffix(index + 1)
+                    texts.append(f"{count_word}{ordinal} degree {relative}")
+                else:
+                    texts.append(f"{count_word}extended {relative}")
+
+            return string_utils.oxford_comma(texts)
+
+        return self._add_to_placeholders(merge_results(results), comment=description)
+
     def _run(
         self,
         system_prompt: str,
@@ -350,7 +425,7 @@ class WriterLlm:
             In case the child's name or pronouns are needed for the text, they are as
             follows:
             Child name: {self.child_name}.
-            Child pronouns: {string_utils.join_with_oxford_comma(self.child_pronouns)}.
+            Child pronouns: {string_utils.oxford_comma(self.child_pronouns)}.
         """)
 
     def _add_to_placeholders(

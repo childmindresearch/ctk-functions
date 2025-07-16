@@ -6,6 +6,8 @@ import docx
 import pytest_mock
 from fastapi import status, testclient
 
+from ctk_functions.routers.intake.intake_processing import writer_llm
+
 
 def test_intake_with_model(
     client: testclient.TestClient,
@@ -24,6 +26,9 @@ def test_intake_with_model(
     mocker.patch(
         "ctk_functions.microservices.cloai_service.Client.run",
         return_value="run",
+    )
+    mocker.patch.object(
+        writer_llm.WriterLlm, "classify_family_relatedness", return_value="1st"
     )
 
     response = client.get(

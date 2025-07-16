@@ -199,12 +199,12 @@ class DeliveryLocation(Transformer[redcap.DeliveryLocation]):
         """
         if self.base == redcap.DeliveryLocation.other:
             if self.other is None:
-                return "an unspecified location"
+                return "at an unspecified location"
             return self.other
 
         if self.base == redcap.DeliveryLocation.hospital:
-            return "a hospital"
-        return "home"
+            return ""
+        return "at home"
 
 
 class Adaptability(Transformer[redcap.Adaptability]):
@@ -280,13 +280,13 @@ class PastDiagnoses(MultiTransformer[parser_models.PastDiagnosis]):
             return "with no prior history of psychiatric diagnoses"
 
         if short:
-            return "with a prior history of " + string_utils.join_with_oxford_comma(
+            return "with a prior history of " + string_utils.oxford_comma(
                 [val.diagnosis for val in self.base],
             )
 
         return (
             "was diagnosed with the following psychiatric diagnoses: "
-            + string_utils.join_with_oxford_comma(
+            + string_utils.oxford_comma(
                 [
                     f"{val.diagnosis} at {val.age_at_diagnosis} by {val.clinician}"
                     for val in self.base
@@ -377,7 +377,7 @@ class PriorDiseases(
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
                 {
-                string_utils.join_with_oxford_comma(
+                string_utils.oxford_comma(
                     [disease.name for disease in self.base],
                 )
             }"""
@@ -385,16 +385,16 @@ class PriorDiseases(
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} denied any history of
                 {
-                string_utils.join_with_oxford_comma(
+                string_utils.oxford_comma(
                     [disease.name for disease in self.base], join_word="or"
                 )
             }"""
         else:
             string = f"""
                 {ReplacementTags.REPORTING_GUARDIAN.value} reported a history of
-                {string_utils.join_with_oxford_comma(positive_diseases)} and denied
+                {string_utils.oxford_comma(positive_diseases)} and denied
                 any history of
-                {string_utils.join_with_oxford_comma(negative_diseases, join_word="or")}
+                {string_utils.oxford_comma(negative_diseases, join_word="or")}
             """
 
         return string_utils.remove_excess_whitespace(string)
@@ -428,62 +428,3 @@ class EducationGrades(Transformer[redcap.EducationGrades]):
         ):
             text += " on a 4-point scale"
         return text
-
-
-class FamilyDiagnoses(MultiTransformer[parser_models.FamilyPsychiatricHistory]):
-    """The transformer for family diagnoses."""
-
-    def transform(self) -> str:
-        """Transforms the family diagnoses information to a string.
-
-        Returns:
-            str: The transformed object.
-        """
-        if not self.base:
-            return self.other if self.other else ""
-
-        no_past_diagnosis = [val for val in self.base if val.no_formal_diagnosis]
-        past_diagnosis = [val for val in self.base if not val.no_formal_diagnosis]
-
-        text = self.other if self.other else ""
-        if len(past_diagnosis) > 0:
-            if text:
-                text += " "
-            text += (
-                f"{ReplacementTags.PREFERRED_NAME.value}'s family history is "
-                "significant for "
-            )
-            past_diagosis_texts = [
-                self._past_diagnosis_text(val) for val in past_diagnosis
-            ]
-            text += string_utils.join_with_oxford_comma(past_diagosis_texts)
-            text += "."
-
-        if len(no_past_diagnosis) > 0:
-            if text:
-                text += " "
-            if len(no_past_diagnosis) > 1:
-                no_diagnosis_names = [val.diagnosis for val in no_past_diagnosis]
-                text += (
-                    "Family history of the following diagnoses was denied: "
-                    + string_utils.join_with_oxford_comma(no_diagnosis_names)
-                )
-            else:
-                text += f"Family history of {no_past_diagnosis[0].diagnosis} was denied"
-            text += "."
-        return text
-
-    @staticmethod
-    def _past_diagnosis_text(diagnosis: parser_models.FamilyPsychiatricHistory) -> str:
-        """Transforms a family diagnosis to a string.
-
-        Args:
-            diagnosis: The family diagnosis.
-
-        Returns:
-            str: The transformed object.
-        """
-        family_members = string_utils.join_with_oxford_comma(diagnosis.family_members)
-        if family_members:
-            return f"{diagnosis.diagnosis} ({family_members})"
-        return diagnosis.diagnosis

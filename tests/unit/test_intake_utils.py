@@ -19,14 +19,14 @@ from ctk_functions.routers.intake.intake_processing.utils import (
 )
 def test_join_with_oxford_comma(elements: list[str], expected: str) -> None:
     """Tests joining a list with an Oxford comma."""
-    assert string_utils.join_with_oxford_comma(elements) == expected
+    assert string_utils.oxford_comma(elements) == expected
 
 
 def test_join_with_oxford_comma_join_word() -> None:
     """Tests joining a list with an Oxford comma and a join word."""
     expected = "a, b, or c"
 
-    actual = string_utils.join_with_oxford_comma(["a", "b", "c"], join_word="or")
+    actual = string_utils.oxford_comma(["a", "b", "c"], join_word="or")
 
     assert actual == expected
 
