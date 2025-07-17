@@ -1,6 +1,7 @@
 """Module for syntax and grammatical corrections of text."""
 
 from collections.abc import Iterable
+from types import TracebackType
 
 import aiohttp
 import pydantic
@@ -134,6 +135,20 @@ class LanguageCorrecter:
         self.url = url
         self.language_tool = "en-US"
         self.enabled_rules = set(enabled_rules)
+        self._session = aiohttp.ClientSession()
+
+    async def __aenter__(self) -> "LanguageCorrecter":
+        """Return self when entering the async context manager."""
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Close the underlying HTTP session when exiting the context."""
+        await self._session.close()
 
     @tenacity.retry(
         stop=tenacity.stop_after_attempt(3),
@@ -148,17 +163,16 @@ class LanguageCorrecter:
         Returns:
             The response from LanguageTool.
         """
-        async with aiohttp.ClientSession() as client:
-            response = await client.post(
-                url=self.url + "/check",
-                data={
-                    "text": text,
-                    "language": "en-US",
-                    "enabledRules": ",".join(self.enabled_rules),
-                    "enabledOnly": "true",
-                },
-            )
-            text = await response.text()
+        response = await self._session.post(
+            url=self.url + "/check",
+            data={
+                "text": text,
+                "language": "en-US",
+                "enabledRules": ",".join(self.enabled_rules),
+                "enabledOnly": "true",
+            },
+        )
+        text = await response.text()
 
         return LanguageToolResponse.model_validate_json(text)
 

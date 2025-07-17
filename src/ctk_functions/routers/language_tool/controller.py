@@ -16,8 +16,8 @@ async def run_language_tool(body: schemas.PostLanguageToolRequest) -> str:
     Returns:
         The corrected text.
     """
-    correcter = language_tool.LanguageCorrecter(
+    async with language_tool.LanguageCorrecter(
         body.rules,
         settings.LANGUAGE_TOOL_URL,
-    )
-    return await correcter.correct(body.text)
+    ) as correcter:
+        return await correcter.correct(body.text)
