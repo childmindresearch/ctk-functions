@@ -1424,6 +1424,7 @@ class _DisorderConfig:
             "bipolar disorder",
             "conduct disorder",
             "depression",
+            "eating disorders",
             "generalized anxiety disorder",
             "obsessive compulsive disorder",
             "oppositional defiant disorder",
@@ -1431,6 +1432,8 @@ class _DisorderConfig:
             "panic disorder",
             "psychosis",
             "suicidality",
+            "specific learning disorders",
+            "substance abuse",
         }
     )
 
@@ -1438,7 +1441,6 @@ class _DisorderConfig:
         {
             "alcohol abuse",
             "disruptive mood dysregulation disorder",
-            "eating disorders",
             "enuresis/encopresis",
             "excoriation",
             "gender dysphoria",
@@ -1450,9 +1452,7 @@ class _DisorderConfig:
             "selective mutism",
             "social anxiety",
             "separation anxiety",
-            "specific learning disorder",
             "specific phobias",
-            "substance abuse",
             "tics/Tourette's",
         }
     )
@@ -1480,7 +1480,7 @@ class _FamilyPsychiatricHistory:
                 always_merge=True,
             ),
             _DisorderMerge(
-                new_name="specific learning disorder",
+                new_name="specific learning disorders",
                 old_names=(
                     "specific learning disorder, with impairment in mathematics",
                     "specific learning disorder, with impairment in reading",
