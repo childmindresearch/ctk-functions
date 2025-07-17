@@ -6,6 +6,7 @@ import docx
 
 from ctk_functions.core import config
 from ctk_functions.routers.pyrite.tables import base
+from ctk_functions.routers.referral import schemas
 
 logger = config.get_logger()
 settings = config.get_settings()
@@ -13,23 +14,38 @@ settings = config.get_settings()
 DATA_DIR = settings.DATA_DIR
 
 
-def post_referral(table: tuple[tuple[str, ...], ...]) -> bytes:
+def post_referral(request: schemas.PostReferralRequest) -> bytes:
     """Generates a referral for a given table.
 
     Args:
-        table: Array of an array of strings representing a table, outer array
-            represents rows, the inner array cells.
+        request: The tables to generate a referral for.
 
     Returns:
         The .docx file bytes.
     """
     doc = docx.Document(str(DATA_DIR / "referral_template.docx"))
-    rows = [[base.WordTableCell(content=text) for text in row] for row in table]
-    markup = base.WordTableMarkup(rows=rows)
-    renderer = base.WordDocumentTableRenderer(markup=markup)
-    renderer.add_to(doc)
+    renderers = [_table_to_renderer(table) for table in request.tables]
+    titles = [table.title for table in request.tables]
+
+    for title, renderer in zip(titles, renderers, strict=True):
+        base.ParagraphBlock(content=title, level=2).add_to(doc)
+        renderer.add_to(doc)
 
     out = io.BytesIO()
     doc.save(out)
     doc.save("/Users/reinder.vosdewael/Desktop/test.docx")
     return out.getvalue()
+
+
+def _table_to_renderer(
+    table: schemas.PostReferralTableSection,
+) -> base.WordDocumentTableRenderer:
+    """Converts the requested table to a table renderer."""
+    model = table.table.model_dump()
+    headers = [base.WordTableCell(content=key) for key in model]
+    rows = [
+        [base.WordTableCell(content=text) for text in vals]
+        for vals in zip(*model.values(), strict=True)
+    ]
+    markup = base.WordTableMarkup(rows=[headers, *rows])
+    return base.WordDocumentTableRenderer(markup=markup)
