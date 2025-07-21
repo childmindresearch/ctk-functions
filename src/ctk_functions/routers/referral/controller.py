@@ -24,7 +24,7 @@ def post_referral(request: schemas.PostReferralRequest) -> bytes:
         The .docx file bytes.
     """
     doc = docx.Document(str(DATA_DIR / "referral_template.docx"))
-    renderers = [_table_to_renderer(table) for table in request.tables]
+    renderers = [_table_to_renderer(table.table) for table in request.tables]
     titles = [table.title for table in request.tables]
 
     for title, renderer in zip(titles, renderers, strict=True):
@@ -38,14 +38,11 @@ def post_referral(request: schemas.PostReferralRequest) -> bytes:
 
 
 def _table_to_renderer(
-    table: schemas.PostReferralTableSection,
+    table: dict[str, tuple[str, ...]],
 ) -> base.WordDocumentTableRenderer:
     """Converts the requested table to a table renderer."""
-    model = table.table.model_dump()
-    headers = [base.WordTableCell(content=key) for key in model]
-    rows = [
-        [base.WordTableCell(content=text) for text in vals]
-        for vals in zip(*model.values(), strict=True)
-    ]
+    headers = [base.WordTableCell(content=key) for key in table]
+    row_values = zip(*table.values(), strict=True)
+    rows = [[base.WordTableCell(content=text) for text in vals] for vals in row_values]
     markup = base.WordTableMarkup(rows=[headers, *rows])
     return base.WordDocumentTableRenderer(markup=markup)
