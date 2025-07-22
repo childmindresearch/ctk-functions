@@ -115,7 +115,7 @@ class FamilyPsychiatricHistory(CommentBaseModel, pydantic.BaseModel):
         second_degree: Whether a second-degree family member was diagnosed.
         third_degree: Whether a third-degree family member was diagnosed.
         is_diagnosed: Whether a family member has been diagnosed.
-        family_members: String containing elaboration on which family members were
+        details: String containing elaboration on which family members were
             diagnosed.
     """
 
@@ -124,7 +124,7 @@ class FamilyPsychiatricHistory(CommentBaseModel, pydantic.BaseModel):
     second_degree: bool
     third_degree: bool
     is_diagnosed: bool
-    family_members: str
+    details: str
 
 
 class PriorDisease(pydantic.BaseModel):

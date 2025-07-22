@@ -636,7 +636,7 @@ class FamilyPsychiatricHistory:
                     patient_data,
                     f"{diagnosis.checkbox_abbreviation}___4",
                 ),
-                family_members=getattr(
+                details=getattr(
                     patient_data,
                     f"{diagnosis.text_abbreviation}_text",
                 )

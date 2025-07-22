@@ -1525,9 +1525,7 @@ class _FamilyPsychiatricHistory:
             second_degree = any(disorder.second_degree for disorder in disorders)
             third_degree = any(disorder.third_degree for disorder in disorders)
             is_diagnosed = any(disorder.is_diagnosed for disorder in disorders)
-            family_members = " ".join(
-                [disorder.family_members for disorder in disorders]
-            )
+            family_members = " ".join([disorder.details for disorder in disorders])
             history = [
                 disorder for disorder in history if disorder.name not in merge.old_names
             ]
@@ -1539,7 +1537,7 @@ class _FamilyPsychiatricHistory:
                     second_degree=second_degree,
                     third_degree=third_degree,
                     is_diagnosed=is_diagnosed,
-                    family_members=family_members,
+                    details=family_members,
                 )
             )
         return history
@@ -1621,10 +1619,8 @@ class _FamilyPsychiatricHistory:
         for diagnosis in diagnoses:
             if not diagnosis.is_diagnosed:
                 continue
-            if diagnosis.family_members:
-                family_members = self.llm.classify_family_relatedness(
-                    diagnosis.family_members
-                )
+            if diagnosis.details:
+                family_members = self.llm.classify_family_relatedness(diagnosis.details)
             else:
                 # History endorsed, but not specified.
                 family_members = string_utils.oxford_comma(
