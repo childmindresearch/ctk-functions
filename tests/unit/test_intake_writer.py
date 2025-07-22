@@ -164,11 +164,11 @@ def test__family_psychiatric_history_get_endorsed_diagnoses_specified(
 
     history = writer._FamilyPsychiatricHistory(patient=None, llm=None)  # type: ignore[arg-type]
     history.llm = mocker.Mock()
-    history.llm.classify_family_relatedness = mocker.Mock(return_value="")
+    history.llm.classify_family_relatedness = mocker.Mock(return_value="")  # type: ignore[method-assign]
 
     history._get_endorsed_diagnoses([diagnoses])
 
-    history.llm.classify_family_relatedness.assert_called_once_with(diagnoses.details)
+    history.llm.classify_family_relatedness.assert_called_once_with(diagnoses.details)  # type: ignore[attr-defined]
 
 
 def test__family_psychiatric_history_get_endorsed_diagnoses_unspecified() -> None:
@@ -390,7 +390,7 @@ def test__family_psychiatric_history_write_psychiatric_history_both_unknown(
     )
 
     fph = writer._FamilyPsychiatricHistory(patient=patient, llm=None)  # type: ignore[arg-type]
-    fph._write_history_unknown = mocker.Mock(return_value="History unknown")
+    fph._write_history_unknown = mocker.Mock(return_value="History unknown")  # type: ignore[method-assign]
 
     result = fph.write_psychiatric_history()
     assert result == "History unknown"
