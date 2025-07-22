@@ -623,11 +623,20 @@ class FamilyPsychiatricHistory:
         return [
             parser_models.FamilyPsychiatricHistory(
                 name=diagnosis.name,
+                first_degree=getattr(
+                    patient_data, f"{diagnosis.checkbox_abbreviation}___1"
+                ),
+                second_degree=getattr(
+                    patient_data, f"{diagnosis.checkbox_abbreviation}___2"
+                ),
+                third_degree=getattr(
+                    patient_data, f"{diagnosis.checkbox_abbreviation}___3"
+                ),
                 is_diagnosed=not getattr(
                     patient_data,
                     f"{diagnosis.checkbox_abbreviation}___4",
                 ),
-                family_members=getattr(
+                details=getattr(
                     patient_data,
                     f"{diagnosis.text_abbreviation}_text",
                 )

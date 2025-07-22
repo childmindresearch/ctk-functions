@@ -1521,10 +1521,11 @@ class _FamilyPsychiatricHistory:
                 if not is_all_same:
                     continue
 
+            first_degree = any(disorder.first_degree for disorder in disorders)
+            second_degree = any(disorder.second_degree for disorder in disorders)
+            third_degree = any(disorder.third_degree for disorder in disorders)
             is_diagnosed = any(disorder.is_diagnosed for disorder in disorders)
-            family_members = " ".join(
-                [disorder.family_members for disorder in disorders]
-            )
+            family_members = " ".join([disorder.details for disorder in disorders])
             history = [
                 disorder for disorder in history if disorder.name not in merge.old_names
             ]
@@ -1532,8 +1533,11 @@ class _FamilyPsychiatricHistory:
             history.append(
                 parser_models.FamilyPsychiatricHistory(
                     name=merge.new_name,
+                    first_degree=first_degree,
+                    second_degree=second_degree,
+                    third_degree=third_degree,
                     is_diagnosed=is_diagnosed,
-                    family_members=family_members,
+                    details=family_members,
                 )
             )
         return history
@@ -1562,6 +1566,7 @@ class _FamilyPsychiatricHistory:
         )
 
     def write_psychiatric_history(self) -> str:
+        """Write section on the patient's family psychiatric history."""
         history = self.patient.psychiatric_history.family_psychiatric_history
         if not history.is_father_history_known and not history.is_mother_history_known:
             return self._write_history_unknown()
@@ -1576,27 +1581,19 @@ class _FamilyPsychiatricHistory:
             unknown_history_line = ""
 
         diagnoses = self._remove_diagnoses(self._merge_diagnoses(history.diagnoses))
-        endorsed_diagnoses = string_utils.oxford_comma(
-            [
-                diagnosis.name
-                + " ("
-                + self.llm.classify_family_relatedness(diagnosis.family_members)
-                + ")"
-                for diagnosis in diagnoses
-                if diagnosis.is_diagnosed
-            ]
-        )
-        denied_diagnoses = string_utils.oxford_comma(
-            [diagnosis.name for diagnosis in diagnoses if not diagnosis.is_diagnosed]
-        )
+        endorsed_diagnoses = self._get_endorsed_diagnoses(diagnoses)
+
+        denied_diagnoses = [
+            diagnosis.name for diagnosis in diagnoses if not diagnosis.is_diagnosed
+        ]
 
         endorsed_sentence = (
             f"{self.patient.first_name}'s family history "
-            f"is remarkable for {endorsed_diagnoses}."
+            f"is remarkable for {string_utils.oxford_comma(endorsed_diagnoses)}."
         )
         denied_sentence = (
             f"{self.patient.guardian.title_name} denied any "
-            f"family history related to {denied_diagnoses}."
+            f"family history related to {string_utils.oxford_comma(denied_diagnoses)}."
         )
 
         first_sentence = (
@@ -1609,3 +1606,38 @@ class _FamilyPsychiatricHistory:
         )
 
         return first_sentence + " " + denied_sentence + unknown_history_line
+
+    def _get_endorsed_diagnoses(
+        self, diagnoses: list[parser_models.FamilyPsychiatricHistory]
+    ) -> list[str]:
+        """Generates the text for endorsed diagnoses.
+
+        If the parent provided details, use an LLM to summarize. If not, simply
+        use the information from the checkboxes (booleans).
+        """
+        endorsed_diagnoses = []
+        for diagnosis in diagnoses:
+            if not diagnosis.is_diagnosed:
+                continue
+            if diagnosis.details:
+                family_members = self.llm.classify_family_relatedness(diagnosis.details)
+            else:
+                # History endorsed, but not specified.
+                family_members = string_utils.oxford_comma(
+                    [
+                        (
+                            f"{index + 1}{string_utils.ordinal_suffix(index + 1)} "
+                            "degree relative"
+                        )
+                        for index, diagnosed in enumerate(
+                            (
+                                diagnosis.first_degree,
+                                diagnosis.second_degree,
+                                diagnosis.third_degree,
+                            )
+                        )
+                        if diagnosed
+                    ]
+                )
+            endorsed_diagnoses.append(f"{diagnosis.name} ({family_members})")
+        return endorsed_diagnoses

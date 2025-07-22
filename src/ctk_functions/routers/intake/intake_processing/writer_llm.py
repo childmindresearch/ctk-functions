@@ -61,7 +61,14 @@ class LlmPlaceholder(pydantic.BaseModel):
 
     async def await_replacement(self) -> None:
         """Awaits the replacement and sets the text property."""
-        self._text = await self.replacement
+        try:
+            self._text = await self.replacement
+        except Exception as exc_info:
+            logger.exception("LLM Call failed.")
+            self._text = "AN ERROR OCCURRED, PLEASE CONTACT A DEVELOPER"
+            self.comment = (
+                self.comment or ""
+            ) + f"\n\nDEVELOPER ERROR NOTES:\n{exc_info}"
 
 
 BASE_PROMPT = """
