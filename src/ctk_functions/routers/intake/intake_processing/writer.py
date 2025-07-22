@@ -1583,6 +1583,40 @@ class _FamilyPsychiatricHistory:
             unknown_history_line = ""
 
         diagnoses = self._remove_diagnoses(self._merge_diagnoses(history.diagnoses))
+        endorsed_diagnoses = self._get_endorsed_diagnoses(diagnoses)
+
+        denied_diagnoses = [
+            diagnosis.name for diagnosis in diagnoses if not diagnosis.is_diagnosed
+        ]
+
+        endorsed_sentence = (
+            f"{self.patient.first_name}'s family history "
+            f"is remarkable for {string_utils.oxford_comma(endorsed_diagnoses)}."
+        )
+        denied_sentence = (
+            f"{self.patient.guardian.title_name} denied any "
+            f"family history related to {string_utils.oxford_comma(denied_diagnoses)}."
+        )
+
+        first_sentence = (
+            (
+                f"{self.patient.possessive_first_name} family history is largely "
+                "unremarkable for psychiatric illnesses."
+            )
+            if not endorsed_diagnoses
+            else endorsed_sentence
+        )
+
+        return first_sentence + " " + denied_sentence + unknown_history_line
+
+    def _get_endorsed_diagnoses(
+        self, diagnoses: list[parser_models.FamilyPsychiatricHistory]
+    ) -> list[str]:
+        """Generates the text for endorsed diagnoses.
+
+        If the parent provided details, use an LLM to summarize. If not, simply
+        use the information from the checkboxes (booleans).
+        """
         endorsed_diagnoses = []
         for diagnosis in diagnoses:
             if not diagnosis.is_diagnosed:
@@ -1610,27 +1644,4 @@ class _FamilyPsychiatricHistory:
                     ]
                 )
             endorsed_diagnoses.append(f"{diagnosis.name} ({family_members})")
-
-        denied_diagnoses = [
-            diagnosis.name for diagnosis in diagnoses if not diagnosis.is_diagnosed
-        ]
-
-        endorsed_sentence = (
-            f"{self.patient.first_name}'s family history "
-            f"is remarkable for {string_utils.oxford_comma(endorsed_diagnoses)}."
-        )
-        denied_sentence = (
-            f"{self.patient.guardian.title_name} denied any "
-            f"family history related to {string_utils.oxford_comma(denied_diagnoses)}."
-        )
-
-        first_sentence = (
-            (
-                f"{self.patient.possessive_first_name} family history is largely "
-                "unremarkable for psychiatric illnesses."
-            )
-            if not endorsed_diagnoses
-            else endorsed_sentence
-        )
-
-        return first_sentence + " " + denied_sentence + unknown_history_line
+        return endorsed_diagnoses
