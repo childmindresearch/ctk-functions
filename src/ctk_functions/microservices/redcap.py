@@ -1122,68 +1122,161 @@ class RedCapData(pydantic.BaseModel):
     # Family psychiatric history
 
     adhd_text: str | None
+    adhd___1: bool
+    adhd___2: bool
+    adhd___3: bool
     adhd___4: bool
     aa_text: str | None
+    aa___1: bool
+    aa___2: bool
+    aa___3: bool
     aa___4: bool
     autism_text: str | None
+    autism___1: bool
+    autism___2: bool
+    autism___3: bool
     autism___4: bool
     biohx_dad_other: bool
     biohx_mom_other: bool
     bipolar_text: str | None
+    bipolar___1: bool
+    bipolar___2: bool
+    bipolar___3: bool
     bipolar___4: bool
     conduct_text: str | None
+    conduct___1: bool
+    conduct___2: bool
+    conduct___3: bool
     conduct___4: bool
     depression_text: str | None
+    depression___1: bool
+    depression___2: bool
+    depression___3: bool
     depression___4: bool
     dmdd_text: str | None
+    dmdd___1: bool
+    dmdd___2: bool
+    dmdd___3: bool
     dmdd___4: bool
     eating_text: str | None
+    eating___1: bool
+    eating___2: bool
+    eating___3: bool
     eating___4: bool
     ee_text: str | None
+    enuresis_encopresis___1: bool
+    enuresis_encopresis___2: bool
+    enuresis_encopresis___3: bool
     enuresis_encopresis___4: bool
     exco_text: str | None
+    excoriation___1: bool
+    excoriation___2: bool
+    excoriation___3: bool
     excoriation___4: bool
     gender_text: str | None
+    gender___1: bool
+    gender___2: bool
+    gender___3: bool
     gender___4: bool
     genanx_text: str | None
+    gad___1: bool
+    gad___2: bool
+    gad___3: bool
     gad___4: bool
     id_text: str | None
+    intellectual___1: bool
+    intellectual___2: bool
+    intellectual___3: bool
     intellectual___4: bool
     ld_text: str | None
+    language_disorder___1: bool
+    language_disorder___2: bool
+    language_disorder___3: bool
     language_disorder___4: bool
     ocd_text: str | None
+    ocd___1: bool
+    ocd___2: bool
+    ocd___3: bool
     ocd___4: bool
     odd_text: str | None
+    odd___1: bool
+    odd___2: bool
+    odd___3: bool
     odd___4: bool
     panic_text: str | None
+    panic___1: bool
+    panic___2: bool
+    panic___3: bool
     panic___4: bool
     personality_text: str | None
+    personality___1: bool
+    personality___2: bool
+    personality___3: bool
     personality___4: bool
     psychosis_text: str | None
+    psychosis___1: bool
+    psychosis___2: bool
+    psychosis___3: bool
     psychosis___4: bool
     ptsd_text: str | None
+    ptsd___1: bool
+    ptsd___2: bool
+    ptsd___3: bool
     ptsd___4: bool
     rad_text: str | None
+    rad___1: bool
+    rad___2: bool
+    rad___3: bool
     rad___4: bool
     selective_text: str | None
+    selective_mutism___1: bool
+    selective_mutism___2: bool
+    selective_mutism___3: bool
     selective_mutism___4: bool
     sa_text: str | None
+    separation_anx___1: bool
+    separation_anx___2: bool
+    separation_anx___3: bool
     separation_anx___4: bool
     social_text: str | None
+    social_anx___1: bool
+    social_anx___2: bool
+    social_anx___3: bool
     social_anx___4: bool
     sldmath_text: str | None
+    sld_math___1: bool
+    sld_math___2: bool
+    sld_math___3: bool
     sld_math___4: bool
     sldread_text: str | None
+    sld_read___1: bool
+    sld_read___2: bool
+    sld_read___3: bool
     sld_read___4: bool
     sldexp_text: str | None
+    sld_write___1: bool
+    sld_write___2: bool
+    sld_write___3: bool
     sld_write___4: bool
     spho_text: str | None
+    phobias___1: bool
+    phobias___2: bool
+    phobias___3: bool
     phobias___4: bool
     suba_text: str | None
+    substance___1: bool
+    substance___2: bool
+    substance___3: bool
     substance___4: bool
     suicide_text: str | None
+    suicide___1: bool
+    suicide___2: bool
+    suicide___3: bool
     suicide___4: bool
     tt_text: str | None
+    tic_tourette___1: bool
+    tic_tourette___2: bool
+    tic_tourette___3: bool
     tic_tourette___4: bool
 
     # Therapeutic interventions
