@@ -33,7 +33,6 @@ def post_referral(request: schemas.PostReferralRequest) -> bytes:
 
     out = io.BytesIO()
     doc.save(out)
-    doc.save("/Users/reinder.vosdewael/Desktop/test.docx")
     return out.getvalue()
 
 
