@@ -764,15 +764,27 @@ class ReportWriter:
         patient = self.intake.patient
         social_functioning = patient.social_functioning
 
-        adjectives = self.llm.run_for_adjectives(
-            social_functioning.talents,
-            comment=f"Talents: {social_functioning.talents}",
-        )
-        text = f"""
-            {patient.guardian.title_name} was pleased to describe
-            {patient.first_name} as a {adjectives.lower()}
-            {patient.age_gender_label}.
-        """
+        self._insert("Social Functioning", word.StyleName.HEADING_2)
+
+        if social_functioning.talents:
+            adjectives = self.llm.run_for_adjectives(
+                social_functioning.talents,
+                comment=f"Talents: {social_functioning.talents}",
+            )
+            paragraph = self._insert(
+                string_utils.remove_excess_whitespace(f"""{patient.guardian.title_name}
+                was pleased to describe {patient.first_name} as a {adjectives.lower()}
+                {patient.age_gender_label}.""")
+            )
+        else:
+            paragraph = self._insert(
+                string_utils.remove_excess_whitespace(f"""{patient.guardian.title_name}
+                was pleased to describe {patient.first_name} as a """)
+            )
+            cmi_docx.ExtendRun(paragraph.add_run(" NO TALENTS PROVIDED ")).format(
+                cmi_docx.RunStyle(font_rgb=_RGB.ERROR.value)
+            )
+            paragraph.add_run(f"{patient.age_gender_label}.")
 
         llm_text = f"""
             {patient.guardian.title_name} reported that
@@ -807,11 +819,7 @@ class ReportWriter:
             comment=string_utils.remove_excess_whitespace(llm_text),
         )
 
-        text += f" {placeholder}"
-        text = string_utils.remove_excess_whitespace(text)
-
-        self._insert("Social Functioning", word.StyleName.HEADING_2)
-        self._insert(text)
+        paragraph.add_run(f" {placeholder}")
         self._insert("")
 
     def write_psychiatric_history(self) -> None:
