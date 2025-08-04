@@ -1354,8 +1354,8 @@ class RedCapData(pydantic.BaseModel):
 
     # Social Functioning
 
-    child_talents: str
-    social_concerns: str
+    child_talents: str | None
+    social_concerns: str | None
 
     @classmethod
     def from_csv(cls, csv_data: str) -> Self:
