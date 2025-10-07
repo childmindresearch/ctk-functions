@@ -732,13 +732,16 @@ class ReportWriter:
         if not household.home_functioning:
             text_adaptive = f"""
                 {patient.guardian.title_name} denied any concerns regarding
-                {patient.possessive_first_name} daily living skills or
-                hygiene in the home.// Per {patient.guardian.title_name},
-                {patient.first_name} has a history of
-                difficulties with daily living skills and hygiene. (Include details of
-                whether these tasks are not completed due to lack of willingness,
-                capability, or both, and specify which skills the child is or is not
-                performing).
+                {patient.possessive_first_name} sensory processing, daily living skills
+                or hygiene in the home.// OR Per {patient.guardian.title_name},
+                {patient.first_name} has a history of difficulties with daily living
+                skills and hygiene. ((include details of whether these tasks are not
+                completed due to lack of willingness, capability, or both, and specify
+                which skills the child is or is not performing).
+                {patient.guardian.title_name} reported that {patient.first_name}
+                displays issues with sensory processing, including sensory seeking
+                behaviors (e.g., ___) and/or sensory sensitivities (e.g., ___ )
+                (Include details about the types of input the child seeks or avoids).
             """
             text_color = _RGB.UNRELIABLE
         else:
