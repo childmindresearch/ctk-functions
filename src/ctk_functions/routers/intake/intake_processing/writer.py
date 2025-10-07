@@ -731,9 +731,16 @@ class ReportWriter:
 
         if not household.home_functioning:
             text_adaptive = f"""
-                {patient.guardian.title_name} denied any concerns with
-                {patient.pronouns[2]} functioning in the home setting.
+                {patient.guardian.title_name} denied any concerns regarding
+                {patient.possessive_first_name} daily living skills or
+                hygiene in the home.// Per {patient.guardian.title_name},
+                {patient.first_name} has a history of
+                difficulties with daily living skills and hygiene. (Include details of
+                whether these tasks are not completed due to lack of willingness,
+                capability, or both, and specify which skills the child is or is not
+                performing).
             """
+            text_color = _RGB.UNRELIABLE
         else:
             text_adaptive = self.llm.run_text_with_parent_input(
                 text=f"""
@@ -748,6 +755,7 @@ class ReportWriter:
                     + household.home_functioning
                 ),
             )
+            text_color = _RGB.LLM
 
         text_home = string_utils.remove_excess_whitespace(text_home)
         text_adaptive = string_utils.remove_excess_whitespace(text_adaptive)
@@ -755,7 +763,10 @@ class ReportWriter:
         self._insert("Home and Adaptive Functioning", word.StyleName.HEADING_2)
         self._insert(text_home)
         self._insert("")
-        self._insert(text_adaptive)
+        para = self._insert(text_adaptive)
+        cmi_docx.ExtendParagraph(para).format(
+            style=cmi_docx.ParagraphStyle(font_rgb=text_color.value)
+        )
         self._insert("")
 
     def write_social_functioning(self) -> None:
