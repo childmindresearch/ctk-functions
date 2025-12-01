@@ -37,6 +37,8 @@ jobs:
       with:
         platforms: linux/amd64
         context: .
+        secrets: |
+          AZURE_BLOB_SIGNATURES_CONNECTION_STRING=${{ secrets.AZURE_BLOB_SIGNATURES_CONNECTION_STRING }}
         file: ./Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
