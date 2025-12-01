@@ -13,7 +13,7 @@ RUN apt-get update; apt-get install -y curl unzip
 RUN mkdir /downloads
 RUN curl -o /downloads/azure-blob-signatures.zip $AZURE_BLOB_SIGNATURES_CONNECTION_STRING
 RUN unzip /downloads/azure-blob-signatures.zip
-RUN mv *.png src/ctk_functions/data/signatures
+RUN mv signatures/*.png src/ctk_functions/data/signatures
 RUN uv sync --frozen --no-cache --no-dev
 
 
