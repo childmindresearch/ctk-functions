@@ -5,6 +5,7 @@ on:
     types: [created]
 
 env:
+  AZURE_BLOB_SIGNATURES_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_SIGNATURES_CONNECTION_STRING }}
   REGISTRY: acrctkshared.azurecr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -36,9 +37,7 @@ jobs:
       uses: docker/build-push-action@v6.18.0
       with:
         platforms: linux/amd64
-        context: .
-        secrets: |
-          AZURE_BLOB_SIGNATURES_CONNECTION_STRING=${{ secrets.AZURE_BLOB_SIGNATURES_CONNECTION_STRING }}
+        context: .          
         file: ./Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
